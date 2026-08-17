@@ -1,9 +1,9 @@
 site_name: YourHealthResearch.org Application Context
 site_description: Functional, architectural, governance, data-model, and support documentation for YourHealthResearch.org
-site_url: https://umich-michr.github.io/context-yhr/
+site_url: https://umich-michr.github.io/yhr-context/
 
-repo_name: umich-michr/context-yhr
-repo_url: https://github.com/umich-michr/context-yhr
+repo_name: umich-michr/yhr-context
+repo_url: https://github.com/umich-michr/yhr-context
 edit_uri: edit/main/docs/
 
 docs_dir: docs
@@ -129,7 +129,7 @@ extra:
   generator: false
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/umich-michr/context-yhr
+      link: https://github.com/umich-michr/yhr-context
 
 copyright: >
   YourHealthResearch.org application documentation.
