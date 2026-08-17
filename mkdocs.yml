@@ -1,0 +1,135 @@
+site_name: YourHealthResearch.org Application Context
+site_description: Functional, architectural, governance, data-model, and support documentation for YourHealthResearch.org
+site_url: https://umich-michr.github.io/context-yhr/
+
+repo_name: umich-michr/context-yhr
+repo_url: https://github.com/umich-michr/context-yhr
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.indexes
+    - navigation.sections
+    - navigation.tabs
+    - navigation.top
+    - navigation.footer
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - content.action.edit
+    - content.code.copy
+    - content.tooltips
+  palette:
+    - scheme: default
+      primary: blue
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: blue
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+
+  - Overview:
+      - Overview: 01-overview/index.md
+      - Terminology: 01-overview/terminology.md
+      - Business Rules: 01-overview/business-rules.md
+
+  - Architecture:
+      - Architecture: 02-architecture/index.md
+      - System Context: 02-architecture/system-context.md
+      - Multi-Institution Deployment: 02-architecture/multi-institution-deployment.md
+      - Data Ownership: 02-architecture/data-ownership.md
+
+  - Institutional Governance:
+      - Governance Overview: 03-institutional-governance/index.md
+      - Imported Data: 03-institutional-governance/imported-data.md
+      - Import Pipeline: 03-institutional-governance/import-pipeline.md
+      - Publishability: 03-institutional-governance/publishability.md
+      - Daily Reconciliation: 03-institutional-governance/reconciliation.md
+
+  - Users and Access:
+      - Users and Access: 04-users-and-access/index.md
+      - Participants: 04-users-and-access/participants.md
+      - Institutional Users: 04-users-and-access/institutional-users.md
+      - Study Membership: 04-users-and-access/study-membership.md
+      - Invitations: 04-users-and-access/invitations.md
+
+  - Study Management:
+      - Study Management: 05-study-management/index.md
+      - Posting Creation: 05-study-management/posting-creation.md
+      - Study Lifecycle: 05-study-management/study-lifecycle.md
+
+  - Recruitment:
+      - Recruitment Overview: 06-recruitment/index.md
+      - Matching and Visibility: 06-recruitment/matching-and-visibility.md
+      - Ask If Interested: 06-recruitment/ask-if-interested.md
+      - Expressions of Interest: 06-recruitment/expressions-of-interest.md
+      - Questionnaires and Exports: 06-recruitment/questionnaires-and-exports.md
+
+  - Data Model:
+      - Data Model: 07-data-model/index.md
+      - Imported Schema: 07-data-model/imported-schema.md
+      - Operational Schema: 07-data-model/operational-schema.md
+
+  - Operations:
+      - Operations: 08-operations/index.md
+      - Support Routing: 08-operations/support-routing.md
+      - Troubleshooting: 08-operations/troubleshooting.md
+      - Audit and Monitoring: 08-operations/audit-and-monitoring.md
+
+  - Decisions:
+      - Decision Register: 09-decisions/index.md
+      - Open Questions: 09-decisions/open-questions.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+hooks:
+  - scripts/hooks.py
+
+plugins:
+  - search:
+      lang: en
+
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/umich-michr/context-yhr
+
+copyright: >
+  YourHealthResearch.org application documentation.

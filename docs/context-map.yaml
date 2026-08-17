@@ -1,0 +1,200 @@
+document:
+  title: YourHealthResearch.org Application Context
+  tagline: >
+    Functional, architectural, governance, data-model, and support documentation
+    for a human-subject research recruitment application.
+  purpose:
+    - support_questions
+    - functional_analysis
+    - architecture_analysis
+    - data_model_mapping
+    - lifecycle_management
+    - feature_design
+  interpretation:
+    confirmed_rules: "01-overview/business-rules.md"
+    unresolved_behavior: "09-decisions/open-questions.md"
+    terminology: "01-overview/terminology.md"
+  interpretation_rules:
+    - "Treat business rules as confirmed unless a later approved revision changes them."
+    - "Treat recommendations as proposed controls, not existing behavior."
+    - "Treat items in the open-question register as unresolved."
+    - "Distinguish institutional roles from application roles."
+    - "Distinguish imported source-of-truth data from operational application data."
+    - "Distinguish historical participant-study relationships from current visibility."
+    - "Do not assume a valid institutional login grants access to every study."
+    - "Do not assume that an IRB-approved study is necessarily publishable through this recruitment tool."
+
+# Start-here entries appear at the top of llms.txt before the topic sections.
+start_here:
+  - path: "index.md"
+    label: "Documentation home"
+    note: "Application summary and topic routing."
+  - path: "01-overview/terminology.md"
+    label: "Terminology"
+    note: "Canonical definitions."
+  - path: "01-overview/business-rules.md"
+    label: "Business rules"
+    note: "Confirmed cross-cutting invariants."
+  - path: "09-decisions/open-questions.md"
+    label: "Open questions"
+    note: "Behavior that is not yet confirmed."
+
+# Topic sections group related pages under a human-readable heading in llms.txt.
+# Each section has a heading and one or more topics whose pages are inlined.
+# Topics here are references to the keys in the `topics` map below.
+sections:
+  - heading: "Application purpose or general behavior"
+    topics:
+      - application_overview
+
+  - heading: "Multi-institution architecture or branded deployments"
+    topics:
+      - multi_institution_deployment
+
+  - heading: "eResearch, institutional governance, imported data, or CSV uploads"
+    topics:
+      - institutional_governance
+      - eresearch
+      - csv_upload
+
+  - heading: "Whether a study may recruit"
+    topics:
+      - publishability
+
+  - heading: "PI identification, PI changes, or application roles"
+    topics:
+      - principal_investigator
+
+  - heading: "Creating a study posting"
+    topics:
+      - study_posting_creation
+
+  - heading: "Participant accounts, profiles, or visibility"
+    topics:
+      - participant_profile
+      - matching
+
+  - heading: "Matching, recommendations, or participant discoverability"
+    topics:
+      - matching
+      - ask_if_interested
+
+  - heading: "Participant interest or screening"
+    topics:
+      - expression_of_interest
+      - questionnaires
+
+  - heading: "Database tables or entity relationships"
+    topics:
+      - data_model
+
+  - heading: "Support or troubleshooting"
+    topics:
+      - troubleshooting
+      - audit_and_monitoring
+
+topics:
+  application_overview:
+    label: "Application overview"
+    primary: "01-overview/index.md"
+    related:
+      - "02-architecture/system-context.md"
+
+  terminology:
+    label: "Terminology"
+    primary: "01-overview/terminology.md"
+
+  multi_institution_deployment:
+    label: "Multi-institution deployment"
+    primary: "02-architecture/multi-institution-deployment.md"
+    related:
+      - "02-architecture/data-ownership.md"
+
+  institutional_governance:
+    label: "Institutional governance"
+    primary: "03-institutional-governance/index.md"
+    related:
+      - "03-institutional-governance/imported-data.md"
+      - "03-institutional-governance/import-pipeline.md"
+
+  eresearch:
+    label: "eResearch and imported data"
+    primary: "03-institutional-governance/import-pipeline.md"
+    related:
+      - "03-institutional-governance/imported-data.md"
+
+  csv_upload:
+    label: "CSV upload"
+    primary: "03-institutional-governance/import-pipeline.md"
+
+  imported_tables:
+    label: "Imported tables"
+    primary: "07-data-model/imported-schema.md"
+    related:
+      - "03-institutional-governance/imported-data.md"
+
+  publishability:
+    label: "Publishability"
+    primary: "03-institutional-governance/publishability.md"
+    related:
+      - "03-institutional-governance/reconciliation.md"
+      - "05-study-management/study-lifecycle.md"
+
+  principal_investigator:
+    label: "Principal investigator"
+    primary: "04-users-and-access/institutional-users.md"
+    related:
+      - "04-users-and-access/study-membership.md"
+      - "03-institutional-governance/reconciliation.md"
+
+  study_posting_creation:
+    label: "Study posting creation"
+    primary: "05-study-management/posting-creation.md"
+    related:
+      - "03-institutional-governance/imported-data.md"
+      - "04-users-and-access/study-membership.md"
+
+  participant_profile:
+    label: "Participant profile"
+    primary: "04-users-and-access/participants.md"
+
+  matching:
+    label: "Matching and visibility"
+    primary: "06-recruitment/matching-and-visibility.md"
+
+  ask_if_interested:
+    label: "Ask if interested"
+    primary: "06-recruitment/ask-if-interested.md"
+
+  expression_of_interest:
+    label: "Expressions of interest"
+    primary: "06-recruitment/expressions-of-interest.md"
+
+  questionnaires:
+    label: "Questionnaires and exports"
+    primary: "06-recruitment/questionnaires-and-exports.md"
+
+  exports:
+    label: "Exports"
+    primary: "06-recruitment/questionnaires-and-exports.md"
+
+  data_model:
+    label: "Data model"
+    primary: "07-data-model/index.md"
+    related:
+      - "07-data-model/imported-schema.md"
+      - "07-data-model/operational-schema.md"
+
+  troubleshooting:
+    label: "Troubleshooting"
+    primary: "08-operations/troubleshooting.md"
+    related:
+      - "08-operations/support-routing.md"
+
+  audit_and_monitoring:
+    label: "Audit and monitoring"
+    primary: "08-operations/audit-and-monitoring.md"
+
+  unresolved_questions:
+    label: "Open questions"
+    primary: "09-decisions/open-questions.md"
