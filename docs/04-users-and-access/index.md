@@ -1,6 +1,6 @@
 ---
 title: Users and Access
-summary: Participant accounts, institutional authentication, and study-scoped authorization.
+summary: Participant accounts, institutional authentication, application-wide roles, and study-scoped authorization.
 status: authoritative
 ---
 
@@ -12,26 +12,45 @@ The application supports two broad identity models.
 
 Participants use local database-backed accounts with email addresses as usernames.
 
+Participants normally have the application-wide role:
+
+```text
+VOLUNTEER
+```
+
 ## Institutional users
 
-Study team members and PIs authenticate using institutional SAML.
+Study team members, PIs, study importers, and administrators authenticate using institutional SAML.
 
-Authentication does not grant universal study access. Authorization is study-scoped and membership-based.
+Institutional authentication does not grant universal study access.
 
-## Application User Roles
+## Application-wide roles
 
-Participants => VOLUNTEER
-Institutional Users => STAFF, ADMIN, STUDY_IMPORTER
-Any user who is either PI or study team member for a study by default is STAFF if not more privileges are required.
+| Role | General purpose |
+|---|---|
+| `VOLUNTEER` | Participant access |
+| `STAFF` | Institutional study-team access |
+| `STUDY_IMPORTER` | Institutional CSV-import access |
+| `ADMIN` | Application-wide administrative access |
 
-## Application study roles
+A study team member or PI normally has the application-wide role `STAFF`.
+
+Broader application roles, such as `ADMIN`, may grant additional application capabilities.
+
+## Study-association roles
+
+Study-specific authorization uses:
 
 ```text
 PRINCIPAL_INVESTIGATOR
 STUDY_TEAM_MEMBER
 ```
 
-Read:
+A `STAFF` role alone does not grant access to an individual study.
+
+The user must also have a study association unless broader administrative access applies.
+
+## Read next
 
 - [Participants](participants.md)
 - [Institutional users](institutional-users.md)

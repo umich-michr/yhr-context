@@ -1,6 +1,6 @@
 ---
 title: Study Management
-summary: Study posting creation, activation, deactivation, and governance.
+summary: Study posting creation, AI-assisted authoring, activation, deactivation, and governance.
 status: authoritative
 ---
 
@@ -21,5 +21,6 @@ A posting:
 Read:
 
 - [Posting creation](posting-creation.md)
+- [AI-assisted study-posting authoring](ai-assisted-posting-authoring.md)
 - [Study lifecycle](study-lifecycle.md)
 - [Publishability](../03-institutional-governance/publishability.md)

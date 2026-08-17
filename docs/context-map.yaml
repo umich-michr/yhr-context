@@ -68,6 +68,14 @@ sections:
   - heading: "Creating a study posting"
     topics:
       - study_posting_creation
+      - ai_assisted_authoring
+
+  - heading: "Study information, eligibility authoring, and matching"
+    topics:
+      - study_property_model
+      - eligibility_criteria_authoring
+      - criteria_data_model
+      - matching
 
   - heading: "Participant accounts, profiles, or visibility"
     topics:
@@ -83,15 +91,25 @@ sections:
     topics:
       - expression_of_interest
       - questionnaires
+      - exports
 
   - heading: "Database tables or entity relationships"
     topics:
       - data_model
+      - study_property_model
+      - criteria_data_model
+      - relationship_model
 
   - heading: "Support or troubleshooting"
     topics:
       - troubleshooting
       - audit_and_monitoring
+      - authoring_telemetry
+
+  - heading: "Open questions, decisions, or unresolved analytics"
+    topics:
+      - unresolved_questions
+      - authoring_analytics_questions
 
 topics:
   application_overview:
@@ -153,6 +171,16 @@ topics:
     related:
       - "03-institutional-governance/imported-data.md"
       - "04-users-and-access/study-membership.md"
+      - "05-study-management/ai-assisted-posting-authoring.md"
+
+  ai_assisted_authoring:
+    label: "AI-assisted study-posting authoring"
+    primary: "05-study-management/ai-assisted-posting-authoring.md"
+    related:
+      - "05-study-management/posting-creation.md"
+      - "06-recruitment/eligibility-criteria-authoring.md"
+      - "07-data-model/study-property-model.md"
+      - "08-operations/authoring-telemetry-and-complexity.md"
 
   participant_profile:
     label: "Participant profile"
@@ -161,10 +189,21 @@ topics:
   matching:
     label: "Matching and visibility"
     primary: "06-recruitment/matching-and-visibility.md"
+    related:
+      - "06-recruitment/eligibility-criteria-authoring.md"
+      - "07-data-model/criteria-data-model.md"
 
   ask_if_interested:
     label: "Ask if interested"
     primary: "06-recruitment/ask-if-interested.md"
+
+  eligibility_criteria_authoring:
+    label: "Eligibility-criteria authoring"
+    primary: "06-recruitment/eligibility-criteria-authoring.md"
+    related:
+      - "06-recruitment/matching-and-visibility.md"
+      - "07-data-model/criteria-data-model.md"
+      - "08-operations/authoring-telemetry-and-complexity.md"
 
   expression_of_interest:
     label: "Expressions of interest"
@@ -184,6 +223,31 @@ topics:
     related:
       - "07-data-model/imported-schema.md"
       - "07-data-model/operational-schema.md"
+      - "07-data-model/study-property-model.md"
+      - "07-data-model/criteria-data-model.md"
+
+  study_property_model:
+    label: "Study property model"
+    primary: "07-data-model/study-property-model.md"
+    related:
+      - "05-study-management/ai-assisted-posting-authoring.md"
+      - "07-data-model/index.md"
+
+  criteria_data_model:
+    label: "Criteria data model"
+    primary: "07-data-model/criteria-data-model.md"
+    related:
+      - "06-recruitment/eligibility-criteria-authoring.md"
+      - "06-recruitment/matching-and-visibility.md"
+      - "07-data-model/index.md"
+
+  relationship_model:
+    label: "Relationship model"
+    primary: "07-data-model/relationship-model.md"
+    related:
+      - "07-data-model/index.md"
+      - "07-data-model/study-property-model.md"
+      - "07-data-model/criteria-data-model.md"
 
   troubleshooting:
     label: "Troubleshooting"
@@ -195,6 +259,23 @@ topics:
     label: "Audit and monitoring"
     primary: "08-operations/audit-and-monitoring.md"
 
+  authoring_telemetry:
+    label: "Authoring telemetry and complexity"
+    primary: "08-operations/authoring-telemetry-and-complexity.md"
+    related:
+      - "05-study-management/ai-assisted-posting-authoring.md"
+      - "06-recruitment/eligibility-criteria-authoring.md"
+      - "07-data-model/study-property-model.md"
+      - "07-data-model/criteria-data-model.md"
+
   unresolved_questions:
     label: "Open questions"
     primary: "09-decisions/open-questions.md"
+
+  authoring_analytics_questions:
+    label: "Authoring analytics open questions"
+    primary: "09-decisions/authoring-analytics-open-questions.md"
+    related:
+      - "05-study-management/ai-assisted-posting-authoring.md"
+      - "06-recruitment/eligibility-criteria-authoring.md"
+      - "08-operations/authoring-telemetry-and-complexity.md"

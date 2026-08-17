@@ -1,6 +1,6 @@
 ---
 title: Recruitment Overview
-summary: Matching, promotion, participant interest, screening, and export.
+summary: Eligibility authoring, matching, promotion, participant interest, screening, and export.
 status: authoritative
 ---
 
@@ -11,7 +11,7 @@ The recruitment workflow combines:
 1. Participant profile information
 2. Participant study preferences
 3. Study attributes
-4. Inclusion and exclusion criteria
+4. Eligibility criteria
 5. Participant visibility settings
 6. Study-team promotion
 7. Participant expressions of interest
@@ -45,6 +45,7 @@ flowchart LR
 
 Read:
 
+- [Eligibility-criteria authoring](eligibility-criteria-authoring.md)
 - [Matching and visibility](matching-and-visibility.md)
 - [Ask if interested](ask-if-interested.md)
 - [Expressions of interest](expressions-of-interest.md)

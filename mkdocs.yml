@@ -1,6 +1,6 @@
 site_name: YourHealthResearch.org Application Context
 site_description: Functional, architectural, governance, data-model, and support documentation for YourHealthResearch.org
-site_url: https://umich-michr.github.io/yhr-context/
+site_url: !ENV [SITE_URL, ""]
 
 repo_name: umich-michr/yhr-context
 repo_url: https://github.com/umich-michr/yhr-context
@@ -58,7 +58,7 @@ nav:
       - Imported Data: 03-institutional-governance/imported-data.md
       - Import Pipeline: 03-institutional-governance/import-pipeline.md
       - Publishability: 03-institutional-governance/publishability.md
-      - Daily Reconciliation: 03-institutional-governance/reconciliation.md
+      - Governance Reconciliation: 03-institutional-governance/reconciliation.md
 
   - Users and Access:
       - Users and Access: 04-users-and-access/index.md
@@ -70,10 +70,12 @@ nav:
   - Study Management:
       - Study Management: 05-study-management/index.md
       - Posting Creation: 05-study-management/posting-creation.md
+      - AI-Assisted Authoring: 05-study-management/ai-assisted-posting-authoring.md
       - Study Lifecycle: 05-study-management/study-lifecycle.md
 
   - Recruitment:
       - Recruitment Overview: 06-recruitment/index.md
+      - Eligibility-Criteria Authoring: 06-recruitment/eligibility-criteria-authoring.md
       - Matching and Visibility: 06-recruitment/matching-and-visibility.md
       - Ask If Interested: 06-recruitment/ask-if-interested.md
       - Expressions of Interest: 06-recruitment/expressions-of-interest.md
@@ -83,16 +85,21 @@ nav:
       - Data Model: 07-data-model/index.md
       - Imported Schema: 07-data-model/imported-schema.md
       - Operational Schema: 07-data-model/operational-schema.md
+      - Study Property Model: 07-data-model/study-property-model.md
+      - Criteria Data Model: 07-data-model/criteria-data-model.md
+      - Relationship Model: 07-data-model/relationship-model.md
 
   - Operations:
       - Operations: 08-operations/index.md
       - Support Routing: 08-operations/support-routing.md
       - Troubleshooting: 08-operations/troubleshooting.md
       - Audit and Monitoring: 08-operations/audit-and-monitoring.md
+      - Authoring Telemetry and Complexity: 08-operations/authoring-telemetry-and-complexity.md
 
   - Decisions:
-      - Decision Register: 09-decisions/index.md
-      - Open Questions: 09-decisions/open-questions.md
+     - Decision Register: 09-decisions/index.md
+     - General Open Questions: 09-decisions/open-questions.md
+     - Authoring and Analytics Questions: 09-decisions/authoring-analytics-open-questions.md
 
 markdown_extensions:
   - admonition

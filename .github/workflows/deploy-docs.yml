@@ -33,6 +33,8 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Build documentation
+        env:
+          SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
         run: mkdocs build --strict
 
       - name: Configure GitHub Pages

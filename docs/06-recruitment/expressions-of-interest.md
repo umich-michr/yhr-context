@@ -13,7 +13,7 @@ relevant_when:
 
 An expression of interest is an explicit participant action indicating interest in a study.
 
-Participants cannot withdraw an expression of interest after it has been finalized.
+Participants cannot withdraw a finalized expression of interest.
 
 ## Preconditions
 
@@ -82,7 +82,8 @@ sequenceDiagram
         A-->>P: Display questionnaire if configured
         P->>Q: Answer required and optional questions
         Q-->>A: Submit completed questionnaire
-        A->>A: Finalize expression of interest
+        A->>A: Recheck study status
+        A->>A: Commit profile updates, questionnaire, and interest
         A-->>ST: Show permitted participant data
     else FALSE
         M-->>A: Ineligible
@@ -104,28 +105,37 @@ An incomplete questionnaire cannot be saved or resumed.
 
 ## Interest-record timing
 
-The application creates the interest record only after the questionnaire is
-successfully completed. It does not create a pending interest record, and a
-failed or abandoned questionnaire produces no interest record.
+The application creates the interest record only after the questionnaire is successfully completed.
 
-The temporal-profile update, questionnaire submission, and finalized interest
-are committed in one transaction. If the eligibility recheck or any later step
-fails, none of those changes are saved.
+It does not create a pending interest record.
+
+A failed or abandoned questionnaire produces no interest record.
+
+The following changes are committed in one transaction:
+
+- Temporal-profile updates
+- Questionnaire submission
+- Finalized expression of interest
+
+If the eligibility recheck, study-status recheck, or a later workflow step fails, none of those changes are saved.
 
 ## Participant withdrawal
 
 Participants cannot withdraw a finalized expression of interest through the application.
 
-There is no administrative correction process for an accidental expression of
-interest. Such requests may be raised with support but are not handled by an
-application workflow.
+There is no administrative application workflow for correcting an accidental expression of interest.
+
+Such requests may be raised with support, but they are not handled by a defined application feature.
 
 ## Study status at submission
 
-The application rechecks study status when the participant submits the
-interest workflow. If the study became inactive or non-publishable during
-questionnaire completion, the application does not finalize interest and
-displays a message that the study is no longer recruiting.
+The application rechecks study status when the participant submits the interest workflow.
+
+If the study became inactive or non-publishable during questionnaire completion:
+
+- Interest is not finalized.
+- Temporal-profile and questionnaire changes in the transaction are not saved.
+- The participant sees a message that the study is no longer recruiting.
 
 ## Eligibility changes after interest
 
@@ -136,7 +146,7 @@ After interest is finalized:
 - The application does not reevaluate the completed interest relationship.
 - The participant remains in the interested-participant history even if they would now be ineligible.
 
-## Deactivation after interest
+## Participant deactivation after interest
 
 If the participant account becomes deactivated:
 
@@ -144,13 +154,22 @@ If the participant account becomes deactivated:
 - The participant profile is hidden from the study team.
 - New interactions are blocked.
 
-If the study becomes inactive or non-publishable:
+## Study inactivity after interest
+
+If the study becomes inactive because its date range no longer includes the current date, but `PUBLISHABLE = 1`:
 
 - The historical interest remains.
-- Participant profile information is hidden from the study team.
-- New recruitment interactions are blocked.
+- New expressions of interest are blocked.
+- New matching stops.
+- Authorized study team members may continue to access and export historical interested-participant data.
 
-Historical relationship retention and current data visibility are separate.
+If `PUBLISHABLE = 0`:
+
+- The historical interest remains.
+- Participant information is not accessible to the study team.
+- New participant-data exports are blocked.
+
+Historical relationship retention, active recruitment, and participant-data access are separate concepts.
 
 ## Relationship to Ask if interested
 
@@ -164,6 +183,7 @@ The participant must still:
 - Refresh temporal profile values
 - Pass the eligibility recheck
 - Complete the questionnaire workflow
+- Submit while the study remains active and publishable
 
 ## Related pages
 

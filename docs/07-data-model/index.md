@@ -1,12 +1,12 @@
 ---
 title: Data-Model Overview
-summary: Imported, operational, recruitment, questionnaire, and audit entities.
-status: authoritative
+summary: Imported, operational, study-property, criteria, questionnaire, and audit entities.
+status: mixed
 ---
 
 # Data-Model Overview
 
-The logical model contains five areas.
+The logical model contains six areas.
 
 ## Imported governance
 
@@ -30,6 +30,13 @@ The logical model contains five areas.
 - Study-team prompt
 - Participant-study interest
 
+## Study information and eligibility authoring
+
+- Study property values
+- Criteria groups
+- Criteria expressions
+- Saved suggestion telemetry
+
 ## Questionnaires and exports
 
 - Questionnaire
@@ -50,3 +57,6 @@ Read:
 
 - [Imported schema](imported-schema.md)
 - [Operational schema](operational-schema.md)
+- [Study property model](study-property-model.md)
+- [Criteria data model](criteria-data-model.md)
+- [Relationship model](relationship-model.md)

@@ -174,5 +174,6 @@ The institutionally assigned study number is intentionally included to support r
 - [Imported institutional data](../03-institutional-governance/imported-data.md)
 - [Institutional users](../04-users-and-access/institutional-users.md)
 - [Study membership](../04-users-and-access/study-membership.md)
+- [AI-assisted study-posting authoring](ai-assisted-posting-authoring.md)
 - [Study lifecycle](study-lifecycle.md)
 - [Open questions](../09-decisions/open-questions.md)

@@ -1,6 +1,6 @@
 ---
 title: Decision Register
-summary: Separates confirmed behavior from unresolved product and technical decisions.
+summary: Separates confirmed behavior from unresolved product, telemetry, and technical decisions.
 status: authoritative
 ---
 
@@ -17,10 +17,12 @@ The documentation uses these status categories:
 
 Before answering a question about behavior not explicitly documented as authoritative, consult [Open questions](open-questions.md).
 
+For AI-assisted authoring and analytics questions, consult [Authoring analytics open questions](authoring-analytics-open-questions.md).
+
 When an open question is resolved:
 
 1. Record the decision.
 2. Update the canonical topic page.
 3. Update the business rules if the decision is cross-cutting.
 4. Remove or mark the question resolved.
-5. Regenerate `llms.txt` if routing changes.
+5. Regenerate `llms.txt` from `context-map.yaml` if routing changes.

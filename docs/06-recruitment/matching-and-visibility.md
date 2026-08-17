@@ -83,7 +83,9 @@ When joined by `AND`:
 TRUE AND MAYBE = MAYBE
 ```
 
-### Boolean truth tables
+## Boolean truth tables
+
+### `AND`
 
 | `AND` | `TRUE` | `FALSE` | `MAYBE` |
 |---|---:|---:|---:|
@@ -91,11 +93,15 @@ TRUE AND MAYBE = MAYBE
 | `FALSE` | `FALSE` | `FALSE` | `FALSE` |
 | `MAYBE` | `MAYBE` | `FALSE` | `MAYBE` |
 
+### `OR`
+
 | `OR` | `TRUE` | `FALSE` | `MAYBE` |
 |---|---:|---:|---:|
 | `TRUE` | `TRUE` | `TRUE` | `TRUE` |
 | `FALSE` | `TRUE` | `FALSE` | `MAYBE` |
 | `MAYBE` | `TRUE` | `MAYBE` | `MAYBE` |
+
+### `NOT`
 
 | Input | `NOT` result |
 |---|---|
@@ -105,13 +111,15 @@ TRUE AND MAYBE = MAYBE
 
 ## Match categories
 
-| Eligibility result | Display category |
+| Eligibility result | Study-team category |
 |---|---|
 | `TRUE` | Exact match |
 | `MAYBE` | Partial match |
 | `FALSE` | Not matched |
 
-Exact and partial matches are displayed separately in the applicable matched-participant and matched-study interfaces.
+Exact and partial categories apply to study-team matched-participant displays.
+
+Participants are not shown partial matched studies.
 
 ## Restricted visibility
 
@@ -122,32 +130,35 @@ For a restricted participant:
 - The application evaluates study interests.
 - The application evaluates eligibility.
 - Exact matching studies may be shown to the participant.
-- Partial (`MAYBE`) matches are not shown to participants.
+- Partial matches are not shown to the participant.
 - A system match does not make the participant visible to the study team.
 - The participant becomes visible to the study after successfully expressing interest.
 
 ## Discoverable visibility
 
-A discoverable participant permits eligible studies to see them as a match before an expression of interest.
+A discoverable participant permits studies to see them as an exact or partial match before an expression of interest.
 
 For a discoverable participant:
 
 - Eligibility can make the participant visible to the study team.
 - The study does not need to match the participant's interests.
 - The participant does not need to express interest first.
-- Exact and partial matches appear in their corresponding categories.
+- `TRUE` results appear in the study team's exact-match category.
+- `MAYBE` results appear in the study team's partial-match category.
+- Partial matches are not presented to the participant as matched studies.
 
 ## Matching matrix
 
 | Visibility | Eligibility | Interest match | Expressed interest | Study-team visibility | Participant-facing result |
 |---|---|---:|---:|---|---|
 | Restricted | `TRUE` | Yes | No | Hidden | Exact matched study |
-| Restricted | `MAYBE` | Yes | No | Hidden | Partial matched study |
-| Restricted | `TRUE` | Any | Yes | Visible as interested | Interested study |
-| Restricted | `MAYBE` | Any | Successful interest depends on recheck | Hidden until completed | Partial candidate |
-| Discoverable | `TRUE` | Any | No | Exact-match category | Recommended when interests match |
-| Discoverable | `MAYBE` | Any | No | Partial-match category | Partial recommendation when applicable |
-| Any | `FALSE` | Any | No | Not visible as a match | Not recommended |
+| Restricted | `TRUE` | No | No | Hidden | Not recommended |
+| Restricted | `MAYBE` | Any | No | Hidden | Not shown |
+| Restricted | `TRUE` or `MAYBE` | Any | Successfully finalized | Visible as interested | Interested study |
+| Discoverable | `TRUE` | Yes | No | Exact-match category | Exact matched study |
+| Discoverable | `TRUE` | No | No | Exact-match category | Usually not recommended |
+| Discoverable | `MAYBE` | Any | No | Partial-match category | Not shown |
+| Any | `FALSE` | Any | No | Not visible as a match | Not shown |
 
 ## Recalculation after participant-profile changes
 
@@ -192,9 +203,11 @@ When a participant attempts to express interest:
 
 1. The participant refreshes specified temporal profile data.
 2. The application rechecks eligibility.
-3. `TRUE` or `MAYBE` eligibility can proceed through the interest workflow.
-4. `FALSE` eligibility prevents interest from being completed.
-5. If eligible, the participant completes the screening workflow.
+3. `TRUE` or `MAYBE` may proceed through the interest workflow.
+4. `FALSE` prevents interest from being completed.
+5. The participant completes the screening workflow when permitted.
+
+A participant may reach the interest workflow through an exact matched study, a direct URL, or another supported application path. Partial matches are not shown in the participant's matched-study list.
 
 After an expression of interest is finalized, later eligibility changes do not remove or alter the interest relationship.
 
@@ -210,23 +223,28 @@ Historical interest is not recalculated away.
 
 ## Stored-match processing
 
-Match results are stored in Redis rather than dynamically calculated on every
-view. Match recalculation runs asynchronously after a trigger, including a
-change to:
+Match results are stored in Redis rather than calculated dynamically on every view.
 
-- A participant profile property used by study interests or eligibility
-  criteria
+Match recalculation runs asynchronously after a relevant change, including:
+
+- A participant profile property used by eligibility criteria
 - A participant's study interests
 - A study property used by participant interests
 - Study eligibility criteria
 
-Failed recalculations are not automatically retried. Operators can manually
-trigger jobs to recompute all matches for all studies, all matches for all
-participants, or both.
+Failed recalculations are not automatically retried.
+
+Operators can manually trigger jobs to recompute:
+
+- All study matches
+- All participant matches
+- Both categories of matches
 
 ## Related pages
 
 - [Participants](../04-users-and-access/participants.md)
+- [Eligibility-criteria authoring](eligibility-criteria-authoring.md)
+- [Criteria data model](../07-data-model/criteria-data-model.md)
 - [Ask if interested](ask-if-interested.md)
 - [Expressions of interest](expressions-of-interest.md)
 - [Questionnaires and exports](questionnaires-and-exports.md)

@@ -19,7 +19,7 @@ Start with:
 
 - `docs/index.md` for the main documentation portal
 - `docs/context-map.yaml` for machine-readable topic routing
-- `docs/llms.txt` is generated from that map during the MkDocs build
+- `docs/llms.txt`, which is generated from that map during the MkDocs build
 
 ## Local development
 

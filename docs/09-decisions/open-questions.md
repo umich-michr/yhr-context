@@ -68,6 +68,20 @@ former PI membership.
    resolved?
 8. Is a PI notified when personally creating the posting?
 
+## AI-assisted authoring and telemetry
+
+Detailed questions about AI-assisted study-posting authoring, eligibility-criteria
+authoring, and telemetry analysis are tracked separately in
+[Authoring analytics open questions](authoring-analytics-open-questions.md).
+
+Use that page when the question concerns:
+
+- Suggestion generation behavior
+- Suggestion selection and feedback capture
+- Study-information timing
+- Eligibility-authoring timing
+- Complexity scoring
+
 ## Study lifecycle
 
 1. Should the application separately report whether a study is inactive
