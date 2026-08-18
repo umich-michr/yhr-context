@@ -132,9 +132,15 @@ the prior active period.
 
 ## Interested-participant access while inactive
 
-Study inactivity does not by itself remove access to historical interested
-participants. The study team may access those relationships and export their
-data while `PUBLISHABLE = 1`.
+Study inactivity by date does not, by itself, remove access to historical interested participants.
+
+The study team may access and export historical interested-participant data while `PUBLISHABLE = 1`, subject to participant-account visibility rules.
+
+If an interested participant's account is deactivated:
+
+- The historical interest relationship remains.
+- The participant's profile information is hidden.
+- The deactivated participant's data is not available for a new export.
 
 When `PUBLISHABLE = 0`, the study team cannot access participant information,
 including historical interested-participant data.
@@ -167,10 +173,21 @@ A posting may be edited, activated, deactivated, or reactivated, but cannot be d
 
 ## URL resolution
 
-The study number (`study_num`) is authoritative for participant-facing URL
-resolution. A valid study number resolves to the posting or, if inactive, to
-the not-recruiting message. A URL with an incorrect internal sequence
-identifier returns `404 Not Found`.
+Participant-facing URLs contain:
+
+- The institutionally assigned `study_num`
+- The internally assigned sequence-based study identifier
+
+The `study_num` is the authoritative institutional study identifier.
+
+The application validates that the URL's internal identifier and `study_num` refer to the same operational study posting.
+
+Results include:
+
+- A valid identifier pair for an active study displays the posting.
+- A valid identifier pair for an inactive study displays the not-recruiting message.
+- An incorrect or mismatched internal identifier returns `404 Not Found`.
+- An unknown `study_num` does not resolve to a posting.
 
 ## Delayed PI status notifications
 

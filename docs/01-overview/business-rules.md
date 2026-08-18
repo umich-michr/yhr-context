@@ -72,7 +72,7 @@ This page is the canonical source for confirmed cross-cutting rules.
 1. A non-PI creator receives the study role `STUDY_TEAM_MEMBER`.
 1. The imported PI receives the study role `PRINCIPAL_INVESTIGATOR`.
 1. An `APP_USER` is created for an imported PI when one does not already exist.
-1. A PI record missing email or ePPN is an application error.
+1. A PI record missing email or `USER_NAME` is an application error; `USER_NAME` must correspond to the value supplied by the institutional IdP in the SAML ePPN attribute.
 1. When a PI `APP_USER` already exists, imported name and email changes are not copied into the existing record.
 1. When a PI `APP_USER` is newly created, the imported identity information is copied into it.
 1. The PI is notified of posting creation according to the posting-notification workflow.
@@ -99,7 +99,7 @@ This page is the canonical source for confirmed cross-cutting rules.
 1. The application currently does not change the study's deactivation date when publishability becomes `0`.
 1. An expired study may be reactivated by changing its dates, provided `PUBLISHABLE = 1`; there is no separate manual-deactivation control.
 1. An inactive study loses current matches; fresh matches are recomputed when it becomes active again.
-1. Historical interested-participant data remains accessible while `PUBLISHABLE = 1`, even if the study is inactive.
+1. Historical interested-participant data for active participants remains accessible while `PUBLISHABLE = 1`, even if the study is inactive by date. Participant-account deactivation still hides that participant's profile information.
 1. When an inactive study is accessed through its valid `study_num` URL, the participant sees a message that the study is no longer recruiting.
 
 ## Import processing
@@ -150,15 +150,15 @@ This page is the canonical source for confirmed cross-cutting rules.
    - Present medical conditions
    - Whether the participant is a parent or guardian of a child under 18
 1. Eligibility is rechecked using current participant information; `TRUE` and `MAYBE` may proceed, while `FALSE` cannot.
-1. Interest is created only after successful questionnaire completion, with temporal-profile updates and questionnaire submission committed atomically.
-1. If the study is inactive or non-publishable at submission, interest is not created and the participant sees a not-recruiting message.
+1. Interest is created only after the eligibility recheck and, when a screening questionnaire exists, successful questionnaire completion. Temporal-profile updates, any questionnaire submission, and interest creation are committed atomically.
+1. If the study is not active at submission, whether because of its date range or because `PUBLISHABLE = 0`, interest is not created and the participant sees a not-recruiting message.
 1. After interest is successfully recorded, later eligibility changes do not alter the interest relationship.
 1. Historical interest remains visible when an active participant later becomes ineligible.
 
 ## Questionnaires and exports
 
 1. A study can have only one screening questionnaire.
-1. Questionnaire completion is required to finalize the interest workflow.
+1. When a study has a screening questionnaire, questionnaire completion is required to finalize the expression-of-interest workflow.
 1. Individual questions may be required or optional.
 1. Participants cannot edit submitted questionnaire answers.
 1. A study must be deactivated before its questionnaire structure can be changed.

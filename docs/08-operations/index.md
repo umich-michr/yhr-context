@@ -1,12 +1,12 @@
 ---
 title: Operations
-summary: Support routing, troubleshooting, audit, imports, authoring telemetry, and monitoring.
+summary: Support routing, troubleshooting, audit, monitoring, and study-posting authoring analytics.
 status: authoritative
 ---
 
 # Operations
 
-Operational support often requires tracing a problem across:
+Operational support may require tracing a problem across:
 
 - Authentication
 - Imported governance data
@@ -17,13 +17,20 @@ Operational support often requires tracing a problem across:
 - Study lifecycle
 - Participant lifecycle
 - Matching
-- AI-assisted study posting
-- Eligibility authoring
-- Questionnaire or export permissions
+- AI-assisted study-posting authoring
+- Eligibility-criteria authoring
+- Questionnaires
+- Exports
 
-Read:
+## Support and monitoring
 
-- [Support routing](support-routing.md)
+- [Support Routing](support-routing.md)
 - [Troubleshooting](troubleshooting.md)
-- [Audit and monitoring](audit-and-monitoring.md)
-- [Authoring telemetry and complexity](authoring-telemetry-and-complexity.md)
+- [Audit and Monitoring](audit-and-monitoring.md)
+
+## Study-posting authoring analytics
+
+- [Study Posting Authoring Analytics](study-posting-authoring-analytics.md)
+- [Study Posting Authoring Telemetry](study-posting-authoring-telemetry.md)
+- [Eligibility-Criteria Authoring Complexity](eligibility-criteria-authoring-complexity.md)
+- [AI-Assisted Study Posting Authoring Effectiveness](ai-assisted-study-posting-authoring-effectiveness.md)

@@ -78,7 +78,7 @@ A `PRINCIPAL_INVESTIGATOR` or `STUDY_TEAM_MEMBER` may:
 | Current imported PI | No |
 | Posting creator who is not the current PI | Yes |
 | Invited study team member | Yes |
-| Former PI retained after a PI change | Not automatically removed; ordinary UI behavior requires confirmation |
+| Former PI retained as `PRINCIPAL_INVESTIGATOR` after a PI change | Not automatically removed; whether the retained former-PI membership can be removed through the ordinary UI is unresolved |
 
 A posting creator is protected from removal only when the creator is also the current institutionally identified PI.
 
@@ -154,13 +154,18 @@ Can access study =
 
 Participant-data access additionally depends on:
 
-- Study active status
 - Study publishability
+- Whether the requested data concerns a current match or a historical expression of interest
 - Participant account status
 - Participant visibility mode
-- Match or interest state
 - Requested operation
 - Data-field permissions
+
+Current matched-participant access requires the study to be active.
+
+Historical interested-participant access may remain available when the study is inactive by date, provided `PUBLISHABLE = 1`.
+
+When `PUBLISHABLE = 0`, study team members cannot access participant information.
 
 ## Related pages
 

@@ -30,7 +30,8 @@ Recommended additional events include:
 - Invitation creation, revocation, and consumption
 - Study membership change
 - Ask if interested
-- Expression or withdrawal of interest
+- Expression of interest
+- Any future administrative correction or withdrawal workflow, if implemented
 - Questionnaire publication and submission
 - Participant profile view
 - Export request, generation, and download
@@ -86,3 +87,10 @@ To investigate a possible export, correlate:
 - Splunk request logs around the same time
 
 This is an investigative approximation, not a definitive export audit trail.
+
+## Related pages
+
+- [Study posting authoring telemetry](study-posting-authoring-telemetry.md)
+- [Troubleshooting](troubleshooting.md)
+- [Questionnaires and exports](../06-recruitment/questionnaires-and-exports.md)
+- [Open questions](../09-decisions/open-questions.md)

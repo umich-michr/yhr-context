@@ -283,8 +283,23 @@ FINAL_VALUE_MATCHES_UNSELECTED_SUGGESTION
 FINAL_VALUE_DIFFERS_FROM_ALL_SUGGESTIONS
 ```
 
+## Query examples
+
+Tested Oracle SQL for reconstructing one logical row per study property is documented in [Study Property Query Cookbook](study-property-query-cookbook.md).
+
+The cookbook includes:
+
+- Scalar and lookup property extraction
+- Lookup aggregation
+- Storage-shape classification
+- Scalar-versus-lookup validation
+- Property-specific queries
+- AI-suggestion comparison guidance
+
 ## Related pages
 
 - [AI-Assisted Study Posting Authoring](../05-study-management/ai-assisted-posting-authoring.md)
 - [Operational Schema](operational-schema.md)
-- [Authoring Telemetry and Complexity Analysis](../08-operations/authoring-telemetry-and-complexity.md)
+- [AI-Assisted Study Posting Authoring Effectiveness](../08-operations/ai-assisted-study-posting-authoring-effectiveness.md)
+- [Study Property Query Cookbook](study-property-query-cookbook.md)
+- [Criterion Variable Reference](criterion-variable-reference.md)

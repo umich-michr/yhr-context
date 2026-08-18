@@ -1,22 +1,27 @@
 ---
 title: Eligibility-Criteria Authoring
-summary: Current UI for authoring criteria groups, inclusion criteria, exclusion criteria, and structured expressions.
+summary: Authoritative current UI behavior for authoring criteria groups, inclusion criteria, exclusion criteria, and structured expressions.
 status: authoritative
+canonical_for:
+  - eligibility_authoring_ui
+  - inclusion_criteria_authoring
+  - exclusion_criteria_authoring
+  - criteria_group_authoring
 relevant_when:
   - authoring_inclusion_criteria
   - authoring_exclusion_criteria
   - explaining_criteria_groups
-  - mapping_eligibility_ui_to_data
+  - understanding_eligibility_ui
   - planning_ai_assisted_criteria_authoring
 ---
 
 # Eligibility-Criteria Authoring
 
-Study eligibility criteria determine which participants are exact, partial, or non-matches for a study.
+Study eligibility criteria determine whether a participant is an exact match, a partial match, or not a match for a study.
 
 Study team members author eligibility criteria during the final stage of study-posting creation.
 
-The current AI-assisted posting feature does not author these criteria.
+The current AI-assisted posting feature does not author eligibility criteria.
 
 ## Authoring goals
 
@@ -42,6 +47,16 @@ The eligibility UI allows study teams to describe:
 ### Groups and arms summary
 
 ![Current criteria groups and arms summary](../assets/images/eligibility/current-groups-summary.png)
+
+## Participant types
+
+The study team identifies whether the study is recruiting:
+
+- Healthy participants
+- Participants with specific conditions
+- Both participant types, when supported by the posting
+
+Participant type affects how criteria groups are presented and described.
 
 ## Criteria groups or arms
 
@@ -72,11 +87,13 @@ OR Group 2
 OR Group 3
 ```
 
-The current UI summary states that a participant may qualify by satisfying one of the defined groups or arms.
+A participant does not need to satisfy every group.
+
+The participant must qualify for at least one group.
 
 ## Inclusion criteria
 
-The inclusion section describes conditions the participant must meet.
+The inclusion section describes conditions the participant must satisfy.
 
 The current UI presents inclusion logic as:
 
@@ -91,13 +108,19 @@ Inclusion result for one group =
     AND ...
 ```
 
-The UI does not allow the author to choose the expression connector.
+The author does not choose the expression connector.
 
-The connector is fixed as `AND`.
+The current UI uses:
+
+```text
+AND
+```
+
+for expressions within a group.
 
 ## Exclusion criteria
 
-The exclusion section describes conditions that disqualify the participant.
+The exclusion section describes conditions that disqualify a participant.
 
 The current UI presents exclusion logic as:
 
@@ -112,18 +135,22 @@ Excluded from one group =
     OR ...
 ```
 
-For matching and storage, structured exclusion conditions may be represented using negating operators such as:
+In persisted normalized expressions, structured exclusions are represented using negated operators.
+
+Examples include:
 
 ```text
 NOT_EQUAL
 NOT_ANY_OF
 NOT_ALL_OF
+NOT_GREATER_THAN_OR_EQUAL
+NOT_LESS_THAN_OR_EQUAL
 NOT_BETWEEN
 ```
 
-This allows the normalized group-qualification expression to remain an `AND` of conditions that must be true for eligibility.
+This allows group qualification to be evaluated as conditions that must remain true.
 
-For example:
+Example:
 
 ```text
 Eligible for group =
@@ -132,30 +159,32 @@ Eligible for group =
     AND is not currently pregnant
 ```
 
-The exact operator mapping for every exclusion UI control should be verified against saved data.
+## Group-level logic
 
-## Group-level conceptual logic
-
-A simplified conceptual model is:
+The conceptual group logic is:
 
 ```text
 Group qualifies =
     all inclusion requirements are satisfied
     AND no exclusion condition applies
+```
 
+Study-level eligibility is:
+
+```text
 Study eligibility =
     Group 1 qualifies
     OR Group 2 qualifies
     OR ...
 ```
 
-Three-valued matching introduces `MAYBE` when optional participant profile values are missing.
+Three-valued matching may produce `MAYBE` when a structured criterion references an optional participant profile property that has no value.
 
 See [Matching and Visibility](matching-and-visibility.md).
 
-## UI sections
+## Current UI sections
 
-The current eligibility form groups fields into sections such as:
+The eligibility form organizes controls into sections including:
 
 - Age and pregnancy
 - Race and ethnicity
@@ -168,222 +197,171 @@ The current eligibility form groups fields into sections such as:
 - Fluency in English
 - Other
 
-The exact sections shown may depend on:
+The controls displayed differ between inclusion and exclusion modes.
 
-- Inclusion versus exclusion mode
-- Study configuration
-- Participant type
-- Supported criterion variables
+## Numeric criteria
 
-## Criterion expression anatomy
-
-A structured criterion expression contains:
-
-1. Criterion variable
-2. Relational operator
-3. Expression value or values
-
-```mermaid
-flowchart LR
-    V[Criterion Variable]
-    O[Relational Operator]
-    X[Expression Value or Values]
-
-    V --> O
-    O --> X
-```
-
-Example:
+The current UI provides one or two numeric inputs for:
 
 ```text
-Variable: AGE
-Operator: BETWEEN
-Values: 18 and 65
+AGE
+HEIGHT
+WEIGHT
+BMI
 ```
 
-Another example:
+The user may provide:
+
+- A minimum value
+- A maximum value
+- Both a minimum and maximum value
+
+Units are:
+
+| Variable | UI and storage unit |
+|---|---|
+| `AGE` | Years |
+| `HEIGHT` | Inches |
+| `WEIGHT` | Pounds |
+| `BMI` | Unitless BMI value |
+
+Validation rules include:
+
+- `AGE`, `HEIGHT`, and `WEIGHT` accept nonnegative whole numbers.
+- `BMI` accepts a nonnegative decimal value.
+- Negative values are not permitted.
+
+The exact persisted operators and scalar/range encoding are documented in [Criterion Operator and Value Reference](../07-data-model/criterion-operator-reference.md).
+
+## Gender and race
+
+The inclusion UI presents checkbox selections for:
+
+- Biological sex at birth
+- Race
+
+Selected values are stored as lookup-backed criterion expressions.
+
+The current UI combines selected values according to the operator mappings documented in [Criterion Operator and Value Reference](../07-data-model/criterion-operator-reference.md).
+
+## Medical conditions
+
+Present and past medical conditions use typeahead multi-select controls.
+
+The study team may specify whether the participant must have:
 
 ```text
-Variable: PRESENT_MEDICAL_CONDITION
-Operator: ANY_OF
-Values: Lung Cancer, Asthma
+ANY
 ```
 
-## Generic expression model
+or:
 
-The following screenshot illustrates the generic expression model and a more flexible criteria UI.
+```text
+ALL
+```
 
-It is conceptual and should not be confused with every limitation of the current production authoring form.
+of the selected conditions.
 
-![Generic matching-criteria model](../assets/images/eligibility/generic-criteria-model.png)
+The current lookup values come from the visible `MEDICAL_CONDITION` vocabulary.
+
+The vocabulary may change as reference data is maintained.
+
+The current UI supports:
+
+- Present medical conditions
+- Past medical conditions
+- Inclusion conditions
+- Exclusion conditions
+
+The current operator mappings are documented in [Criterion Operator and Value Reference](../07-data-model/criterion-operator-reference.md).
+
+## Boolean criteria
+
+The current UI uses checkbox or Boolean-style controls for criteria such as:
+
+- Pregnancy at the time of enrollment
+- Willingness to change medications or treatments
+- Willingness to take experimental drugs
+- Metal implants
+- Parent or guardian of a child under 18
+- Fluency in English
+
+Not every Boolean criterion is displayed in both inclusion and exclusion modes.
+
+Boolean selections are stored using lookup-backed expression values.
+
+## Smoking status
+
+Smoking status is presented as a set of selectable values.
+
+The current inclusion UI can require one of the selected smoking-status values.
+
+The current exclusion UI can exclude participants matching selected smoking-status values.
+
+Smoking-status selections are stored as lookup-backed expressions.
+
+## OTHER free text
+
+`OTHER` allows study teams to enter participant-facing criteria that cannot be represented using the structured matching controls.
+
+Examples include:
+
+- A specialized occupational requirement
+- A protocol-specific condition not represented in the controlled vocabulary
+- A participant-facing exclusion that the matching engine cannot evaluate
+
+OTHER criteria are displayed to participants.
+
+The matching engine does not directly evaluate OTHER free text.
+
+This distinction is important:
+
+```text
+Displayed criterion
+does not necessarily mean
+machine-evaluated criterion
+```
+
+The persisted inclusion/exclusion encoding for OTHER is documented in [Criterion Operator and Value Reference](../07-data-model/criterion-operator-reference.md).
 
 ## Current UI constraints
 
-The current production UI simplifies authoring:
+The current UI simplifies the more flexible underlying criteria model.
+
+Current behavior includes:
 
 - Each criteria group is persisted with one clause.
-- Expressions within that clause use `AND`.
-- The user does not select the expression connector.
+- Expressions within the clause use `AND`.
+- The author does not select the expression connector.
 - The clause is terminal.
 - Criteria groups are alternatives.
-- Operator selection is exposed only where the UI requires it.
-- Other operators are implied by the selected field and inclusion/exclusion mode.
+- Operators are selected or inferred from the UI control.
+- The current UI does not expose arbitrary clause construction.
 
-The underlying data model is more flexible than the current UI.
-
-It supports:
+The underlying relational model supports:
 
 - Multiple clauses
 - Expression connectors
 - Clause connectors
 - Ordered expressions
 
-The production UI does not currently expose all of that flexibility.
+See [Criteria Data Model](../07-data-model/criteria-data-model.md).
 
-## UI-to-variable mapping
+## Current UI and legacy data
 
-The following table documents the current conceptual mapping.
+The database contains criteria authored through both legacy and current interfaces.
 
-Exact `criterion_variable.name` values should be verified against the reference data in each deployment.
+An operator-variable combination found in historical data does not necessarily mean that the current UI still exposes that combination.
 
-| Criterion variable | UI interaction | Value representation |
-|---|---|---|
-| `AGE` | One or two numeric inputs | Scalar or encoded range |
-| `HEIGHT` | One or two numeric inputs | Scalar or encoded range |
-| `WEIGHT` | One or two numeric inputs | Scalar or encoded range |
-| `BMI` | One or two numeric inputs | Scalar or encoded range |
-| `GENDER` | Checkboxes | Lookup selections |
-| `PREGNANT_AT_THE_TIME_OF_ENROLLMENT` | Checkbox or Boolean selection | Boolean lookup |
-| `RACE` | Checkboxes | Lookup selections |
-| `WILLING_TO_TAKE_EXPERIMENTAL_DRUGS` | Checkbox or Boolean selection | Boolean lookup |
-| `WILLING_TO_CHANGE_MEDICATIONS` | Checkbox or Boolean selection | Boolean lookup |
-| `HAS_METAL_IMPLANTS` | Checkbox or Boolean selection | Boolean lookup |
-| `SMOKING_STATUS` | Checkboxes | Lookup selections |
-| `PARENT_OR_GUARDIAN_OF_A_CHILD` | Checkbox or Boolean selection | Boolean lookup |
-| `FLUENCY_IN_ENGLISH` | Checkbox or Boolean selection | Boolean lookup |
-| `PRESENT_MEDICAL_CONDITION` | Typeahead multi-select plus operator | Medical-condition lookups |
-| `PAST_MEDICAL_CONDITION` | Typeahead multi-select plus operator | Medical-condition lookups |
-| `OTHER` | Free text | Scalar text |
+The authoritative current-UI mappings are documented in [Criterion Operator and Value Reference](../07-data-model/criterion-operator-reference.md).
 
-## Numeric and range fields
-
-Numeric variables may use:
-
-- One endpoint
-- Two endpoints
-- A range operator
-- A negated range operator
-
-Examples include:
-
-```text
-AGE >= 18
-AGE BETWEEN 18 AND 65
-BMI <= 30
-AGE NOT_BETWEEN 20 AND 30
-```
-
-A range may be stored in a single scalar value using an application-specific delimiter.
-
-Example:
-
-```text
-18:65
-```
-
-The delimiter and parsing rules must be confirmed from the implementation before building analytics.
-
-## Checkbox fields
-
-Checkbox criteria represent one or more selected lookup values.
-
-Examples include:
-
-- Gender
-- Race
-- Smoking status
-- Pregnancy
-- Metal implants
-- Fluency in English
-
-The UI may infer the relational operator based on:
-
-- Inclusion or exclusion mode
-- Variable type
-- Number of selected values
-
-## Medical-condition fields
-
-Present and past medical conditions use a typeahead multi-select.
-
-The user may choose an operator such as:
-
-```text
-ANY_OF
-ALL_OF
-```
-
-Exclusion mode may produce a negating operator such as:
-
-```text
-NOT_ANY_OF
-NOT_ALL_OF
-```
-
-Selected conditions are stored as lookup values.
-
-The source draft indicates a medical-condition vocabulary of approximately 588 options. This count should be treated as deployment- and time-specific rather than a permanent business rule.
-
-## OTHER free text
-
-`OTHER` allows study teams to enter participant-facing criteria that cannot be represented using the structured matching variables.
-
-For inclusion text:
-
-- `criterion_variable = OTHER`
-- `relational_operator` may be null
-- `saved_value` contains the participant-facing text
-
-For exclusion text, the current model uses a prefix:
-
-```text
-$#exclusion#$
-```
-
-Example:
-
-```text
-$#exclusion#$Prior chemotherapy
-```
-
-The matching engine does not directly evaluate OTHER free text.
-
-OTHER content is displayed to participants but does not contribute structured profile-based evidence to the eligibility result.
-
-This distinction is important:
-
-```text
-Displayed criterion does not necessarily mean machine-evaluated criterion.
-```
-
-## Storage-neutral expression examples
-
-| UI statement | Variable | Operator | Value representation |
-|---|---|---|---|
-| Age is at least 18 | `AGE` | `GREATER_THAN_OR_EQUAL` | `18` |
-| Age is between 18 and 65 | `AGE` | `BETWEEN` | Encoded range |
-| Gender is female | `GENDER` | `EQUAL` or generated set operator | Lookup |
-| Has any listed condition | `PRESENT_MEDICAL_CONDITION` | `ANY_OF` | Multiple lookups |
-| Has all listed conditions | `PRESENT_MEDICAL_CONDITION` | `ALL_OF` | Multiple lookups |
-| Does not have any listed condition | `PRESENT_MEDICAL_CONDITION` | `NOT_ANY_OF` | Multiple lookups |
-| Participant-facing unsupported condition | `OTHER` | Null | Free text |
-| Participant-facing unsupported exclusion | `OTHER` | Null | Prefixed free text |
+Historical-data analysis should account for the authoring era when possible.
 
 ## Form completion
 
 Submitting the eligibility form finalizes the study-posting creation workflow.
 
-The study may then be activated when its lifecycle requirements are satisfied.
+The posting may then become active when its lifecycle conditions are satisfied.
 
 Final submission does not override:
 
@@ -392,32 +370,23 @@ Final submission does not override:
 - Study deactivation date
 - Other activation requirements
 
-## Potential authoring-effort signals
+See [Study Lifecycle](../05-study-management/study-lifecycle.md).
 
-The UI structure suggests several measurable dimensions of authoring effort:
+## Analytics implications
 
-- Number of groups or arms
-- Number of inclusion expressions
-- Number of exclusion expressions
-- Number of distinct criterion variables
-- Number of lookup selections
-- Number of medical-condition selections
-- Number of range endpoints
-- Number of negated operators
-- Amount of OTHER free text
-- Number of form edits
-- Number of group additions and deletions
-- Time spent on the form
+The authored criteria structure can be used to derive study-level complexity features.
 
-These signals are inputs to a possible complexity measure, not proof of cognitive difficulty by themselves.
+Complexity dimensions, candidate measures, weighting, timing analysis, and proposed composite scores are documented in [Eligibility-Criteria Authoring Complexity](../08-operations/ai-assisted-study-posting-authoring-effectiveness.md).
 
-See [Authoring Telemetry and Complexity Analysis](../08-operations/authoring-telemetry-and-complexity.md).
+These proposed analytical measures are not application eligibility rules.
 
 ## Related pages
 
-- [Matching and Visibility](matching-and-visibility.md)
+- [Criterion Operator and Value Reference](../07-data-model/criterion-operator-reference.md)
+- [Criterion Variable Reference](../07-data-model/criterion-variable-reference.md)
 - [Criteria Data Model](../07-data-model/criteria-data-model.md)
+- [Matching and Visibility](matching-and-visibility.md)
 - [Expressions of Interest](expressions-of-interest.md)
+- [Study Lifecycle](../05-study-management/study-lifecycle.md)
 - [AI-Assisted Study Posting Authoring](../05-study-management/ai-assisted-posting-authoring.md)
-- [Authoring Telemetry and Complexity Analysis](../08-operations/authoring-telemetry-and-complexity.md)
-- [Authoring and Analytics Open Questions](../09-decisions/authoring-analytics-open-questions.md)
+- [Eligibility-Criteria Authoring Complexity](../08-operations/ai-assisted-study-posting-authoring-effectiveness.md)

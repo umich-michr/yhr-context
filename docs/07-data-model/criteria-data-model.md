@@ -5,8 +5,11 @@ status: mixed
 relevant_when:
   - querying_eligibility_criteria
   - mapping_criteria_ui_to_database
-  - measuring_criteria_complexity
   - understanding_shared_criteria_tables
+canonical_for:
+  - eligibility_criteria_schema
+  - criterion_storage
+  - polymorphic_criterion_parent
 ---
 
 # Criteria Data Model
@@ -18,11 +21,11 @@ The same clause, expression, variable, and value structures support:
 1. Study eligibility criteria
 2. Participant study-interest criteria
 
-The criterion-root table differs between those use cases.
+The criterion-root table differs between these use cases.
 
-## Root entities
+## Confirmed physical model
 
-### Study eligibility criteria
+### Root entities
 
 Study eligibility groups are stored in:
 
@@ -30,19 +33,13 @@ Study eligibility groups are stored in:
 STUDY_ELIGIBILITY_CRITERION
 ```
 
-They are used to match participants against study inclusion and exclusion requirements.
-
-### Participant study-interest criteria
-
 Participant study-interest criteria are stored in:
 
 ```text
 FIND_STUDIES_CRITERION
 ```
 
-They are used to match study properties against participant preferences.
-
-## Shared hierarchy
+### Shared hierarchy
 
 ```text
 Criterion root
@@ -52,7 +49,7 @@ Criterion root
                 → Lookup values
 ```
 
-## Core tables
+### Core tables
 
 | Table | Purpose |
 |---|---|
@@ -61,8 +58,8 @@ Criterion root
 | `FIND_STUDIES_CRITERION` | Participant study-interest criterion root |
 | `CRITERION_CLAUSE` | Logical clause under either criterion-root type |
 | `CRITERION_CLAUSE_EXPRESSION` | One variable/operator/value expression |
-| `CRITERION_VARIABLE` | Allowed matching variable |
-| `CRIT_CLAUSE_EXPRESSION_VALUE` | Scalar, range, or free-text value |
+| `CRITERION_VARIABLE` | Allowed generic criterion variable |
+| `CRIT_CLAUSE_EXPRESSION_VALUE` | Scalar, range, date, or free-text value |
 | `EXPRESSION_VALUE_LOOKUP_VALUE` | Join from an expression value to lookup values |
 | `LOOKUP_VALUE` | Controlled vocabulary value |
 
@@ -186,13 +183,13 @@ FIND_STUDIES_CRITERION
 
 One ordinary relational foreign key cannot reference two possible parent tables.
 
-The parent relationship is therefore governed by application logic rather than by one conventional database foreign-key constraint.
+The parent relationship is therefore governed by application logic.
 
 Consequences include:
 
 - Queries must begin from the correct criterion-root table.
 - Analytics must not combine the two root types accidentally.
-- Criterion IDs may require root-type context.
+- Criterion IDs require root-type context.
 - Orphan detection requires application-aware validation.
 
 ## `CRITERION_CLAUSE_EXPRESSION`
@@ -220,27 +217,17 @@ Expression =
 
 ## `CRITERION_VARIABLE`
 
-Defines the matching variable.
+`CRITERION_VARIABLE` defines variables available to the generic criteria-expression model.
 
-Examples include:
+The vocabulary supports:
 
-```text
-AGE
-GENDER
-RACE
-HEIGHT
-WEIGHT
-BMI
-PRESENT_MEDICAL_CONDITION
-PAST_MEDICAL_CONDITION
-SMOKING_STATUS
-HAS_METAL_IMPLANTS
-PARENT_OR_GUARDIAN_OF_A_CHILD
-FLUENCY_IN_ENGLISH
-OTHER
-```
+- Study eligibility criteria
+- Participant study-interest criteria
+- Study-information-related criteria
 
-The actual vocabulary should be retrieved from reference data.
+The complete IDs and names are documented in [Criterion Variable Reference](criterion-variable-reference.md).
+
+A variable's presence in `CRITERION_VARIABLE` does not mean that it is exposed by the current eligibility-authoring UI.
 
 ## `CRIT_CLAUSE_EXPRESSION_VALUE`
 
@@ -258,13 +245,14 @@ LANGUAGE
 Examples include:
 
 - Numeric value
-- Encoded range
+- Colon-delimited numeric range
+- `yyyy-mm-dd` date text
 - OTHER inclusion text
 - OTHER exclusion text
 
 ## `EXPRESSION_VALUE_LOOKUP_VALUE`
 
-Associates an expression value with one or more controlled vocabulary values.
+Associates one expression value with one or more controlled vocabulary values.
 
 Relevant fields include:
 
@@ -282,39 +270,28 @@ It is used for values such as:
 - Boolean choices
 - Other controlled vocabularies
 
-## Inclusion and exclusion representation
+## Operator and value encoding
 
-Structured exclusions may use negating operators such as:
+`CRITERION_CLAUSE_EXPRESSION.RELATIONAL_OPERATOR` identifies the comparison applied by a structured expression.
 
-```text
-NOT_EQUAL
-NOT_ANY_OF
-NOT_ALL_OF
-NOT_BETWEEN
-```
+Expression values are stored as:
 
-OTHER free-text exclusions use:
+- Scalar text in `CRIT_CLAUSE_EXPRESSION_VALUE.SAVED_VALUE`
+- Lookup relationships through `EXPRESSION_VALUE_LOOKUP_VALUE`
 
-```text
-$#exclusion#$
-```
+Structured exclusions use negated operators.
 
-Example:
+OTHER expressions have a null relational operator and use an internal prefix to distinguish exclusion text from inclusion text.
 
-```text
-$#exclusion#$Prior chemotherapy
-```
+The authoritative current-UI mappings and serialization rules are documented in [Criterion Operator and Value Reference](criterion-operator-reference.md).
 
-The prefix is an application encoding and should not be shown to participants.
-
-## OTHER criteria
+## OTHER expressions
 
 OTHER expressions:
 
 - Are displayed to participants
 - Are not directly evaluated by the matching engine
 - May represent inclusion or exclusion text
-- Contribute authoring and participant-facing complexity
 - Do not contribute a structured participant-profile predicate
 
 ## Relational model
@@ -395,151 +372,24 @@ erDiagram
 
 The dotted lines represent the application-managed polymorphic parent relationship.
 
-## Flattened eligibility query
+## Analytical query examples
 
-```sql
-SELECT
-    s.study_num,
-    sec.id AS criterion_id,
-    sec.name AS criterion_group_name,
-    sec.order_num AS criterion_order_num,
-    cc.id AS clause_id,
-    cc.expression_logical_connector,
-    cc.clause_logical_connector,
-    cc.order_num AS clause_order_num,
-    cce.id AS expression_id,
-    cce.order_num AS expression_order_num,
-    cv.name AS criterion_variable,
-    cce.relational_operator,
-    ccev.id AS expression_value_id,
-    ccev.saved_value,
-    LISTAGG(lv.display_text, '; ')
-        WITHIN GROUP (ORDER BY lv.display_text) AS lookup_values
-FROM study s
-JOIN study_eligibility_criterion sec
-    ON sec.study_id = s.id
-JOIN criterion_clause cc
-    ON cc.criterion_id = sec.id
-JOIN criterion_clause_expression cce
-    ON cce.clause_id = cc.id
-LEFT JOIN criterion_variable cv
-    ON cv.id = cce.criterion_variable_id
-LEFT JOIN crit_clause_expression_value ccev
-    ON ccev.criterion_clause_expression_id = cce.id
-LEFT JOIN expression_value_lookup_value evlv
-    ON evlv.crit_clause_expr_value_id = ccev.id
-LEFT JOIN lookup_value lv
-    ON lv.id = evlv.lookup_value_id
-WHERE (:study_num IS NULL OR s.study_num = :study_num)
-GROUP BY
-    s.study_num,
-    sec.id,
-    sec.name,
-    sec.order_num,
-    cc.id,
-    cc.expression_logical_connector,
-    cc.clause_logical_connector,
-    cc.order_num,
-    cce.id,
-    cce.order_num,
-    cv.name,
-    cce.relational_operator,
-    ccev.id,
-    ccev.saved_value
-ORDER BY
-    sec.order_num,
-    cc.order_num,
-    cce.order_num,
-    ccev.id;
-```
+Tested and proposed SQL patterns are maintained separately to avoid loading query details when only the schema is needed.
 
-## Safe expression-level aggregation
+See [Criteria Query Cookbook](criteria-query-cookbook.md) for:
 
-One expression may have multiple lookup rows.
-
-Counting joined rows directly will overcount expressions.
-
-Aggregate to the expression level first:
-
-```sql
-WITH expression_base AS (
-    SELECT
-        s.study_num,
-        sec.id AS criterion_id,
-        cc.id AS clause_id,
-        cce.id AS expression_id,
-        cv.name AS variable_name,
-        cce.relational_operator,
-        MAX(ccev.saved_value) AS saved_value,
-        COUNT(DISTINCT evlv.lookup_value_id) AS lookup_value_count
-    FROM study s
-    JOIN study_eligibility_criterion sec
-        ON sec.study_id = s.id
-    JOIN criterion_clause cc
-        ON cc.criterion_id = sec.id
-    JOIN criterion_clause_expression cce
-        ON cce.clause_id = cc.id
-    LEFT JOIN criterion_variable cv
-        ON cv.id = cce.criterion_variable_id
-    LEFT JOIN crit_clause_expression_value ccev
-        ON ccev.criterion_clause_expression_id = cce.id
-    LEFT JOIN expression_value_lookup_value evlv
-        ON evlv.crit_clause_expr_value_id = ccev.id
-    GROUP BY
-        s.study_num,
-        sec.id,
-        cc.id,
-        cce.id,
-        cv.name,
-        cce.relational_operator
-)
-SELECT
-    study_num,
-    COUNT(DISTINCT criterion_id) AS group_count,
-    COUNT(DISTINCT clause_id) AS clause_count,
-    COUNT(DISTINCT expression_id) AS expression_count,
-    COUNT(DISTINCT variable_name) AS distinct_variable_count,
-    SUM(lookup_value_count) AS lookup_selection_count
-FROM expression_base
-GROUP BY study_num;
-```
-
-## Preliminary exclusion detection
-
-```sql
-CASE
-    WHEN cce.relational_operator LIKE 'NOT%'
-        THEN 1
-    WHEN ccev.saved_value LIKE '$#exclusion#$%'
-        THEN 1
-    ELSE 0
-END
-```
-
-This logic must be validated against the complete production operator vocabulary.
-
-## Data-quality checks
-
-Useful checks include:
-
-- Clause without a valid criterion root
-- Expression without a clause
-- Expression without a criterion variable
-- Unsupported relational operator
-- Missing required scalar value
-- Missing required lookup selection
-- Unexpected scalar and lookup combination
-- Invalid range encoding
-- Empty OTHER text
-- Exclusion prefix without text
-- Duplicate lookup selection
-- Unexpected expression connector
-- More than one clause in data authored by the current UI
+- Flattened eligibility SQL
+- Expression-level aggregation
+- Exclusion classification
+- Data-quality checks
 
 ## Related pages
 
 - [Eligibility-Criteria Authoring](../06-recruitment/eligibility-criteria-authoring.md)
+- [Criterion Variable Reference](criterion-variable-reference.md)
+- [Criterion Operator and Value Reference](criterion-operator-reference.md)
+- [Criteria Query Cookbook](criteria-query-cookbook.md)
 - [Matching and Visibility](../06-recruitment/matching-and-visibility.md)
-- [Authoring Telemetry and Complexity Analysis](../08-operations/authoring-telemetry-and-complexity.md)
+- [Eligibility-Criteria Authoring Complexity](../08-operations/ai-assisted-study-posting-authoring-effectiveness.md)
 - [Operational Schema](operational-schema.md)
-- [Authoring and Analytics Open Questions](../09-decisions/authoring-analytics-open-questions.md)
+- [Study Posting Authoring and Analytics Open Questions](../09-decisions/study-posting-authoring-analytics-open-questions.md)

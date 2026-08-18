@@ -1,7 +1,7 @@
 ---
 title: AI-Assisted Study Posting Authoring
 summary: Current AI-assisted study-information workflow, audit records, endpoints, and evaluation telemetry.
-status: authoritative
+status: mixed
 relevant_when:
   - explaining_ai_assisted_authoring
   - evaluating_ai_suggestion_effectiveness
@@ -312,44 +312,18 @@ erDiagram
 
 The actual relationship may permit multiple generation attempts per posting attempt. That cardinality must be confirmed from the physical model.
 
-## Evaluation questions supported by telemetry
+## Evaluation and analytics
 
-The audit data can help answer questions such as:
+The captured audit and timing data can be used to evaluate:
 
-- How frequently is AI assistance selected?
-- How frequently does generation succeed?
-- Which fields receive useful suggestions?
-- Which suggestions are selected?
-- How often are selected suggestions changed before final save?
-- Do users report that the feature is helpful?
-- Does AI assistance reduce Study Information form time?
-- Does it reduce overall posting-creation time?
-- Does usefulness differ by source type?
-- Does usefulness differ by document format?
-- Does inferred source type agree with user-selected source type?
-- Do users abandon posting creation after requesting suggestions?
-- Does the feature shift effort from study information to eligibility authoring?
+- Feature adoption
+- Generation reliability
+- Suggestion selection
+- User feedback
+- Authoring time
+- Final-submission outcomes
 
-## Limitations of observational comparisons
-
-A simple comparison between AI-assisted and non-AI-assisted posting times does not prove that AI caused a time difference.
-
-Potential confounders include:
-
-- Study complexity
-- Source-document length
-- Source-document quality
-- User experience
-- Number of posting sessions
-- Eligibility-criteria complexity
-- Number of interruptions
-- Study type
-- Number of study locations or conditions
-- Failed or repeated generation attempts
-
-Eligibility-complexity measures can help control for differences between studies.
-
-See [Authoring Telemetry and Complexity Analysis](../08-operations/authoring-telemetry-and-complexity.md).
+Analytical methods, confounders, data cleaning, and causal limitations are documented in [AI-Assisted Study Posting Authoring Effectiveness](../08-operations/ai-assisted-study-posting-authoring-effectiveness.md).
 
 ## Expansion to eligibility criteria
 
@@ -374,5 +348,6 @@ The system must not silently convert AI output into active matching logic withou
 - [Study Property Model](../07-data-model/study-property-model.md)
 - [Eligibility-Criteria Authoring](../06-recruitment/eligibility-criteria-authoring.md)
 - [Criteria Data Model](../07-data-model/criteria-data-model.md)
-- [Authoring Telemetry and Complexity Analysis](../08-operations/authoring-telemetry-and-complexity.md)
-- [Authoring and Analytics Open Questions](../09-decisions/authoring-analytics-open-questions.md)
+- [Study Posting Authoring Telemetry](../08-operations/study-posting-authoring-telemetry.md)
+- [AI-Assisted Study Posting Authoring Effectiveness](../08-operations/ai-assisted-study-posting-authoring-effectiveness.md)
+- [Study Posting Authoring and Analytics Open Questions](../09-decisions/study-posting-authoring-analytics-open-questions.md)

@@ -51,7 +51,6 @@ flowchart TD
 
         ER --> STAGE
         STAGE --> DBJOB
-        DBJOB --> ORACLE
     end
 
     subgraph OTHER["CSV-Based Institution"]
@@ -65,11 +64,12 @@ flowchart TD
         JWT --> JAVA
     end
 
-    ORACLE --> IMPORTED[(IMPORTED_* Tables)]
-    ORACLE --> APPDATA[(Operational Application Tables)]
+    DBJOB -->|Refresh imported data| IMPORTED[(IMPORTED_* Tables)]
+    IMPORTED -->|Read imported state| ORACLE
+    ORACLE -->|Reconcile U-M operational data| APPDATA[(Operational Application Tables)]
 
-    JAVA --> IMPORTED
-    JAVA --> APPDATA
+    JAVA -->|Insert or update imported data| IMPORTED
+    JAVA -->|Reconcile CSV-based operational data| APPDATA
 ```
 
 ## CSV authentication

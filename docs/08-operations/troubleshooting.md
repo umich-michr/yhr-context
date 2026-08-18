@@ -23,7 +23,7 @@ Check:
 - Is the institutional SAML session valid?
 - Does the creator have access to the institutional study-team interface?
 - Does the imported study have a current PI?
-- Does the PI have both email and ePPN?
+- Does the PI have both email and `USER_NAME`, and does `USER_NAME` match the identifier supplied by the IdP in the SAML ePPN attribute?
 
 A study posting cannot be created for a study number absent from `IMPORTED_STUDY`.
 
@@ -174,8 +174,8 @@ Check:
 - Did the recipient authenticate through SAML?
 - Did membership creation succeed?
 - Was the invitation record deleted only after membership creation completed?
-- The link may be accepted by any SAML-authenticated institutional user who
-  possesses it; it is not bound to the emailed recipient.
+
+Under the current invitation policy, any SAML-authenticated institutional user who possesses the valid link may accept it. The invitation is not bound to the emailed recipient.
 
 ## Participant activation link does not work
 
@@ -240,7 +240,9 @@ Check:
 - What was the current eligibility result?
 - Did the participant answer all required questionnaire questions?
 
-If the eligibility recheck fails, the application displays a message that the participant cannot show interest because they are not eligible.
+A `FALSE` eligibility result prevents interest and displays an ineligible message.
+
+A `TRUE` or `MAYBE` result may continue, subject to questionnaire completion and the study remaining active and publishable.
 
 ## Participant wants to withdraw interest
 
@@ -294,17 +296,62 @@ the same interface to permanently remove participant data.
 The application retains only the internal participant ID and deletion reason;
 the original request is retained in ServiceNow rather than the application.
 
-## Previously downloaded export remains available
+## Study is missing from a participant's recommendations
 
-This is expected.
+Check:
 
-After a CSV is downloaded, it exists outside the application.
+- Is the participant active?
+- Is the study active?
+- Does the study match the participant's study interests?
+- Does the participant satisfy the study's eligibility criteria?
+- Does `vol.exc:<APP_USER.ID>` contain the study with an exclusion reason?
+- Does the expected `vol.rec:<APP_USER.ID>:<MATCH_SOURCE>` key exist?
+- Is the study present as a sorted-set member?
+- When was the recommendation score last updated?
+- Did asynchronous recomputation complete?
 
-The application cannot:
+Relevant participant-side exclusion reasons include:
 
-- Invalidate it
-- Recall it
-- Delete it from the study team's device
+```text
+ALREADY_SHOWN_INTEREST
+ENROLLED_IN_STUDY
+NOT_INTERESTED
+```
+
+## Participant is missing from a study's recommendations
+
+Check:
+
+- Is the participant active?
+- Is the study active?
+- Does the participant have an exact or partial eligibility match?
+- Does `std.exc:<STUDY.ID>` contain the participant with an exclusion reason?
+- Does the expected `std.rec:<STUDY.ID>:<MATCH_RESULT>` key exist?
+- Is the participant present as a sorted-set member?
+- Does participant visibility permit the result to be displayed to the study team?
+- Did asynchronous recomputation complete?
+
+Relevant study-side exclusion reasons include:
+
+```text
+ALREADY_SHOWN_INTEREST
+ASKED_IF_INTERESTED
+DISMISSED
+```
+
+A participant may exist in the Redis study recommendation set but still be hidden by participant-visibility rules.
+
+## Ask if interested did not move the study
+
+Check:
+
+- Was the participant originally visible to the study team?
+- Was the Ask if interested action completed?
+- Was the participant added to `std.exc:<STUDY.ID>` with `ASKED_IF_INTERESTED`?
+- Was the study added to the appropriate `vol.rec:<APP_USER.ID>:<MATCH_SOURCE>` sorted set?
+- Did a later recomputation remove or replace the expected recommendation?
+- Is the study still active?
+- Is the participant still active?
 
 ## Related pages
 

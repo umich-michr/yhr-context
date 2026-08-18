@@ -1,6 +1,6 @@
 ---
-title: Authoring and Analytics Open Questions
-summary: Unresolved questions about AI-assisted study-posting authoring, eligibility authoring, and telemetry analysis.
+title: Study Posting Authoring and Analytics Open Questions
+summary: Unresolved questions about AI-assisted study-posting authoring, eligibility-criteria authoring, telemetry, and effectiveness analysis.
 status: open
 relevant_when:
   - reviewing_ai_assisted_authoring
@@ -9,7 +9,7 @@ relevant_when:
   - evaluating_audit_schema
 ---
 
-# Authoring and Analytics Open Questions
+# Study Posting Authoring and Analytics Open Questions
 
 This register contains only unresolved questions about AI-assisted study-posting authoring, eligibility-criteria authoring, and related telemetry analysis.
 
@@ -71,5 +71,7 @@ It should not be used to confirm behavior that the implementation does not yet v
 
 - [AI-Assisted Study Posting Authoring](../05-study-management/ai-assisted-posting-authoring.md)
 - [Eligibility-Criteria Authoring](../06-recruitment/eligibility-criteria-authoring.md)
-- [Authoring Telemetry and Complexity Analysis](../08-operations/authoring-telemetry-and-complexity.md)
+- [Study Posting Authoring Telemetry](../08-operations/study-posting-authoring-telemetry.md)
+- [Eligibility-Criteria Authoring Complexity](../08-operations/ai-assisted-study-posting-authoring-effectiveness.md)
+- [AI-Assisted Study Posting Authoring Effectiveness](../08-operations/ai-assisted-study-posting-authoring-effectiveness.md)
 - [Open Questions and Known Concerns](open-questions.md)

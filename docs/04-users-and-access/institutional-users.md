@@ -160,7 +160,8 @@ The current imported PI:
 - Is associated with the operational study as `PRINCIPAL_INVESTIGATOR`
 - Cannot be removed through ordinary application UIs
 - Cannot be appointed through an ordinary study-team invitation
-- Must have imported email and ePPN information
+- Must have imported email and `USER_NAME` information
+- Must have a `USER_NAME` that corresponds to the value returned in the institutional SAML ePPN attribute
 
 ## PI application-user creation
 

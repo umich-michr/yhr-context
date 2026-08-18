@@ -6,34 +6,62 @@ status: authoritative
 
 # Architecture Overview
 
-The application consists of two primary data layers:
+The application contains several storage and processing areas.
 
 ## Imported governance layer
 
-The `IMPORTED_*` tables hold institutionally supplied study, personnel, role, and publishability information.
+The `IMPORTED_*` tables hold institutionally supplied:
+
+- Study information
+- Personnel information
+- Institutional roles
+- PI assignments
+- Publishability
 
 This layer is not editable by ordinary study team members.
 
-## Operational application layer
+## Operational relational layer
 
-Operational tables hold:
+Operational application tables hold:
 
 - Application users
 - Study postings
 - Study memberships
 - Participant accounts and profiles
-- Matching results
+- Study properties
+- Eligibility criteria
 - Prompts
 - Expressions of interest
 - Questionnaires and responses
-- Exports
 - Audit history
 
-A scheduled reconciliation process applies imported governance information to the operational layer.
+## Nonrelational match layer
+
+Current participant-study recommendations and directional exclusions are stored in Redis sorted sets.
+
+Redis match data is derived from operational application data and is asynchronously recomputed after relevant changes.
+
+See [Redis Match and Exclusion Model](../07-data-model/redis-match-model.md).
+
+## Generated exports
+
+Participant-data CSV exports are generated in memory and streamed to the browser.
+
+The application does not retain them as relational export records or server-side files.
+
+## Reconciliation
+
+A reconciliation process applies imported governance information to the operational relational layer.
+
+The implementation differs by ingestion path:
+
+- U-M uses a scheduled database workflow and Oracle package.
+- CSV-based institutions use Java application code during import processing.
 
 ## Architecture pages
 
-- [System context](system-context.md)
-- [Multi-institution deployment](multi-institution-deployment.md)
-- [Data ownership](data-ownership.md)
-- [Import pipeline](../03-institutional-governance/import-pipeline.md)
+- [System Context](system-context.md)
+- [Multi-Institution Deployment](multi-institution-deployment.md)
+- [Data Ownership](data-ownership.md)
+- [Import Pipeline](../03-institutional-governance/import-pipeline.md)
+- [Data-Model Overview](../07-data-model/index.md)

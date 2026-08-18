@@ -19,7 +19,7 @@ Use this page to load only the documentation needed for a support question.
 | Why can't I see a participant? | [Matching and visibility](../06-recruitment/matching-and-visibility.md) | [Study lifecycle](../05-study-management/study-lifecycle.md) |
 | What does Ask if interested do? | [Ask if interested](../06-recruitment/ask-if-interested.md) | [Expressions of interest](../06-recruitment/expressions-of-interest.md) |
 | Why wasn't a questionnaire shown? | [Expressions of interest](../06-recruitment/expressions-of-interest.md) | [Questionnaires and exports](../06-recruitment/questionnaires-and-exports.md) |
-| Which database tables are involved? | [Data model](../07-data-model/index.md) ||
+| Which database tables are involved? | [Data model](../07-data-model/index.md) | [Relationship model](../07-data-model/relationship-model.md) |
 
 ## Investigation order
 

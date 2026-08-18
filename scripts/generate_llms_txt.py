@@ -97,6 +97,11 @@ def generate(data: dict) -> str:
         "current question. Do not infer unresolved behavior from recommendations "
         "or open questions."
     )
+    lines.append(
+        "Load business-rules.md only for cross-cutting invariants, conflict "
+        "checks, or multi-module questions; for narrow questions start with the "
+        "canonical topic page."
+    )
     lines.append("")
 
     # Start here

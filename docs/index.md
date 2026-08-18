@@ -41,16 +41,21 @@ This documentation describes:
 | Creating a study posting | [Posting creation](05-study-management/posting-creation.md) |
 | AI-assisted study-posting authoring | [AI-assisted authoring](05-study-management/ai-assisted-posting-authoring.md) |
 | Eligibility-criteria authoring | [Eligibility-criteria authoring](06-recruitment/eligibility-criteria-authoring.md) |
+| Criterion operators and stored values | [Criterion operator reference](07-data-model/criterion-operator-reference.md) |
 | Participant matching and visibility | [Matching and visibility](06-recruitment/matching-and-visibility.md) |
 | Ask if interested | [Ask if interested](06-recruitment/ask-if-interested.md) |
 | Participant interest and screening | [Expressions of interest](06-recruitment/expressions-of-interest.md) |
 | Database entities | [Data model](07-data-model/index.md) |
 | Study-property values | [Study property model](07-data-model/study-property-model.md) |
 | Eligibility criteria storage | [Criteria data model](07-data-model/criteria-data-model.md) |
-| Authoring telemetry and complexity | [Authoring telemetry](08-operations/authoring-telemetry-and-complexity.md) |
+| Criteria SQL and validation checks | [Criteria query cookbook](07-data-model/criteria-query-cookbook.md) |
+| AI-assisted study-posting authoring effectiveness  | [Authoring analytics](08-operations/study-posting-authoring-analytics.md) |
+| Study-posting authoring telemetry and timing cleaning | [Study-posting authoring telemetry](08-operations/study-posting-authoring-telemetry.md) |
+| Eligibility complexity scoring | [Eligibility complexity analysis](08-operations/ai-assisted-study-posting-authoring-effectiveness.md) |
+| AI effectiveness methodology | [AI effectiveness analysis](08-operations/ai-assisted-study-posting-authoring-effectiveness.md) |
 | Troubleshooting | [Support routing](08-operations/support-routing.md) |
 | Behavior not yet decided | [Open questions](09-decisions/open-questions.md) |
-| AI-assisted authoring questions | [Authoring analytics open questions](09-decisions/authoring-analytics-open-questions.md) |
+| Study-posting authoring and analytics questions | [Study-posting authoring and analytics open questions](09-decisions/study-posting-authoring-analytics-open-questions.md) |
 
 ## LLM usage
 
@@ -60,10 +65,13 @@ Machine-readable routing is available in [`context-map.yaml`](context-map.yaml).
 
 ## Documentation authority
 
-This documentation separates three categories:
+This documentation uses four status categories:
 
-1. **Confirmed behavior** — current business rules.
-2. **Recommended design** — proposed implementation or security guidance.
-3. **Open questions** — behavior requiring confirmation.
+1. **Authoritative** — confirmed current behavior or business rules.
+2. **Recommended** — proposed implementation, security, analytics, or operational guidance.
+3. **Open** — unresolved behavior requiring confirmation.
+4. **Mixed** — a page containing both confirmed context and proposed schema or analytical details.
 
-An LLM must not present recommended or unresolved behavior as an existing feature.
+An LLM must not present recommended, mixed-page proposals, or unresolved behavior as implemented functionality.
+
+When using a page marked `mixed`, the LLM must distinguish statements labeled as current behavior from suggested or proposed content.

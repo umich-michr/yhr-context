@@ -79,7 +79,7 @@ sequenceDiagram
             A-->>C: Duplicate posting not permitted
         else No posting exists
             A->>I: Find current imported PI
-            A->>I: Validate PI email and ePPN
+            A->>I: Validate PI email and USER_NAME
 
             alt PI data is incomplete
                 A-->>C: Application error
@@ -123,7 +123,7 @@ The application must not create duplicate memberships when the creator and PI ar
 The imported PI must have:
 
 - Email
-- ePPN or the required institutional identity identifier
+- `USER_NAME`, mapped to the institutional SAML ePPN attribute
 
 If either is missing, posting creation produces an application error.
 

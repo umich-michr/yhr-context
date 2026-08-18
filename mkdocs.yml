@@ -86,7 +86,12 @@ nav:
       - Imported Schema: 07-data-model/imported-schema.md
       - Operational Schema: 07-data-model/operational-schema.md
       - Study Property Model: 07-data-model/study-property-model.md
+      - Study Property Query Cookbook: 07-data-model/study-property-query-cookbook.md
+      - Criterion Variable Reference: 07-data-model/criterion-variable-reference.md
+      - Criterion Operator and Value Reference: 07-data-model/criterion-operator-reference.md
       - Criteria Data Model: 07-data-model/criteria-data-model.md
+      - Criteria Query Cookbook: 07-data-model/criteria-query-cookbook.md
+      - Redis Match and Exclusion Model: 07-data-model/redis-match-model.md
       - Relationship Model: 07-data-model/relationship-model.md
 
   - Operations:
@@ -94,12 +99,15 @@ nav:
       - Support Routing: 08-operations/support-routing.md
       - Troubleshooting: 08-operations/troubleshooting.md
       - Audit and Monitoring: 08-operations/audit-and-monitoring.md
-      - Authoring Telemetry and Complexity: 08-operations/authoring-telemetry-and-complexity.md
+      - Study Posting Authoring Analytics: 08-operations/study-posting-authoring-analytics.md
+      - Study Posting Authoring Telemetry: 08-operations/study-posting-authoring-telemetry.md
+      - Eligibility-Criteria Authoring Complexity: 08-operations/eligibility-criteria-authoring-complexity.md
+      - AI-Assisted Study Posting Authoring Effectiveness: 08-operations/ai-assisted-study-posting-authoring-effectiveness.md
 
   - Decisions:
-     - Decision Register: 09-decisions/index.md
-     - General Open Questions: 09-decisions/open-questions.md
-     - Authoring and Analytics Questions: 09-decisions/authoring-analytics-open-questions.md
+      - Decision Register: 09-decisions/index.md
+      - General Open Questions: 09-decisions/open-questions.md
+      - Study Posting Authoring and Analytics Questions: 09-decisions/study-posting-authoring-analytics-open-questions.md
 
 markdown_extensions:
   - admonition

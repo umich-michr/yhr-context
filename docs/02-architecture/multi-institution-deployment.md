@@ -56,7 +56,12 @@ The eResearch team supplies an extract derived from the eResearch database.
 
 An authorized institutional process uploads CSV data through an application API.
 
-Both methods populate equivalent `IMPORTED_*` tables and feed the same reconciliation logic.
+Both methods populate equivalent `IMPORTED_*` tables and enforce the same reconciliation business rules.
+
+The implementations differ:
+
+- U-M reconciliation uses a scheduled database workflow and Oracle package.
+- CSV-based reconciliation uses Java application code.
 
 ## Related pages
 

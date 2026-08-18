@@ -7,6 +7,12 @@ relevant_when:
   - explaining_participant_matches
   - explaining_partial_matches
   - troubleshooting_participant_visibility
+canonical_for:
+  - interest_matching
+  - eligibility_matching
+  - three_valued_logic
+  - participant_visibility
+  - match_recalculation
 ---
 
 # Matching and Visibility
@@ -154,7 +160,7 @@ For a discoverable participant:
 | Restricted | `TRUE` | Yes | No | Hidden | Exact matched study |
 | Restricted | `TRUE` | No | No | Hidden | Not recommended |
 | Restricted | `MAYBE` | Any | No | Hidden | Not shown |
-| Restricted | `TRUE` or `MAYBE` | Any | Successfully finalized | Visible as interested | Interested study |
+| Restricted | `TRUE` or `MAYBE` | Any | Successfully finalized | Visible as interested | Interested study after the participant reaches the posting and completes the interest workflow |
 | Discoverable | `TRUE` | Yes | No | Exact-match category | Exact matched study |
 | Discoverable | `TRUE` | No | No | Exact-match category | Usually not recommended |
 | Discoverable | `MAYBE` | Any | No | Partial-match category | Not shown |
@@ -207,7 +213,11 @@ When a participant attempts to express interest:
 4. `FALSE` prevents interest from being completed.
 5. The participant completes the screening workflow when permitted.
 
-A participant may reach the interest workflow through an exact matched study, a direct URL, or another supported application path. Partial matches are not shown in the participant's matched-study list.
+Partial matches are not shown in the participant's matched-study list.
+
+A participant may nevertheless reach a study through a direct or bookmarked study-posting URL. If the participant initiates interest from an accessible posting, the application performs the current eligibility recheck.
+
+A `MAYBE` result may proceed through the interest workflow even though the underlying partial match was not displayed in the participant's matched-study list.
 
 After an expression of interest is finalized, later eligibility changes do not remove or alter the interest relationship.
 
@@ -223,14 +233,18 @@ Historical interest is not recalculated away.
 
 ## Stored-match processing
 
-Match results are stored in Redis rather than calculated dynamically on every view.
+Current recommendations and directional match exclusions are stored in Redis sorted sets.
 
-Match recalculation runs asynchronously after a relevant change, including:
+Redis separately stores:
 
-- A participant profile property used by eligibility criteria
-- A participant's study interests
-- A study property used by participant interests
-- Study eligibility criteria
+- Studies recommended to a participant
+- Participants recommended to a study
+- Participants excluded from study-side recommendation computation
+- Studies excluded from participant-side recommendation computation
+
+Participant visibility is applied separately from underlying recommendation storage.
+
+Match recalculation runs asynchronously after relevant changes.
 
 Failed recalculations are not automatically retried.
 
@@ -239,6 +253,8 @@ Operators can manually trigger jobs to recompute:
 - All study matches
 - All participant matches
 - Both categories of matches
+
+See [Redis Match and Exclusion Model](../07-data-model/redis-match-model.md) for the canonical key patterns, member values, timestamp scores, and exclusion reasons.
 
 ## Related pages
 

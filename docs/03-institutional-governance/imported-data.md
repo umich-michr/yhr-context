@@ -80,8 +80,8 @@ Only the PI relationship currently affects application authorization. Other impo
 
 The imported PI must have:
 
-* An email address
-* An ePPN or equivalent institutional identifier
+- An email address
+- A `USER_NAME` value corresponding to the institutional SAML ePPN attribute
 
 If either is missing, processing fails with an application error.
 See [Imported schema](../07-data-model/imported-schema.md).

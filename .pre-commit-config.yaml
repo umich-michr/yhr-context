@@ -1,0 +1,43 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^site/
+
+      - id: end-of-file-fixer
+        exclude: ^site/
+
+      - id: check-added-large-files
+
+      - id: check-merge-conflict
+
+      - id: check-case-conflict
+
+      - id: check-yaml
+        exclude: ^mkdocs\.yml$
+
+  - repo: local
+    hooks:
+      - id: validate-context-map
+        name: Validate documentation context map
+        entry: uv run python scripts/validate_context_map.py
+        language: system
+        pass_filenames: false
+        files: '^(docs/context-map\.yaml|docs/.*\.md|scripts/validate_context_map\.py)$'
+
+      - id: generate-and-validate-llms
+        name: Generate and validate LLM routing
+        entry: bash -c 'uv run python scripts/hooks.py && uv run python scripts/validate_llms_links.py'
+        language: system
+        pass_filenames: false
+        files: '^(docs/context-map\.yaml|docs/.*\.md|scripts/hooks\.py|scripts/validate_llms_links\.py)$'
+
+      - id: documentation-pre-push
+        name: Build and validate documentation before push
+        entry: make check
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages:
+          - pre-push

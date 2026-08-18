@@ -21,7 +21,6 @@ Before interest can be finalized:
 
 - The participant account must be active.
 - The study must be active.
-- The study must have `PUBLISHABLE = 1`.
 - The participant must provide current values for required temporal profile properties.
 - The eligibility recheck must produce `TRUE` or `MAYBE`.
 - The participant must complete the study's screening questionnaire when one is configured.
@@ -79,11 +78,15 @@ sequenceDiagram
 
     alt TRUE or MAYBE
         M-->>A: Can proceed
-        A-->>P: Display questionnaire if configured
-        P->>Q: Answer required and optional questions
-        Q-->>A: Submit completed questionnaire
+
+        opt Study has a questionnaire
+            A-->>P: Display questionnaire
+            P->>Q: Answer required and optional questions
+            Q-->>A: Submit completed questionnaire
+        end
+
         A->>A: Recheck study status
-        A->>A: Commit profile updates, questionnaire, and interest
+        A->>A: Commit profile updates, optional questionnaire, and interest
         A-->>ST: Show permitted participant data
     else FALSE
         M-->>A: Ineligible
@@ -105,19 +108,25 @@ An incomplete questionnaire cannot be saved or resumed.
 
 ## Interest-record timing
 
-The application creates the interest record only after the questionnaire is successfully completed.
+The application creates the interest record only after:
 
-It does not create a pending interest record.
+- The participant passes the eligibility recheck with `TRUE` or `MAYBE`.
+- The study remains active.
+- The participant successfully completes the screening questionnaire, when one is configured.
+
+A study without a screening questionnaire does not require questionnaire submission.
+
+The application does not create a pending interest record.
 
 A failed or abandoned questionnaire produces no interest record.
 
-The following changes are committed in one transaction:
+The following applicable changes are committed in one transaction:
 
 - Temporal-profile updates
-- Questionnaire submission
+- Questionnaire submission, when a questionnaire exists
 - Finalized expression of interest
 
-If the eligibility recheck, study-status recheck, or a later workflow step fails, none of those changes are saved.
+If the eligibility recheck, study-status recheck, questionnaire submission, or a later workflow step fails, none of those changes are saved.
 
 ## Participant withdrawal
 
@@ -131,7 +140,7 @@ Such requests may be raised with support, but they are not handled by a defined 
 
 The application rechecks study status when the participant submits the interest workflow.
 
-If the study became inactive or non-publishable during questionnaire completion:
+If the study is no longer active at submission, whether because of its date range or because `PUBLISHABLE` became `0`:
 
 - Interest is not finalized.
 - Temporal-profile and questionnaire changes in the transaction are not saved.
@@ -183,7 +192,7 @@ The participant must still:
 - Refresh temporal profile values
 - Pass the eligibility recheck
 - Complete the questionnaire workflow
-- Submit while the study remains active and publishable
+- Submit while the study remains active
 
 ## Related pages
 

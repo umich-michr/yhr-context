@@ -7,6 +7,11 @@ relevant_when:
   - completing_interest
   - exporting_participant_data
   - troubleshooting_export_access
+canonical_for:
+  - questionnaire_behavior
+  - questionnaire_editing
+  - export_contents
+  - export_availability
 ---
 
 # Questionnaires and Exports
@@ -111,8 +116,13 @@ Authorized study team members may export:
 
 ## Export availability
 
-Participant data can be exported whenever `PUBLISHABLE = 1`; study active
-status does not restrict exports of historical interested-participant data.
+Historical interested-participant data can be exported while `PUBLISHABLE = 1`, even when the study is inactive by date, subject to participant-account visibility rules.
+
+If a participant account is deactivated:
+
+- The historical interest relationship remains.
+- The participant's profile information is hidden.
+- The participant's hidden profile information is not available for a new export.
 
 If the study becomes non-publishable:
 

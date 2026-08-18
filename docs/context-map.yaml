@@ -1,8 +1,8 @@
 document:
   title: YourHealthResearch.org Application Context
   tagline: >
-    Functional, architectural, governance, data-model, and support documentation
-    for a human-subject research recruitment application.
+    Functional, architectural, governance, data-model, support, and analytics
+    documentation for a human-subject research recruitment application.
   purpose:
     - support_questions
     - functional_analysis
@@ -10,21 +10,25 @@ document:
     - data_model_mapping
     - lifecycle_management
     - feature_design
+    - study_posting_authoring_analytics
   interpretation:
     confirmed_rules: "01-overview/business-rules.md"
     unresolved_behavior: "09-decisions/open-questions.md"
+    study_posting_authoring_analytics_questions: "09-decisions/study-posting-authoring-analytics-open-questions.md"
     terminology: "01-overview/terminology.md"
   interpretation_rules:
-    - "Treat business rules as confirmed unless a later approved revision changes them."
-    - "Treat recommendations as proposed controls, not existing behavior."
-    - "Treat items in the open-question register as unresolved."
-    - "Distinguish institutional roles from application roles."
-    - "Distinguish imported source-of-truth data from operational application data."
-    - "Distinguish historical participant-study relationships from current visibility."
-    - "Do not assume a valid institutional login grants access to every study."
-    - "Do not assume that an IRB-approved study is necessarily publishable through this recruitment tool."
+    - "Start with the canonical topic page for a narrow question."
+    - "Load business-rules.md only for cross-cutting invariants or conflict resolution."
+    - "Treat authoritative pages as confirmed current behavior."
+    - "Treat recommended content as proposed rather than implemented."
+    - "On mixed pages, distinguish confirmed facts from proposed schema or analytics."
+    - "Treat open-question pages as unresolved."
+    - "Distinguish institutional roles, application-wide roles, and study-association roles."
+    - "Distinguish imported governance data from operational application data."
+    - "Distinguish active recruitment from historical interested-participant access."
+    - "Distinguish relational data from Redis recommendations and generated CSV output."
+    - "Do not assume IRB recognition makes a study publishable."
 
-# Start-here entries appear at the top of llms.txt before the topic sections.
 start_here:
   - path: "index.md"
     label: "Documentation home"
@@ -34,176 +38,156 @@ start_here:
     note: "Canonical definitions."
   - path: "01-overview/business-rules.md"
     label: "Business rules"
-    note: "Confirmed cross-cutting invariants."
+    note: "Cross-cutting consistency reference."
   - path: "09-decisions/open-questions.md"
     label: "Open questions"
-    note: "Behavior that is not yet confirmed."
+    note: "Unresolved general behavior."
+  - path: "09-decisions/study-posting-authoring-analytics-open-questions.md"
+    label: "Authoring analytics questions"
+    note: "Unresolved AI and analytics behavior."
 
-# Topic sections group related pages under a human-readable heading in llms.txt.
-# Each section has a heading and one or more topics whose pages are inlined.
-# Topics here are references to the keys in the `topics` map below.
 sections:
-  - heading: "Application purpose or general behavior"
+  - heading: "Application overview and architecture"
     topics:
       - application_overview
-
-  - heading: "Multi-institution architecture or branded deployments"
-    topics:
+      - system_context
       - multi_institution_deployment
 
-  - heading: "eResearch, institutional governance, imported data, or CSV uploads"
+  - heading: "Institutional governance and imports"
     topics:
       - institutional_governance
-      - eresearch
-      - csv_upload
-
-  - heading: "Whether a study may recruit"
-    topics:
+      - imported_tables
+      - import_pipeline
       - publishability
+      - reconciliation
 
-  - heading: "PI identification, PI changes, or application roles"
+  - heading: "Users and access"
     topics:
-      - principal_investigator
+      - participants
+      - institutional_users
+      - study_membership
+      - invitations
 
-  - heading: "Creating a study posting"
+  - heading: "Study management"
     topics:
       - study_posting_creation
       - ai_assisted_authoring
+      - study_lifecycle
 
-  - heading: "Study information, eligibility authoring, and matching"
+  - heading: "Recruitment and matching"
     topics:
-      - study_property_model
       - eligibility_criteria_authoring
-      - criteria_data_model
-      - matching
-
-  - heading: "Participant accounts, profiles, or visibility"
-    topics:
-      - participant_profile
-      - matching
-
-  - heading: "Matching, recommendations, or participant discoverability"
-    topics:
       - matching
       - ask_if_interested
-
-  - heading: "Participant interest or screening"
-    topics:
       - expression_of_interest
       - questionnaires
-      - exports
 
-  - heading: "Database tables or entity relationships"
+  - heading: "Data models and query references"
     topics:
       - data_model
       - study_property_model
+      - study_property_queries
+      - criterion_variables
+      - criterion_operators
       - criteria_data_model
+      - criteria_query_cookbook
+      - redis_match_storage
       - relationship_model
 
-  - heading: "Support or troubleshooting"
+  - heading: "Operations, support, and study-posting authoring analytics"
     topics:
+      - support_routing
       - troubleshooting
       - audit_and_monitoring
-      - authoring_telemetry
+      - study_posting_authoring_analytics
+      - study_posting_authoring_telemetry
+      - eligibility_criteria_authoring_complexity
+      - ai_assisted_study_posting_authoring_effectiveness
 
-  - heading: "Open questions, decisions, or unresolved analytics"
+  - heading: "Open questions"
     topics:
       - unresolved_questions
-      - authoring_analytics_questions
+      - study_posting_authoring_analytics_questions
 
 topics:
   application_overview:
     label: "Application overview"
     primary: "01-overview/index.md"
-    related:
-      - "02-architecture/system-context.md"
 
-  terminology:
-    label: "Terminology"
-    primary: "01-overview/terminology.md"
+  system_context:
+    label: "System context"
+    primary: "02-architecture/system-context.md"
+    related:
+      - "02-architecture/data-ownership.md"
 
   multi_institution_deployment:
     label: "Multi-institution deployment"
     primary: "02-architecture/multi-institution-deployment.md"
-    related:
-      - "02-architecture/data-ownership.md"
 
   institutional_governance:
     label: "Institutional governance"
     primary: "03-institutional-governance/index.md"
-    related:
-      - "03-institutional-governance/imported-data.md"
-      - "03-institutional-governance/import-pipeline.md"
-
-  eresearch:
-    label: "eResearch and imported data"
-    primary: "03-institutional-governance/import-pipeline.md"
-    related:
-      - "03-institutional-governance/imported-data.md"
-
-  csv_upload:
-    label: "CSV upload"
-    primary: "03-institutional-governance/import-pipeline.md"
 
   imported_tables:
-    label: "Imported tables"
+    label: "Imported schema"
     primary: "07-data-model/imported-schema.md"
     related:
       - "03-institutional-governance/imported-data.md"
 
+  import_pipeline:
+    label: "Import pipeline"
+    primary: "03-institutional-governance/import-pipeline.md"
+
   publishability:
     label: "Publishability"
     primary: "03-institutional-governance/publishability.md"
-    related:
-      - "03-institutional-governance/reconciliation.md"
-      - "05-study-management/study-lifecycle.md"
 
-  principal_investigator:
-    label: "Principal investigator"
+  reconciliation:
+    label: "Governance reconciliation"
+    primary: "03-institutional-governance/reconciliation.md"
+
+  participants:
+    label: "Participants"
+    primary: "04-users-and-access/participants.md"
+
+  institutional_users:
+    label: "Institutional users"
     primary: "04-users-and-access/institutional-users.md"
-    related:
-      - "04-users-and-access/study-membership.md"
-      - "03-institutional-governance/reconciliation.md"
+
+  study_membership:
+    label: "Study membership"
+    primary: "04-users-and-access/study-membership.md"
+
+  invitations:
+    label: "Study-team invitations"
+    primary: "04-users-and-access/invitations.md"
 
   study_posting_creation:
     label: "Study posting creation"
     primary: "05-study-management/posting-creation.md"
-    related:
-      - "03-institutional-governance/imported-data.md"
-      - "04-users-and-access/study-membership.md"
-      - "05-study-management/ai-assisted-posting-authoring.md"
 
   ai_assisted_authoring:
-    label: "AI-assisted study-posting authoring"
+    label: "AI-assisted authoring"
     primary: "05-study-management/ai-assisted-posting-authoring.md"
     related:
-      - "05-study-management/posting-creation.md"
-      - "06-recruitment/eligibility-criteria-authoring.md"
       - "07-data-model/study-property-model.md"
-      - "08-operations/authoring-telemetry-and-complexity.md"
+      - "08-operations/ai-assisted-study-posting-authoring-effectiveness.md"
 
-  participant_profile:
-    label: "Participant profile"
-    primary: "04-users-and-access/participants.md"
-
-  matching:
-    label: "Matching and visibility"
-    primary: "06-recruitment/matching-and-visibility.md"
-    related:
-      - "06-recruitment/eligibility-criteria-authoring.md"
-      - "07-data-model/criteria-data-model.md"
-
-  ask_if_interested:
-    label: "Ask if interested"
-    primary: "06-recruitment/ask-if-interested.md"
+  study_lifecycle:
+    label: "Study lifecycle"
+    primary: "05-study-management/study-lifecycle.md"
 
   eligibility_criteria_authoring:
     label: "Eligibility-criteria authoring"
     primary: "06-recruitment/eligibility-criteria-authoring.md"
-    related:
-      - "06-recruitment/matching-and-visibility.md"
-      - "07-data-model/criteria-data-model.md"
-      - "08-operations/authoring-telemetry-and-complexity.md"
+
+  matching:
+    label: "Matching and visibility"
+    primary: "06-recruitment/matching-and-visibility.md"
+
+  ask_if_interested:
+    label: "Ask if interested"
+    primary: "06-recruitment/ask-if-interested.md"
 
   expression_of_interest:
     label: "Expressions of interest"
@@ -213,69 +197,84 @@ topics:
     label: "Questionnaires and exports"
     primary: "06-recruitment/questionnaires-and-exports.md"
 
-  exports:
-    label: "Exports"
-    primary: "06-recruitment/questionnaires-and-exports.md"
-
   data_model:
-    label: "Data model"
+    label: "Data-model overview"
     primary: "07-data-model/index.md"
-    related:
-      - "07-data-model/imported-schema.md"
-      - "07-data-model/operational-schema.md"
-      - "07-data-model/study-property-model.md"
-      - "07-data-model/criteria-data-model.md"
 
   study_property_model:
     label: "Study property model"
     primary: "07-data-model/study-property-model.md"
-    related:
-      - "05-study-management/ai-assisted-posting-authoring.md"
-      - "07-data-model/index.md"
+
+  study_property_queries:
+    label: "Study property query cookbook"
+    primary: "07-data-model/study-property-query-cookbook.md"
+
+  criterion_variables:
+    label: "Criterion variable reference"
+    primary: "07-data-model/criterion-variable-reference.md"
+
+  criterion_operators:
+    label: "Criterion operator and value reference"
+    primary: "07-data-model/criterion-operator-reference.md"
 
   criteria_data_model:
     label: "Criteria data model"
     primary: "07-data-model/criteria-data-model.md"
-    related:
-      - "06-recruitment/eligibility-criteria-authoring.md"
-      - "06-recruitment/matching-and-visibility.md"
-      - "07-data-model/index.md"
+
+  criteria_query_cookbook:
+    label: "Criteria query cookbook"
+    primary: "07-data-model/criteria-query-cookbook.md"
+
+  redis_match_storage:
+    label: "Redis match and exclusion model"
+    primary: "07-data-model/redis-match-model.md"
 
   relationship_model:
     label: "Relationship model"
     primary: "07-data-model/relationship-model.md"
-    related:
-      - "07-data-model/index.md"
-      - "07-data-model/study-property-model.md"
-      - "07-data-model/criteria-data-model.md"
+
+  support_routing:
+    label: "Support routing"
+    primary: "08-operations/support-routing.md"
 
   troubleshooting:
     label: "Troubleshooting"
     primary: "08-operations/troubleshooting.md"
-    related:
-      - "08-operations/support-routing.md"
 
   audit_and_monitoring:
     label: "Audit and monitoring"
     primary: "08-operations/audit-and-monitoring.md"
 
-  authoring_telemetry:
-    label: "Authoring telemetry and complexity"
-    primary: "08-operations/authoring-telemetry-and-complexity.md"
+  study_posting_authoring_analytics:
+    label: "Study posting authoring analytics"
+    primary: "08-operations/study-posting-authoring-analytics.md"
+
+  study_posting_authoring_telemetry:
+    label: "Study posting authoring telemetry"
+    primary: "08-operations/study-posting-authoring-telemetry.md"
+
+  eligibility_criteria_authoring_complexity:
+    label: "Eligibility-criteria authoring complexity"
+    primary: "08-operations/eligibility-criteria-authoring-complexity.md"
+    related:
+      - "06-recruitment/eligibility-criteria-authoring.md"
+      - "07-data-model/criteria-data-model.md"
+      - "07-data-model/criteria-query-cookbook.md"
+      - "07-data-model/criterion-operator-reference.md"
+      - "08-operations/study-posting-authoring-telemetry.md"
+
+  ai_assisted_study_posting_authoring_effectiveness:
+    label: "AI-assisted study posting authoring effectiveness"
+    primary: "08-operations/ai-assisted-study-posting-authoring-effectiveness.md"
     related:
       - "05-study-management/ai-assisted-posting-authoring.md"
-      - "06-recruitment/eligibility-criteria-authoring.md"
-      - "07-data-model/study-property-model.md"
-      - "07-data-model/criteria-data-model.md"
+      - "08-operations/study-posting-authoring-telemetry.md"
+      - "08-operations/eligibility-criteria-authoring-complexity.md"
 
   unresolved_questions:
-    label: "Open questions"
+    label: "General open questions"
     primary: "09-decisions/open-questions.md"
 
-  authoring_analytics_questions:
-    label: "Authoring analytics open questions"
-    primary: "09-decisions/authoring-analytics-open-questions.md"
-    related:
-      - "05-study-management/ai-assisted-posting-authoring.md"
-      - "06-recruitment/eligibility-criteria-authoring.md"
-      - "08-operations/authoring-telemetry-and-complexity.md"
+  study_posting_authoring_analytics_questions:
+    label: "Study posting authoring and analytics open questions"
+    primary: "09-decisions/study-posting-authoring-analytics-open-questions.md"
