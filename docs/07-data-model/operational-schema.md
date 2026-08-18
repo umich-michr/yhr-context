@@ -1,466 +1,202 @@
 ---
 title: Operational Schema
-summary: Logical application-managed users, studies, memberships, participants, matches, and questionnaires.
+summary: Routing page for operational identities, studies, participants, recruitment relationships, questionnaires, and audit storage.
 status: mixed
 relevant_when:
   - mapping_features_to_tables
   - designing_schema_changes
-  - explaining_application_roles
-  - explaining_study_roles
+  - locating_operational_entities
 ---
 
 # Operational Schema
 
-This page combines confirmed application concepts with suggested logical fields.
+This page provides a compact map of operational storage.
 
-Exact table and column names must be verified against the physical database schema.
+Use the specialized schema pages for field-level detail.
 
-## Role domains
+## Identity and access
 
-The application uses two distinct role domains.
-
-### Application-wide roles
+Operational identity and authorization include:
 
 ```text
-ADMIN
-STUDY_IMPORTER
-STAFF
-VOLUNTEER
-```
-
-### Study-association roles
-
-```text
-PRINCIPAL_INVESTIGATOR
+APP_USER
+UMCS_USER
 STUDY_TEAM_MEMBER
+STUDY_TEAM_INVITATION
+LOVED_ONE
 ```
 
-These roles must not be stored or interpreted as though they represent the same authorization scope.
-
-## `APP_USER`
-
-Represents an application identity.
-
-Suggested fields:
+For institutional identities:
 
 ```text
-ID
-USER_NAME
-EPPN
-FIRST_NAME
-MIDDLE_NAME
-LAST_NAME
-EMAIL
-APPLICATION_ROLE
-STATUS
-CREATED_AT
-LAST_LOGIN_AT
+APP_USER.USER_NAME
+=
+SAML ePPN attribute value
 ```
 
-Possible application-wide roles:
+See:
+
+- [Institutional Users](../04-users-and-access/institutional-users.md)
+- [Study Membership](../04-users-and-access/study-membership.md)
+- [Participant Account and Consent Model](participant-account-consent-model.md)
+
+## Studies and lifecycle
+
+Study data includes:
 
 ```text
-ADMIN
-STUDY_IMPORTER
-STAFF
-VOLUNTEER
+STUDY
+STUDY_ACTIVE_INTERVAL
+STUDY_PROPERTY_VALUE
+ENTITY_PROPERTY
 ```
 
-Institutional users are managed through institutional identity providers.
+Active status is derived from publishability and activation boundaries.
 
-## `STUDY`
+Archive state and total enrollment are stored through study properties.
 
-Represents an operational study posting.
+See:
 
-Suggested fields:
+- [Study Lifecycle](../05-study-management/study-lifecycle.md)
+- [Study Archiving](../05-study-management/study-archiving.md)
+- [Study Property Model](study-property-model.md)
+
+## Criteria
+
+Eligibility and participant study interests use:
 
 ```text
-ID
-STUDY_NUM
-TITLE
-DESCRIPTION
-PUBLISHABLE
-ACTIVATION_DATE
-DEACTIVATION_DATE
-CREATED_BY
-CREATED_AT
+STUDY_ELIGIBILITY_CRITERION
+FIND_STUDIES_CRITERION
+CRITERION_CLAUSE
+CRITERION_CLAUSE_EXPRESSION
+CRITERION_VARIABLE
+CRIT_CLAUSE_EXPRESSION_VALUE
+EXPRESSION_VALUE_LOOKUP_VALUE
+LOOKUP_VALUE
 ```
 
-`STUDY_NUM` must:
+See [Criteria Data Model](criteria-data-model.md).
 
-- Correspond to `IMPORTED_STUDY.ID`
-- Be unique within the institutional deployment
+## Recommendations
 
-Conceptually:
+Current recommendations and exclusions are stored in Redis:
 
 ```text
-UNIQUE (STUDY.STUDY_NUM)
+vol.rec
+std.rec
+vol.exc
+std.exc
 ```
 
-Study active status is derived from:
+See [Redis Match and Exclusion Model](redis-match-model.md).
+
+## Expressions of interest
+
+Successful show-interest processing creates:
 
 ```text
-PUBLISHABLE = 1
-AND current date is within activation and deactivation dates
+STUDY_VOLUNTEER
 ```
 
-## `STUDY_TEAM_MEMBER`
+The relationship supports:
 
-Associates an institutional `APP_USER` with an operational study.
+- Workflow-list membership
+- Questionnaire submission
+- Labels
+- Messaging
+- Export
 
-Suggested fields:
+See [Recruitment Operations Model](recruitment-operations-model.md).
+
+## Questionnaires
+
+A study may have zero or one questionnaire.
+
+Questionnaire storage includes concepts such as:
 
 ```text
-ID
-STUDY_ID
-APP_USER_ID
-STUDY_ROLE
-MEMBERSHIP_SOURCE
-CREATED_AT
+Questionnaire
+Question
+Response option
+Questionnaire submission
+Question response
 ```
 
-Allowed study roles:
+Exact physical names remain to be documented.
+
+See [Questionnaires and Exports](../06-recruitment/questionnaires-and-exports.md).
+
+## Messaging and notifications
+
+Messaging storage includes:
+
+- Messages
+- Study-specific templates
+- Stored attachments
+- Message attachments
+
+Notification storage includes:
+
+- Study
+- Event
+- Shared frequency
+- Study-member recipients
+- External recipients
+
+Exact physical table names remain to be documented.
+
+See:
+
+- [Messaging](../06-recruitment/messaging.md)
+- [Study Notifications](../05-study-management/study-notifications.md)
+- [Recruitment Operations Model](recruitment-operations-model.md)
+
+## Consent
+
+Consent uses:
 
 ```text
-PRINCIPAL_INVESTIGATOR
-STUDY_TEAM_MEMBER
+USER_AGREEMENT
+USER_AGREEMENT_AUDIT
 ```
 
-Possible membership sources:
+See [Participant Account and Consent Model](participant-account-consent-model.md).
+
+## PHI audit
+
+Participant-data access uses:
 
 ```text
-IMPORTED_PI
-POSTING_CREATOR
-INVITATION
-BACKEND_ADMINISTRATION
+PHI_AUDIT
 ```
 
-A uniqueness rule should prevent duplicate user-study memberships unless the physical model intentionally permits separate rows for separate roles.
+See [PHI Audit](../08-operations/phi-audit.md).
 
-Conceptually:
+## Study-posting authoring telemetry
+
+Study-posting attempts and optional AI generation use:
 
 ```text
-UNIQUE (
-    STUDY_TEAM_MEMBER.STUDY_ID,
-    STUDY_TEAM_MEMBER.APP_USER_ID
-)
+APPLICATION_SETTING
+STUDY_POSTING_AUDIT
+STUDY_POSTING_GENERATION_AUDIT
+STUDY_POSTING_GENERATION_AUDIT_ERROR
 ```
 
-## PI-change implication
+See [Study-Posting Authoring Audit Model](study-posting-authoring-audit-model.md).
 
-When the imported PI changes:
+## Generated exports
 
-- A membership is created for the new PI.
-- The former PI's existing operational membership is not automatically removed.
+CSV exports are streamed to the browser.
 
-The operational table may therefore contain more than one `PRINCIPAL_INVESTIGATOR` membership even though imported data identifies one current PI.
+The application does not retain:
 
-## `PARTICIPANT_ACCOUNT`
-
-Represents a local participant account.
-
-Suggested fields:
-
-```text
-ID
-EMAIL
-PASSWORD_DATA
-APPLICATION_ROLE
-ACCOUNT_STATUS
-ACTIVATION_TOKEN
-ACTIVATION_TOKEN_EXPIRES_AT
-CREATED_AT
-DEACTIVATED_AT
-```
-
-Participant application role:
-
-```text
-VOLUNTEER
-```
-
-Participant deletion is a hard deletion initiated through the support-request process.
-
-## `PARTICIPANT_PROFILE`
-
-Suggested fields or profile areas:
-
-```text
-PARTICIPANT_ID
-DATE_OF_BIRTH
-GENDER
-RACE
-LOCATION
-CONTACT_INFORMATION
-VISIBILITY_MODE
-PAST_MEDICAL_CONDITIONS
-PRESENT_MEDICAL_CONDITIONS
-PARENT_GUARDIAN_OF_CHILD_UNDER_18
-UPDATED_AT
-```
-
-The actual model may normalize repeating profile properties into separate tables.
-
-## `PARTICIPANT_PREFERENCE`
-
-Represents participant study interests.
-
-Suggested fields:
-
-```text
-ID
-PARTICIPANT_ID
-PREFERENCE_TYPE
-PREFERENCE_VALUE
-UPDATED_AT
-```
-
-Examples include:
-
-- Topic
-- Location
-- Compensation preference
-- Other study characteristics
-
-## `ELIGIBILITY_CRITERION`
-
-Represents a study inclusion or exclusion criterion.
-
-Suggested fields:
-
-```text
-ID
-STUDY_ID
-PROFILE_PROPERTY
-OPERATOR
-EXPECTED_VALUE
-CRITERION_TYPE
-GROUP_ID
-DISPLAY_ORDER
-```
-
-Eligibility criteria may require additional tables for grouped Boolean expressions.
-
-## `MATCH_EVALUATION`
-
-Represents a participant-study match result.
-
-Suggested fields:
-
-```text
-ID
-PARTICIPANT_ID
-STUDY_ID
-INTEREST_RESULT
-ELIGIBILITY_RESULT
-MATCH_CATEGORY
-EVALUATED_AT
-```
-
-Eligibility results:
-
-```text
-TRUE
-MAYBE
-FALSE
-```
-
-Match categories:
-
-```text
-EXACT
-PARTIAL
-NO_MATCH
-```
-
-Match results are stored in Redis and recalculated asynchronously after a
-relevant profile, preference, study-property, or eligibility-criteria change.
-Failed recalculations are not retried automatically; operators can manually
-trigger full study, participant, or combined recomputation jobs.
-
-## `STUDY_TEAM_PROMPT`
-
-Represents an Ask if interested action.
-
-Suggested fields:
-
-```text
-ID
-PARTICIPANT_ID
-STUDY_ID
-INITIATED_BY_APP_USER_ID
-MESSAGE
-CREATED_AT
-DISPLAYED_AT
-VIEWED_AT
-RESPONDED_AT
-STATUS
-```
-
-A prompt is not an expression of interest.
-
-## `PARTICIPANT_STUDY_INTEREST`
-
-Represents a finalized expression of interest.
-
-Suggested fields:
-
-```text
-ID
-PARTICIPANT_ID
-STUDY_ID
-EXPRESSED_AT
-ELIGIBILITY_RESULT_AT_INTEREST
-STATUS
-```
-
-Participants cannot currently withdraw a finalized interest.
-
-The row is created only after successful questionnaire completion. The
-temporal-profile update, questionnaire submission, and interest creation occur
-in one transaction.
-
-## `QUESTIONNAIRE`
-
-Represents the single screening questionnaire for a study.
-
-Suggested fields:
-
-```text
-ID
-STUDY_ID
-ACTIVE
-CREATED_AT
-UPDATED_AT
-```
-
-Conceptually:
-
-```text
-UNIQUE (QUESTIONNAIRE.STUDY_ID)
-```
-
-Questionnaires are not versioned.
-
-## `QUESTION`
-
-Represents a screening question.
-
-Suggested fields:
-
-```text
-ID
-QUESTIONNAIRE_ID
-QUESTION_TEXT
-REQUIRED
-DISPLAY_ORDER
-```
-
-Questions may be added, deleted, or reordered while the study is inactive.
-Other changes to existing question content are not supported. Deleting a
-question also deletes its historical responses after confirmation.
-
-## `QUESTIONNAIRE_SUBMISSION`
-
-Represents a submitted screening questionnaire.
-
-Suggested fields:
-
-```text
-ID
-QUESTIONNAIRE_ID
-PARTICIPANT_STUDY_INTEREST_ID
-SUBMITTED_AT
-```
-
-Submitted questionnaires cannot be edited by participants.
-
-## `QUESTION_RESPONSE`
-
-Represents one answer.
-
-Suggested fields:
-
-```text
-ID
-QUESTIONNAIRE_SUBMISSION_ID
-QUESTION_ID
-RESPONSE_VALUE
-```
-
-Because questionnaires are not versioned and questions may be deleted, the handling of historical responses to deleted questions must be verified.
-
-## `STUDY_TEAM_INVITATION`
-
-Represents an unused invitation token.
-
-Suggested fields:
-
-```text
-ID
-STUDY_ID
-TOKEN
-EXPIRES_AT
-CREATED_BY_APP_USER_ID
-CREATED_AT
-```
-
-Confirmed behavior includes:
-
-- Cryptographically secure UUID v4 token
-- Expiration
-- Revocation by invitation-record deletion
-- Invitation-record deletion after successful membership creation
-- Atomic membership creation and invitation-record deletion
-- Transferable acceptance by any SAML-authenticated institutional user with the link
-
-## `STUDY_IMPORT_TOKEN`
-
-Represents authorization for institutional CSV upload.
-
-Suggested fields:
-
-```text
-ID
-STUDY_IMPORTER_APP_USER_ID
-TOKEN_IDENTIFIER
-EXPIRES_AT
-CREATED_AT
-```
-
-Token timing is governed by:
-
-```text
-STUDY_IMPORT_TOKEN_GRACE_PERIOD
-```
-
-The physical implementation may store only token-related metadata rather than the JWT itself.
-
-## CSV exports
-
-Exports are generated in memory and streamed to the browser. No `EXPORT_JOB`
-or server-side export file is retained, and the export action is not separately
-audited. Participant-profile views are audited and can be correlated with
-Splunk request logs for support investigation.
-
-## Suggested constraints
-
-```text
-UNIQUE (STUDY.STUDY_NUM)
-
-UNIQUE (APP_USER.USER_NAME)
-
-UNIQUE (
-    STUDY_TEAM_MEMBER.STUDY_ID,
-    STUDY_TEAM_MEMBER.APP_USER_ID
-)
-
-UNIQUE (QUESTIONNAIRE.STUDY_ID)
-```
+- Relational export jobs
+- Server-side export files
+- Definitive export audit events
 
 ## Related pages
 
-- [Imported schema](imported-schema.md)
-- [Study membership](../04-users-and-access/study-membership.md)
-- [Matching and visibility](../06-recruitment/matching-and-visibility.md)
-- [Open questions](../09-decisions/open-questions.md)
+- [Relationship Model](relationship-model.md)
+- [Data-Model Overview](index.md)

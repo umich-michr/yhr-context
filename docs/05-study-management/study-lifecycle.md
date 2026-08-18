@@ -1,180 +1,167 @@
 ---
 title: Study Lifecycle
-summary: Activation, expiration, publishability changes, reactivation, and inactive-study behavior.
+summary: Derived active status, manual activation and deactivation, governance changes, memory synchronization, notifications, and archive behavior.
 status: authoritative
+canonical_for:
+  - study_active_status
+  - study_activation
+  - study_deactivation
+  - automatic_reactivation
 relevant_when:
   - activating_a_study
   - deactivating_a_study
   - troubleshooting_study_status
-  - explaining_automatic_reactivation
+  - explaining_publishability_transitions
 ---
 
 # Study Lifecycle
 
-A study's active status is determined by:
+## Derived active status
 
-- Institutionally controlled publishability
-- Study activation date
-- Study deactivation date
-- Current date
+There is no independent persisted active Boolean.
 
-## Active-status rule
-
-Conceptually:
+A study is active only when:
 
 ```text
-Study is active =
-    PUBLISHABLE = 1
-    AND today falls within the activation and deactivation dates
+PUBLISHABLE = 1
+AND current date/time is on or after POSTING_ACTIVATION_DATE
+AND current date/time is on or before POSTING_DEACTIVATION_DATE
 ```
 
-Both date boundaries are inclusive.
+The boundaries are inclusive at the instant they are stored.
 
-## Draft posting
+If any condition is false, the study is inactive.
 
-A newly created posting may be prepared and edited before it is active.
+## Initial and explicit activation
 
-A posting cannot actively recruit unless its active-status conditions are satisfied.
+Initial activation requires study-team action.
 
-Whether `PUBLISHABLE = 1` is required to create a draft, rather than only to activate it, remains an open question.
+Any associated study team member may activate the study when:
 
-## Activation
-
-A study can be active when:
-
-- It references an imported study
 - `PUBLISHABLE = 1`
-- An activation date is set
-- A deactivation date is set
-- The current date falls within the configured range
-- Required participant-facing content is complete
+- The study is not archived
+- Required posting content is complete
+- A future deactivation boundary is supplied
+
+Activation:
+
+- Sets activation to the current date/time
+- Saves the selected deactivation boundary
+- Causes the derived state to become active
+- Adds or updates the study in active in-memory matching data
+- Creates a new active interval
+- Initiates asynchronous lifecycle-notification handling
+- Initiates applicable match recomputation
+
+A study team member cannot activate the study or assign a new activation range
+while `PUBLISHABLE = 0`.
+
+## Manual deactivation
+
+Any associated study member may select Deactivate Study.
+
+Manual deactivation:
+
+- Sets the deactivation boundary to the current date/time
+- Makes the study inactive as current time moves beyond that boundary
+- Prompts for total enrollment
+- Removes the study from active in-memory matching data
+- Closes the current active interval
+- Initiates asynchronous lifecycle-notification handling
+
+The enrollment question is displayed, but the user may indicate that the value
+is unknown.
+
+Total enrollment is stored through `STUDY_PROPERTY_VALUE`.
+
+There is no separate manual-deactivation Boolean.
 
 ## Date-based expiration
 
-When the current date moves beyond the deactivation date:
+The study becomes inactive when the current date/time is later than its
+deactivation boundary.
 
-- The study becomes inactive.
-- The study is removed from active matching.
-- The study no longer actively recruits.
-- New recruitment interactions are blocked.
+Scheduled processing detects time-based transitions, updates active intervals,
+removes expired studies from active in-memory matching data, and initiates
+applicable notifications.
 
-## Date-based reactivation
+After the deactivation boundary has passed, publishability returning to `1`
+cannot reactivate the study unless a study member explicitly sets a new
+activation range.
 
-An expired study may be manually reactivated when:
+## Upcoming-deactivation warning
 
-- The study team updates the applicable dates
-- `PUBLISHABLE = 1`
-- Other activation requirements are satisfied
+The current PI receives an email warning approximately one week before the
+configured deactivation date.
 
-There is no separate manual-deactivation control. A study team makes a study
-inactive by setting its deactivation date.
+This warning is separate from the notification generated after the study
+actually becomes inactive.
+
+The warning gives the study team an opportunity to review recruitment and, when
+permitted, establish an appropriate future deactivation date before expiration.
 
 ## Governance-driven inactivation
 
-When `PUBLISHABLE` changes from `1` to `0`:
+When `PUBLISHABLE` changes to `0`:
 
-- The study becomes inactive.
-- The study leaves active matching.
-- Recruitment stops.
-- Study-team access to participant data is restricted.
-- Historical expressions of interest may remain.
-- The local deactivation date is not changed.
+- The derived study state becomes inactive
+- Recruitment stops
+- Matching stops
+- The study is removed from active in-memory matching data
+- Participant information is hidden
+- Existing conversations are hidden
+- New exports are blocked
+- Existing activation boundaries remain unchanged
+- The current active interval closes
+- Delayed lifecycle-notification handling begins
 
-## Automatic reactivation after publishability returns
+## Automatic reactivation
 
-When `PUBLISHABLE` changes from `0` to `1`:
+When `PUBLISHABLE` changes from `0` to `1`, the application recalculates active
+status.
 
-1. The application recalculates active status.
-2. If the current date still falls within the existing study dates, the study becomes active automatically.
-3. The study team does not need to perform a separate reactivation action.
+Automatic reactivation occurs only if the unchanged activation range still
+contains the current date/time.
 
-This current behavior may reactivate a study before the study team completes a locally required posting change.
+When automatically reactivated:
 
-## Lifecycle diagram
+- The study returns to active in-memory matching data.
+- Applicable matching recomputation begins.
+- A new active interval is created.
+- Delayed lifecycle-notification handling begins.
 
-```mermaid
-stateDiagram-v2
-    [*] --> Draft: Posting created
+If the deactivation boundary has passed, publishability alone cannot reactivate
+the study.
 
-    Draft --> Active: Publishable is 1\nand dates include today
-    Draft --> InactiveByGovernance: Publishable is 0
+Manual deactivation therefore prevents future automatic reactivation unless the
+study team explicitly establishes a new activation range.
 
-    Active --> Expired: Today passes deactivation date
-    Active --> InactiveByGovernance: Publishable changes to 0
+## Active intervals
 
-    Expired --> Active: Dates updated,\npublishable is 1,\nand dates include today
+`STUDY_ACTIVE_INTERVAL` records periods during which the derived study state was
+active.
 
-    InactiveByGovernance --> Active: Publishable changes to 1\nand dates include today
-    InactiveByGovernance --> Expired: Publishable changes to 1\nbut dates do not include today
-```
+An interval is created or closed whenever the derived state changes because of:
 
-## Participant-facing inactive-study behavior
+- Explicit activation
+- Manual deactivation
+- Date-based expiration
+- Publishability change
+- Automatic reactivation
 
-A participant may retain or use a direct URL for an inactive study.
+## Lifecycle notifications
 
-When the participant accesses that URL, the application displays a message that the study is no longer recruiting.
+Lifecycle email is asynchronous.
 
-The posting is not silently treated as actively available.
+A daily scheduled process evaluates:
 
-## Matching effects
+- Activation and deactivation announcements
+- Configured Other Announcements recipients
+- Current PI notifications
+- Upcoming-deactivation warnings
+- Stabilization of recent active-status changes
 
-When a study becomes inactive:
-
-- It no longer participates in active matching.
-- It is removed from current matched-study results.
-- It is removed from current matched-participant results.
-- New Ask if interested actions are blocked.
-- New expressions of interest are blocked.
-
-When the study becomes active again, its current matches are recomputed. They
-appear as new matched participants or studies rather than being restored from
-the prior active period.
-
-## Interested-participant access while inactive
-
-Study inactivity does not by itself remove access to historical interested
-participants. The study team may access those relationships and export their
-data while `PUBLISHABLE = 1`.
-
-When `PUBLISHABLE = 0`, the study team cannot access participant information,
-including historical interested-participant data.
-
-Historical retention and current profile visibility are separate concepts.
-
-## Questionnaire editing
-
-A study must be inactive before the study team can change its screening-questionnaire structure.
-
-While the study is inactive, the team may:
-
-- Add questions
-- Delete questions
-- Change question display order
-
-Other changes to existing question content are not supported.
-
-After making the questionnaire changes, the study may be reactivated if:
-
-- `PUBLISHABLE = 1`
-- The date range permits activation
-- Other activation requirements are satisfied
-
-## Study-posting deletion
-
-Study postings cannot be deleted through application UIs.
-
-A posting may be edited, activated, deactivated, or reactivated, but cannot be deleted and recreated through the UI.
-
-## URL resolution
-
-The study number (`study_num`) is authoritative for participant-facing URL
-resolution. A valid study number resolves to the posting or, if inactive, to
-the not-recruiting message. A URL with an incorrect internal sequence
-identifier returns `404 Not Found`.
-
-## Delayed PI status notifications
-
-Study active-status notifications are delayed to avoid sending messages for transient changes.
+A short-lived state change may be suppressed by the one-day stabilization rule.
 
 Example:
 
@@ -182,23 +169,64 @@ Example:
 ACTIVE → INACTIVE → ACTIVE within one day
 ```
 
-Result:
+The operational transitions and active intervals may still occur, but a
+stable-state PI notification is not sent for the transient change.
 
-```text
-No PI notification
+If the changed state remains beyond the stabilization period, the applicable PI
+notification is sent.
+
+## Effects of date-based inactivity
+
+When a study is inactive by date but remains publishable:
+
+- It is not publicly discoverable
+- Its valid direct URL displays a not-currently-recruiting message
+- It is removed from active matching
+- It is removed from active in-memory matching data
+- New Ask if interested actions are blocked
+- New expressions of interest are blocked
+- Historical interested-participant data remains available for active
+  participants
+- Existing conversations remain visible
+- New exports of otherwise visible historical interested-participant data
+  remain permitted
+
+The application does not retain a server-side historical export file.
+
+## Questionnaire editing
+
+A screening questionnaire may be edited only while the study is inactive.
+
+See [Questionnaires and Exports](../06-recruitment/questionnaires-and-exports.md).
+
+## Archive status
+
+Archive status is independent of active status.
+
+Only an inactive study may be archived.
+
+See [Study Archiving](study-archiving.md).
+
+## Lifecycle diagram
+
+```mermaid
+stateDiagram-v2
+    [*] --> Inactive: Posting created
+
+    Inactive --> Active: Explicit activation
+    Inactive --> Active: Publishable becomes 1 while dates include now
+    Active --> Inactive: Manual deactivation
+    Active --> Inactive: Publishable becomes 0
+    Active --> Inactive: Deactivation boundary passes
+
+    Inactive --> Archived: Archive
+    Archived --> Inactive: Unarchive
 ```
-
-If the status remains changed for more than one day, the PI is notified.
-
-## Known governance concern
-
-Because the deactivation date is not changed when publishability becomes `0`, a later return to `1` may automatically reactivate the study.
-
-A future design may need a distinct governance-hold state or explicit reactivation requirement.
 
 ## Related pages
 
 - [Publishability](../03-institutional-governance/publishability.md)
-- [Governance reconciliation](../03-institutional-governance/reconciliation.md)
-- [Posting creation](posting-creation.md)
-- [Matching and visibility](../06-recruitment/matching-and-visibility.md)
+- [Study Archiving](study-archiving.md)
+- [Study Notifications](study-notifications.md)
+- [Public Study Discovery](../06-recruitment/public-study-discovery.md)
+- [Matching and Visibility](../06-recruitment/matching-and-visibility.md)

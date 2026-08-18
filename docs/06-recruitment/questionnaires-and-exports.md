@@ -1,162 +1,135 @@
 ---
 title: Questionnaires and Exports
-summary: Screening-questionnaire rules, submission behavior, and participant-data CSV exports.
+summary: Screening-questionnaire authoring, show-interest capture, response retention, and interested-participant CSV exports.
 status: authoritative
-relevant_when:
-  - creating_or_editing_questionnaires
-  - completing_interest
-  - exporting_participant_data
-  - troubleshooting_export_access
+canonical_for:
+  - questionnaire_behavior
+  - questionnaire_editing
+  - export_contents
+  - export_availability
 ---
 
 # Questionnaires and Exports
 
-A study may use one screening questionnaire to collect additional information from participants who express interest.
+A study may have zero or one screening questionnaire.
 
-## One questionnaire per study
+## Purpose
 
-A study can have only one screening questionnaire.
+The questionnaire captures study-specific information during the expression-of-interest transaction.
 
-Conceptually:
+Questionnaire answers:
 
-```text
-One STUDY
-has zero or one QUESTIONNAIRE
-```
+- Are not used by matching
+- Are not used to resolve partial eligibility
+- Are shown to authorized study team members
+- Are included in CSV exports
 
-The application does not maintain multiple active questionnaires for one study.
+## Question types
 
-## Questionnaire questions
+Supported question types are:
 
-When creating a screening questionnaire, study team members may mark each question as:
+| Type | Participant response |
+|---|---|
+| Single-line text | Short free text |
+| Paragraph text | Longer free text |
+| Checkboxes | One or more selected options |
+| Multiple choice | One selected option |
+| Dropdown | One selected option |
 
-- Required
-- Optional
+Each question may include:
 
-To complete the questionnaire:
+- Question text
+- Optional help text
+- Required or optional status
+- Display order
+- Response options when required by the question type
 
-- Every required question must have an answer.
-- Optional questions may be left unanswered.
+## Active-study editing restriction
 
-Questionnaire completion is required to finalize the expression-of-interest workflow when a questionnaire exists.
+The questionnaire cannot be edited while the study is active.
 
-## Editing restrictions
+## Inactive-study editing
 
-A study team cannot change the questionnaire structure while the study is active.
-
-To change the questionnaire:
-
-1. Deactivate the study.
-2. Add or delete questions.
-3. Reactivate the study when activation conditions are satisfied.
-
-While the study is inactive, the study team may:
+While the study is inactive, study team members may:
 
 - Add questions
+- Edit question text
+- Edit help text
+- Change required status
+- Reorder questions
+- Add response options
+- Edit response-option text
+- Delete response options
 - Delete questions
-- Change question display order
 
-Changing display order is considered an edit, but it is allowed while the study
-is inactive. Other changes to existing question content are not supported.
+Question type cannot be changed after creation.
 
-## No questionnaire versioning
+## Response deletion effects
 
-Questionnaires are not versioned.
+Deleting a response option:
 
-Only the current questionnaire structure is retained.
+- Deletes stored answers selecting that option
+- Does not delete the complete questionnaire submission
+- Does not delete unrelated answers
 
-There is no separately displayable historical questionnaire version.
+Deleting a question:
 
-Deleting a question also hard-deletes its previously submitted answers. The
-historical answers are not retained or independently interpretable.
+- Requires confirmation
+- Deletes answers associated with that question
 
-## Submitted answers
+Questionnaires and answers are not versioned.
 
-Participants cannot edit submitted questionnaire answers.
+## Concurrent editing
 
-Participants cannot save or resume an incomplete questionnaire.
+When multiple study members edit the questionnaire concurrently:
 
-Deleting a question is allowed even when it has existing answers, but the
-application requires a confirmation before deleting those answers.
+1. The first valid submission succeeds.
+2. A later stale submission is rejected.
+3. The later editor must refresh.
+4. Unsaved changes from the rejected edit are not preserved.
 
-When multiple study-team members edit an inactive questionnaire concurrently,
-the first successful submission wins. A later submission based on stale data is
-rejected and the user must refresh; the rejected user's unsaved changes are
-not preserved.
+## Participant submission
 
-## Relationship to expressions of interest
+The questionnaire is displayed in the same show-interest form as the temporal profile review.
 
-When a participant attempts to express interest:
+When a questionnaire exists:
 
-1. The participant refreshes temporal profile values.
-2. The application rechecks eligibility.
-3. If eligible, the participant completes the questionnaire.
-4. The interest workflow is finalized after required questionnaire answers are provided.
+- Required questions must be answered
+- Optional questions may be unanswered
+- The complete form is submitted in one request
+- Questionnaire capture and interest creation occur in one transaction
 
-See [Expressions of interest](expressions-of-interest.md).
+Participants cannot save and resume an incomplete show-interest questionnaire.
 
-## Export permissions
+Participants cannot edit submitted answers.
 
-Both study-association roles have equivalent export access:
-
-```text
-PRINCIPAL_INVESTIGATOR
-STUDY_TEAM_MEMBER
-```
+## Export contents
 
 Authorized study team members may export:
 
-- All participant profile fields available to the study
-- All screening-questionnaire answers submitted by interested participants
+- All visible participant profile fields
+- Contact information
+- Questionnaire answers
+- Interested-participant workflow-list information
+- Applied labels
 
 ## Export availability
 
-Participant data can be exported whenever `PUBLISHABLE = 1`; study active
-status does not restrict exports of historical interested-participant data.
+Historical interested-participant data may be exported while `PUBLISHABLE = 1`, including when the study is inactive by date.
 
-If the study becomes non-publishable:
+Participant deactivation hides that participant's information from new exports.
 
-- Study team members cannot access participant information.
-- Study team members cannot generate a new participant-data export.
+`PUBLISHABLE = 0` blocks participant-data access and new exports.
 
-## Downloaded CSV files
+Exports are generated in memory and streamed to the browser.
 
-The application generates a CSV file that the study team downloads.
+The application does not retain a server-side export file or definitive export audit event.
 
-After download:
-
-- The file exists outside the application.
-- The application cannot invalidate the file.
-- The application cannot recall the file.
-- A later participant deactivation does not delete the downloaded copy.
-- A later study deactivation does not delete the downloaded copy.
-- A later publishability change does not delete the downloaded copy.
-
-Study teams are responsible for handling downloaded data according to applicable institutional and study requirements.
-
-## Export processing and auditability
-
-Exports are generated in memory and streamed to the browser; the application
-does not retain a temporary server-side export file.
-
-The export action itself is not audited. Participant-profile views are audited,
-however, and an export is preceded by a visit to the interested-participants
-page. Support investigations may correlate that audit event with Splunk request
-logs by time, but this does not create a definitive export audit record.
-
-## Export content and security behavior
-
-Each export includes all participant profile fields available to the study,
-including contact information, whether or not each field was relevant to the
-study criteria. Export generation does not require recent reauthentication.
-
-The application does not currently escape CSV values to mitigate spreadsheet
-formula injection. After the stream is downloaded, protection, encryption at
-rest, and retention of the resulting file are the study team's responsibility.
+Downloaded files cannot be recalled.
 
 ## Related pages
 
-- [Expressions of interest](expressions-of-interest.md)
-- [Study membership](../04-users-and-access/study-membership.md)
-- [Study lifecycle](../05-study-management/study-lifecycle.md)
-- [Publishability](../03-institutional-governance/publishability.md)
+- [Expressions of Interest](expressions-of-interest.md)
+- [Interested-Participant Management](interested-participant-management.md)
+- [Study Lifecycle](../05-study-management/study-lifecycle.md)
+- [PHI Audit](../08-operations/phi-audit.md)

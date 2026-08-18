@@ -1,56 +1,68 @@
 ---
 title: Matching and Visibility
-summary: Interest matching, three-valued eligibility, partial matches, and participant visibility.
+summary: Interest matching, eligibility matching, in-memory calculation, Redis recommendations, visibility, dismissal, and recomputation.
 status: authoritative
-relevant_when:
-  - explaining_study_matches
-  - explaining_participant_matches
-  - explaining_partial_matches
-  - troubleshooting_participant_visibility
+canonical_for:
+  - interest_matching
+  - eligibility_matching
+  - three_valued_logic
+  - participant_visibility
+  - match_recalculation
+  - matching_memory
 ---
 
 # Matching and Visibility
 
-Participant-study matching has two independent dimensions:
+Matching has two independent dimensions:
 
-1. Interest matching
+1. Study-interest matching
 2. Eligibility matching
 
-These dimensions answer different questions and should not be combined into one undifferentiated match value.
+## Matching runtime
+
+To reduce calculation latency, the application maintains active studies and
+active participants in memory.
+
+When a match is triggered, the matching program evaluates the relevant
+in-memory entities instead of repeatedly loading all candidate entities from
+the database.
+
+The relational database remains the authoritative persistent source.
+
+When participant or study data changes:
+
+1. The database record is updated.
+2. The in-memory representation is updated.
+3. Applicable matching is triggered.
+4. Redis recommendation data is updated asynchronously.
+
+Temporal participant-profile changes must update the in-memory participant
+representation as well as the database record.
+
+Inactive studies and deactivated participants are removed from active in-memory
+matching collections.
+
+Scheduled synchronization jobs reconcile time-based and other state changes.
 
 ## Interest matching
 
-Interest matching compares:
+Interest matching compares participant study interests with study properties.
 
-- Participant study interests
-- Study posting properties
+It determines whether an exact-matching study is recommended through My Studies.
 
-It answers:
+Examples include:
 
-> Is this the type of study the participant wants to see?
-
-Examples of participant interests include:
-
-- Research topics or conditions
+- Topics and conditions
 - Locations
 - Compensation
-- Other study characteristics
+- Healthy-participant preference
 
 ## Eligibility matching
 
-Eligibility matching compares:
+Eligibility matching compares participant profile properties with study
+eligibility criteria.
 
-- Participant profile properties
-- Study inclusion criteria
-- Study exclusion criteria
-
-It answers:
-
-> Does the participant appear eligible, ineligible, or only partially evaluable?
-
-## Three-valued eligibility logic
-
-Eligibility expressions use three values:
+Results are:
 
 ```text
 TRUE
@@ -58,32 +70,13 @@ MAYBE
 FALSE
 ```
 
-### `TRUE`
+| Result | Meaning |
+|---|---|
+| `TRUE` | Exact match |
+| `MAYBE` | Partial match |
+| `FALSE` | Not a match |
 
-The participant has sufficient profile data and satisfies the criterion.
-
-### `FALSE`
-
-The participant has sufficient profile data and does not satisfy the criterion.
-
-### `MAYBE`
-
-The criterion references an optional participant profile property for which the participant has no value.
-
-Example:
-
-```text
-Criterion A = TRUE
-Criterion B = MAYBE
-```
-
-When joined by `AND`:
-
-```text
-TRUE AND MAYBE = MAYBE
-```
-
-## Boolean truth tables
+## Three-valued logic
 
 ### `AND`
 
@@ -103,148 +96,169 @@ TRUE AND MAYBE = MAYBE
 
 ### `NOT`
 
-| Input | `NOT` result |
+| Input | Result |
 |---|---|
 | `TRUE` | `FALSE` |
 | `FALSE` | `TRUE` |
 | `MAYBE` | `MAYBE` |
 
-## Match categories
+## Participant-facing recommendations
 
-| Eligibility result | Study-team category |
-|---|---|
-| `TRUE` | Exact match |
-| `MAYBE` | Partial match |
-| `FALSE` | Not matched |
+Ordinary system recommendations require:
 
-Exact and partial categories apply to study-team matched-participant displays.
+- Active participant
+- Active study
+- Exact eligibility match
+- Study-interest match
+- No participant-side exclusion
 
-Participants are not shown partial matched studies.
+Partial matches are not shown in participant-facing matched-study lists.
 
-## Restricted visibility
+## Study-facing recommendations
 
-A restricted participant has chosen not to be visible to study teams unless the participant expresses interest.
+Study-facing matching may contain:
 
-For a restricted participant:
+- Exact matches
+- Partial matches
 
-- The application evaluates study interests.
-- The application evaluates eligibility.
-- Exact matching studies may be shown to the participant.
-- Partial matches are not shown to the participant.
-- A system match does not make the participant visible to the study team.
-- The participant becomes visible to the study after successfully expressing interest.
+Participant visibility is applied separately from underlying recommendation
+storage.
 
-## Discoverable visibility
+## Visibility selection
 
-A discoverable participant permits studies to see them as an exact or partial match before an expression of interest.
+Visibility is selected during participant or loved-one signup and may later be
+changed.
 
-For a discoverable participant:
+### All study teams
 
-- Eligibility can make the participant visible to the study team.
-- The study does not need to match the participant's interests.
-- The participant does not need to express interest first.
-- `TRUE` results appear in the study team's exact-match category.
-- `MAYBE` results appear in the study team's partial-match category.
-- Partial matches are not presented to the participant as matched studies.
+The participant permits all study teams using the branded instance to view the
+profile when the participant appears to be a suitable match.
 
-## Matching matrix
+This allows pre-interest study-team visibility.
 
-| Visibility | Eligibility | Interest match | Expressed interest | Study-team visibility | Participant-facing result |
-|---|---|---:|---:|---|---|
-| Restricted | `TRUE` | Yes | No | Hidden | Exact matched study |
-| Restricted | `TRUE` | No | No | Hidden | Not recommended |
-| Restricted | `MAYBE` | Any | No | Hidden | Not shown |
-| Restricted | `TRUE` or `MAYBE` | Any | Successfully finalized | Visible as interested | Interested study |
-| Discoverable | `TRUE` | Yes | No | Exact-match category | Exact matched study |
-| Discoverable | `TRUE` | No | No | Exact-match category | Usually not recommended |
-| Discoverable | `MAYBE` | Any | No | Partial-match category | Not shown |
-| Any | `FALSE` | Any | No | Not visible as a match | Not shown |
+### Only study teams whose studies receive interest
 
-## Recalculation after participant-profile changes
+The participant is hidden from study teams until successfully expressing
+interest in the applicable study.
 
-When a participant profile property referenced by study eligibility criteria changes:
+Visibility does not change the underlying match result.
 
-- Recalculate that participant's matches for all active studies.
-- Update the participant's matched-study results.
-- Update applicable study-side matched-participant results for that participant.
+## Minimal owning accounts
 
-## Recalculation after participant-interest changes
+An owning account created through signup for a loved one has an incomplete self
+profile and defaults to hidden from study teams.
 
-When a participant changes study interests:
+The loved-one account has its own profile and its own visibility selection.
 
-- Recalculate that participant's matched-study list.
-- Do not recalculate study-side matched-participant lists.
+## Reaching a study
 
-Study-side matched participants are based on eligibility and visibility, not on whether the participant expressed a preference for the study.
+A participant may reach a posting through:
 
-## Recalculation after study-property changes
+- Public search
+- My Studies
+- Study-team promotion
+- Direct or bookmarked URL
+- Participant history
 
-When a study property referenced by participant study interests changes:
+A participant may initiate interest from an accessible posting even when a
+partial match was not displayed in My Studies.
 
-- Recalculate affected participants' matched-study lists.
+Eligibility is reevaluated using the updated show-interest form values.
 
-Example study properties may include:
+## Ask if interested
 
-- Topic
-- Location
-- Compensation
-- Other participant-interest matching attributes
+Ask if interested moves or emphasizes an existing participant-study match in the
+study-team-promoted participant-facing bucket.
 
-## Recalculation after eligibility-criteria changes
+It:
 
-When a study changes its eligibility criteria:
+- Updates the promotion timestamp
+- Creates the applicable study-side exclusion
+- Removes the participant from the ordinary study-side match presentation
+- Does not create interest
+- Does not create direct messaging
 
-- Recalculate the study's matched-participant list.
-- Recalculate participant matched-study results for that study.
+A scheduled job may email participants whose promoted matches are newer than
+their last login.
 
-## Interest after matching
+## Not Interested
 
-When a participant attempts to express interest:
+A participant may dismiss a study from My Studies.
 
-1. The participant refreshes specified temporal profile data.
-2. The application rechecks eligibility.
-3. `TRUE` or `MAYBE` may proceed through the interest workflow.
-4. `FALSE` prevents interest from being completed.
-5. The participant completes the screening workflow when permitted.
+This creates:
 
-A participant may reach the interest workflow through an exact matched study, a direct URL, or another supported application path. Partial matches are not shown in the participant's matched-study list.
+```text
+NOT_INTERESTED
+```
 
-After an expression of interest is finalized, later eligibility changes do not remove or alter the interest relationship.
+in the participant-side Redis exclusion structure.
 
-## Historical interest versus current matching
+Dismissed studies may appear in participant history.
 
-A participant may:
+## Recalculation triggers
 
-- Have a historical expression of interest
-- No longer satisfy current eligibility
-- Still remain in the interested-participant history
+### Participant profile change
 
-Historical interest is not recalculated away.
+If a changed profile property is referenced by eligibility criteria:
 
-## Stored-match processing
+- Update the database profile
+- Update the in-memory participant representation
+- Recompute the participant against active studies
+- Update applicable participant-facing and study-facing match results
 
-Match results are stored in Redis rather than calculated dynamically on every view.
+### Temporal profile change during show interest
 
-Match recalculation runs asynchronously after a relevant change, including:
+- Update the database profile in the transaction
+- Update or prepare the corresponding in-memory participant representation
+- Reevaluate eligibility before interest is finalized
+- Commit the synchronized state only when the transaction succeeds
 
-- A participant profile property used by eligibility criteria
-- A participant's study interests
-- A study property used by participant interests
-- Study eligibility criteria
+### Participant study-interest change
 
-Failed recalculations are not automatically retried.
+- Recompute that participant's matched-study recommendations
+- Do not recompute study-side eligibility matches solely because interests
+  changed
 
-Operators can manually trigger jobs to recompute:
+### Study-property change
 
-- All study matches
-- All participant matches
-- Both categories of matches
+If a property is referenced by participant study interests:
+
+- Update the in-memory study representation
+- Recompute affected participant-facing recommendations
+
+### Study eligibility change
+
+- Update the in-memory study representation
+- Recompute the study's participant matches
+- Recompute participant-facing results for that study
+
+### Participant or study deactivation
+
+- Remove the entity from active in-memory matching data
+- Remove or suppress active recommendations
+- Prevent new matching actions
+
+## Redis storage
+
+Recommendations, promotions, and exclusions are stored in Redis.
+
+Redis contains derived matching state. It does not replace the authoritative
+database or the active in-memory entity representations used for calculation.
+
+See [Redis Match and Exclusion Model](../07-data-model/redis-match-model.md).
+
+## After interest
+
+Successful interest creates exclusions that remove the participant-study pair
+from ordinary recommendation flows.
+
+Later eligibility changes do not remove the historical interest relationship.
 
 ## Related pages
 
 - [Participants](../04-users-and-access/participants.md)
-- [Eligibility-criteria authoring](eligibility-criteria-authoring.md)
-- [Criteria data model](../07-data-model/criteria-data-model.md)
-- [Ask if interested](ask-if-interested.md)
-- [Expressions of interest](expressions-of-interest.md)
-- [Questionnaires and exports](questionnaires-and-exports.md)
+- [Public Study Discovery](public-study-discovery.md)
+- [Eligibility-Criteria Authoring](eligibility-criteria-authoring.md)
+- [Ask If Interested](ask-if-interested.md)
+- [Expressions of Interest](expressions-of-interest.md)
+- [Redis Match and Exclusion Model](../07-data-model/redis-match-model.md)

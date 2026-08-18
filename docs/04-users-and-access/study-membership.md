@@ -1,7 +1,11 @@
 ---
 title: Study Membership
-summary: Study-specific associations, role permissions, membership sources, and removal rules.
+summary: Study-specific authorization, equivalent study roles, permissions, membership sources, PI replacement, and removal.
 status: authoritative
+canonical_for:
+  - study_membership
+  - study_team_permissions
+  - membership_removal
 relevant_when:
   - explaining_study_authorization
   - adding_or_removing_study_members
@@ -11,161 +15,146 @@ relevant_when:
 
 # Study Membership
 
-A study membership associates an institutional `APP_USER` with an operational study.
+A study membership associates an institutional `APP_USER` with an operational
+study.
 
-A valid institutional SAML login does not, by itself, grant access to every study.
+A valid institutional SAML login does not grant access to every study.
+
+The user must also have accepted the current study-team agreement.
 
 ## Study-association roles
 
-Study memberships use two roles:
+Study memberships use:
 
 ```text
 PRINCIPAL_INVESTIGATOR
 STUDY_TEAM_MEMBER
 ```
 
-These are study-association roles.
-
-They are separate from application-wide roles such as:
-
-```text
-ADMIN
-STUDY_IMPORTER
-STAFF
-VOLUNTEER
-```
+These roles are separate from application-wide roles.
 
 ## Membership sources
-
-A user may become associated with a study through:
 
 | Source | Study role |
 |---|---|
 | Current imported PI assignment | `PRINCIPAL_INVESTIGATOR` |
 | Posting creator who is not the imported PI | `STUDY_TEAM_MEMBER` |
-| Accepted study invitation | `STUDY_TEAM_MEMBER` |
-| Backend intervention | Depends on the intervention |
+| Accepted invitation | `STUDY_TEAM_MEMBER` |
+| Authorized backend intervention | Depends on the intervention |
 
-Logical membership-source values may include:
+## Equivalent study permissions
 
-```text
-IMPORTED_PI
-POSTING_CREATOR
-INVITATION
-BACKEND_ADMINISTRATION
-```
+Under the current implementation, `PRINCIPAL_INVESTIGATOR` and
+`STUDY_TEAM_MEMBER` have equivalent study-data permissions.
 
-The exact physical database values should be verified.
+An associated study member may:
 
-## Study-data permissions
-
-Under the current implementation, the two study roles have equivalent access to study data.
-
-A `PRINCIPAL_INVESTIGATOR` or `STUDY_TEAM_MEMBER` may:
-
-- Review permitted matching participants
+- Edit study information
+- Edit eligibility criteria while permitted by study status
+- Edit screening questions while the study is inactive
+- Activate or deactivate the study
+- Archive or unarchive an eligible study
+- Review matched participants
 - Review interested participants
-- Review permitted participant profile information
-- Review screening-questionnaire answers
-- Export permitted participant and questionnaire data
-- Invite another SAML-authenticated institutional user
+- Move interested participants between workflow lists
+- Create and apply labels
+- Initiate and participate in conversations with interested participants
+- Review questionnaire answers
+- Export permitted participant data
+- Invite another institutional user
 - Remove an ordinary `STUDY_TEAM_MEMBER`
+- Configure applicable email-notification settings
 
-## Removability
+## Messaging restriction
 
-| Membership | Removable through application UI? |
-|---|---:|
-| Current imported PI | No |
-| Posting creator who is not the current PI | Yes |
-| Invited study team member | Yes |
-| Former PI retained after a PI change | Not automatically removed; ordinary UI behavior requires confirmation |
+Study membership alone does not permit messaging every participant.
 
-A posting creator is protected from removal only when the creator is also the current institutionally identified PI.
+Study members may message only interested participants.
+
+A matched participant cannot be directly messaged before interest.
+
+See [Messaging](../06-recruitment/messaging.md).
 
 ## Current PI membership
 
 The current PI membership:
 
-- Is derived from imported institutional data
-- Is created or maintained through reconciliation
-- Cannot be granted by ordinary study team members
+- Originates from imported institutional data
+- Is created and maintained through reconciliation
+- Cannot be granted through an ordinary invitation
 - Cannot be removed through ordinary application UIs
+- Is replaced when the institutional source identifies a new current PI
 
-A PI correction must originate in the institution's governed source data.
-
-## PI-change behavior
+## PI changes
 
 When the imported PI changes:
 
-- The new PI is associated as `PRINCIPAL_INVESTIGATOR`.
-- The former PI's existing operational membership is not automatically removed.
+1. The former PI's operational `PRINCIPAL_INVESTIGATOR` membership is removed.
+2. The new PI receives a `PRINCIPAL_INVESTIGATOR` membership.
+3. The new PI becomes the current non-removable PI in ordinary application
+   workflows.
 
-This can leave both the former and current PI with operational study access.
+The former PI does not retain access solely because they were previously PI.
 
-## Inviting members
+If the former PI has a distinct `STUDY_TEAM_MEMBER` relationship established
+through another supported workflow, that separate membership is not the former
+PI relationship and must be evaluated independently.
 
-Any user currently associated with the study may invite another person who has a valid institutional SAML account.
+## Removability
 
-After successful invitation acceptance, the new user receives:
-
-```text
-STUDY_TEAM_MEMBER
-```
-
-See [Invitations](invitations.md).
+| Membership | Removable through ordinary UI? |
+|---|---:|
+| Current imported PI | No |
+| Non-PI posting creator | Yes |
+| Invited study team member | Yes |
+| Former PI membership after imported PI change | Removed by reconciliation |
 
 ## Removing ordinary members
 
-Any associated study team member may remove an ordinary `STUDY_TEAM_MEMBER`.
+Removing a study membership:
 
-This includes:
+- Removes access to the study
+- Removes that member's study-notification settings
+- Does not deactivate or delete the institutional account
+- Does not delete shared study conversations or messages previously sent
 
-- A membership received through invitation
-- A posting-creator membership when the creator is not the current PI
-
-Removing a study membership does not deactivate or delete the institutional account.
-
-It only removes access to that study.
-
-## Administrators
-
-`ADMIN` is an application-wide superuser role.
-
-Administrators can access all studies and participant data without ordinary study membership.
-
-Administrators cannot create study memberships through application UIs.
-
-Backend database intervention may create a membership, but that is outside
-normal UI behavior. Authorized staff handle these requests after an authorized
-institutional contact confirms the request; no operational runbook currently
-documents this procedure.
-
-## General authorization rule
+## General authorization
 
 For a non-administrator:
 
 ```text
 Can access study =
     institutional user is authenticated
-    AND APP_USER is valid
-    AND an applicable study membership exists
+    AND current study-team agreement is accepted
+    AND APP_USER exists
+    AND a study membership exists
     AND the membership references the requested study
 ```
 
-Participant-data access additionally depends on:
+Current matched-participant access additionally requires an active study.
 
-- Study active status
-- Study publishability
-- Participant account status
-- Participant visibility mode
-- Match or interest state
-- Requested operation
-- Data-field permissions
+Historical interested-participant access may remain available when the study is
+inactive by date, provided:
+
+- `PUBLISHABLE = 1`
+- The participant account is active
+- The requested operation remains permitted
+
+When `PUBLISHABLE = 0`, study members cannot access participant information or
+conversations.
+
+## Administrators
+
+Administrators have application-wide access without ordinary study membership.
+
+Administrators cannot create study memberships through ordinary application
+UIs.
 
 ## Related pages
 
-- [Institutional users](institutional-users.md)
-- [Invitations](invitations.md)
-- [Posting creation](../05-study-management/posting-creation.md)
-- [Governance reconciliation](../03-institutional-governance/reconciliation.md)
-- [Open questions](../09-decisions/open-questions.md)
+- [Institutional Users](institutional-users.md)
+- [Study-Team Invitations](invitations.md)
+- [Governance Reconciliation](../03-institutional-governance/reconciliation.md)
+- [Interested-Participant Management](../06-recruitment/interested-participant-management.md)
+- [Messaging](../06-recruitment/messaging.md)
+- [Study Notifications](../05-study-management/study-notifications.md)

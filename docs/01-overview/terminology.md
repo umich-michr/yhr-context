@@ -8,39 +8,58 @@ status: authoritative
 
 | Term | Definition |
 |---|---|
-| Participant | A person who creates a local account and may participate in research recruitment. Participants normally have the application-wide role `VOLUNTEER`. |
-| Institutional user | A person who authenticates through an institution's SAML identity provider. |
-| Study team member | An institutional `STAFF` user associated with a particular study through a `STUDY_TEAM_MEMBER` or `PRINCIPAL_INVESTIGATOR` study role. |
-| Principal investigator / PI | The institutional person currently identified as PI by the authoritative imported study data. |
-| Application-wide role | A role controlling general application capabilities: `ADMIN`, `STUDY_IMPORTER`, `STAFF`, or `VOLUNTEER`. |
-| Study-association role | A role connecting a `STAFF` user to a specific study: `PRINCIPAL_INVESTIGATOR` or `STUDY_TEAM_MEMBER`. |
-| `ADMIN` | An application-wide superuser role that can access all studies and participant data and perform supported participant-account administration. |
-| `STUDY_IMPORTER` | An application-wide role limited to importing institutional CSV data into the `IMPORTED_*` tables. |
-| `STAFF` | An application-wide institutional-user role. A `STAFF` user must also be associated with a study to access that study's data unless the user has broader administrative privileges. |
-| `VOLUNTEER` | The application-wide role used for participant accounts. |
-| Institutional source of truth | The governed institutional system or dataset that identifies studies, institutional roles, PIs, and recruitment permissions. |
-| eResearch | The University of Michigan workflow application containing IRB applications and related study information. |
-| Study number / `study_num` | The institutionally assigned identifier for a study. It maps to `IMPORTED_STUDY.ID`. |
-| Imported study | The local, read-only representation of a study supplied by the institution. |
-| Study posting | The participant-facing recruiting representation of an imported study. |
-| Institutional role | A role maintained outside the application, such as PI or study coordinator. |
-| Publishable | A required Boolean value indicating whether the institution currently permits the study to recruit through the application. |
-| Reconciliation | Processing that aligns operational study, PI, and user data with imported institutional data. |
-| Exact match | A participant-study eligibility evaluation whose overall result is `TRUE`. |
-| Partial match | A participant-study eligibility evaluation whose overall result is `MAYBE`, generally because an optional participant profile value is missing. |
-| Interest match | A result indicating that a study corresponds to a participant's stated study interests. |
-| Eligibility match | A `TRUE`, `MAYBE`, or `FALSE` result indicating whether a participant appears to satisfy study eligibility criteria. |
-| Restricted participant | A participant hidden from study teams until the participant expresses interest. |
-| Discoverable participant | A participant who may be visible to an eligible study before expressing interest. |
-| Ask if interested | A study-team action that promotes a study in the participant interface without creating an expression of interest. |
-| Expression of interest | An explicit participant action indicating interest in a study. |
-| Temporal profile property | Participant information expected to change over time and therefore refreshed when the participant expresses interest. |
-| Deactivation | Disabling current application or recruitment activity while retaining applicable historical records. |
-| Hard deletion | Permanent deletion of participant data through the support-request process, subject to the documented retained deletion marker. |
+| YourHealthResearch.org | The platform and product name. The same domain is also used for a public marketing website directed toward prospective adopting organizations. |
+| Branded instance | A separately configured deployment of the YourHealthResearch.org platform with its own name, URL, servers, database, infrastructure, institutional integrations, and data. |
+| Participant | A person represented by a local application account and participant profile. |
+| Volunteer | A participant. The application and database may use volunteer-oriented terminology such as `VOLUNTEER` or `VOL`. |
+| Account owner | The person who authenticates and manages their own account and, when applicable, one or more loved-one accounts. |
+| Owning account | The account used by an account owner to authenticate and manage loved-one accounts. |
+| Parent account | A legacy or informal synonym for owning account. It does not necessarily mean that the owner is the represented participant's legal parent. |
+| Represented participant | The person whose profile, matching, interests, questionnaires, and messages belong to the current participant-account context. |
+| Loved-one account | A separate participant account managed by an owning participant account through `LOVED_ONE`. |
+| Signup for a loved one | Registration flow that creates a minimal owning account and a complete loved-one participant account. |
+| Add Loved One | Workflow used by an existing owning account to create another loved-one participant account. |
+| Institutional user | A person who authenticates through an institutional SAML identity provider. |
+| Study team member | A `STAFF` user associated with a study as `STUDY_TEAM_MEMBER` or `PRINCIPAL_INVESTIGATOR`. |
+| Current imported PI | The person currently identified as PI by the institution's imported source-of-truth data. |
+| Principal investigator / PI | The current imported PI unless a page explicitly discusses the operational `PRINCIPAL_INVESTIGATOR` membership. |
+| Application-wide role | `ADMIN`, `STUDY_IMPORTER`, `STAFF`, or `VOLUNTEER`. |
+| Study-association role | `PRINCIPAL_INVESTIGATOR` or `STUDY_TEAM_MEMBER`. |
+| Study number / `study_num` | Institutionally assigned study identifier corresponding to `IMPORTED_STUDY.ID`. |
+| Imported study | Read-only institutional study data used for governance and posting validation. |
+| Study posting | Participant-facing recruiting representation of an imported study. |
+| Publishable | Institutionally governed Boolean indicating whether the study may recruit through the application. |
+| Active study | A study with `PUBLISHABLE = 1` whose inclusive activation and deactivation boundaries contain the current date/time. |
+| Manual activation | Study-team action that sets the activation boundary to the current date/time and records a future deactivation boundary. |
+| Manual deactivation | Study-team action that sets the deactivation boundary to the current date/time, causing the study to become inactive as current time passes that boundary. |
+| Active interval | A persisted period in `STUDY_ACTIVE_INTERVAL` during which the derived study status was active. |
+| Archived study | An inactive study placed in Archived Studies. Archive status does not itself change otherwise permitted historical participant-data access. |
+| Participant agreement | Agreement applicable to a participant or volunteer account, represented by an agreement type such as `VOL`. |
+| Study-team agreement | Agreement applicable to a study team member, represented by an agreement type such as `STM`. |
+| Agreement version | Current version for an agreement type in `USER_AGREEMENT`. A user must have a matching acceptance in `USER_AGREEMENT_AUDIT`. |
+| Discoverable visibility | Participant choice allowing all study teams using the branded instance to see the profile when the participant appears to be a suitable match. |
+| Restricted visibility | Participant choice allowing only study teams whose studies the participant has shown interest in to see the profile. |
+| Interest match | Result of comparing participant study interests with study properties. |
+| Exact eligibility match | Eligibility evaluation whose overall result is `TRUE`. |
+| Partial eligibility match | Eligibility evaluation whose overall result is `MAYBE`. |
+| Ask if interested | Study-team action that promotes a visible matching study to a participant without creating interest or opening direct messaging. |
+| System-matched study | Participant-facing study recommendation created by the ordinary matching process. |
+| Study-team-promoted study | Matching study emphasized through Ask if interested and displayed separately from ordinary system matches. |
+| Expression of interest | Finalized participant action creating a `STUDY_VOLUNTEER` relationship. |
+| Interested participant | Participant associated with a study through `STUDY_VOLUNTEER`. |
+| Workflow list | One of `NEW`, `ELIGIBLE`, `INELIGIBLE`, or `PENDING`, used to organize interested participants. |
+| Label | Study-specific, study-team-created tag applied to interested participants. |
+| Conversation | Study-specific message history between the study team and an interested participant, initiated by the study team. |
+| Screening questionnaire | Optional study-specific questionnaire presented during show interest; its answers are not used by matching. |
+| Temporal profile property | Past conditions, present conditions, or parent/guardian status refreshed during show interest. |
+| In-memory matching data | Active participant and study entities maintained in application memory so match calculations do not need to repeatedly load every entity from the database. |
+| Memory synchronization | Processing that keeps in-memory matching entities aligned with authoritative database records and removes entities that become inactive. |
+| Redis recommendation data | Directional participant-study recommendations, promotions, and exclusions derived from application data and stored in Redis. |
+| Hard deletion | Support-initiated permanent removal of participant data, subject to the retained internal participant identifier and deletion reason. |
 
-## Naming note
+## Study identifier naming
 
-The following terms refer to the same authoritative identifier:
+The following refer to the authoritative institutional identifier:
 
 ```text
 study number
@@ -48,14 +67,56 @@ study_num
 IMPORTED_STUDY.ID
 ```
 
-Documentation should prefer:
+Participant-facing URLs may also include an internal sequence-based identifier.
 
-- `study_num` when discussing application workflows
-- `IMPORTED_STUDY.ID` when discussing database storage
+## Product and instance examples
 
-Participant-facing study URLs expose:
+| Adopting organization | Branded instance |
+|---|---|
+| Michigan Institute for Clinical and Health Research, University of Michigan | `UMHealthResearch.org` |
+| Clinical and Translational Science Institute, University of Miami | `UMiamiHealthResearch.org` |
+| Institute for Translational Medicine | `BeTheNewNormalMatch.org` |
+| University of Illinois Chicago | `healthresearch.ccts.uic.edu` |
 
-- The institutionally assigned `study_num`
-- An internally assigned sequence-based study identifier
+The Institute for Translational Medicine is a consortium involving Rush
+University, Northwestern University, Loyola University Chicago, and the
+University of Chicago, led by the University of Chicago.
 
-The institutionally assigned study number is intentionally included in user-friendly, bookmarkable study-posting URLs.
+## Important distinctions
+
+These terms must not be treated as interchangeable:
+
+```text
+YourHealthResearch.org platform
+≠ Branded application instance
+
+Account owner
+≠ Represented participant
+
+Application-wide role
+≠ Study-association role
+
+Current imported PI
+≠ Arbitrary institutional study role
+
+Imported institutional role
+≠ Operational study membership
+
+Study-interest matching
+≠ Eligibility matching
+
+Matching
+≠ Ask if interested
+≠ Expression of interest
+≠ Messaging
+
+Inactive
+≠ Archived
+
+Relational database record
+≠ In-memory matching representation
+≠ Redis recommendation or exclusion
+
+Export availability
+≠ A retained server-side export file
+```

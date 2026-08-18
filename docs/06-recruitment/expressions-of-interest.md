@@ -1,66 +1,118 @@
 ---
 title: Expressions of Interest
-summary: Temporal profile updates, eligibility recheck, questionnaire completion, and retained interest.
+summary: Atomic show-interest processing, temporal profile updates, eligibility recheck, questionnaire capture, and interest creation.
 status: authoritative
+canonical_for:
+  - expression_of_interest
+  - show_interest_transaction
 relevant_when:
   - participant_expresses_interest
   - participant_fails_eligibility_recheck
   - explaining_temporal_profile_updates
-  - explaining_historical_interest
+  - explaining_interest_creation
 ---
 
 # Expressions of Interest
 
-An expression of interest is an explicit participant action indicating interest in a study.
+An expression of interest is a finalized participant action that creates a `STUDY_VOLUNTEER` relationship.
 
-Participants cannot withdraw a finalized expression of interest.
+A participant may express interest in a study only once.
 
 ## Preconditions
 
 Before interest can be finalized:
 
-- The participant account must be active.
-- The study must be active.
-- The study must have `PUBLISHABLE = 1`.
-- The participant must provide current values for required temporal profile properties.
-- The eligibility recheck must produce `TRUE` or `MAYBE`.
-- The participant must complete the study's screening questionnaire when one is configured.
+- The participant account must be active
+- The study must be active
+- The participant must not have already expressed interest
+- The final eligibility result must be `TRUE` or `MAYBE`
+- Required screening questions must be answered when a questionnaire exists
 
-## Temporal profile refresh
+## Single show-interest form
 
-When a participant selects the interest action, the application asks the participant to update profile information that may change over time.
+The participant completes one form.
 
-The temporal properties include:
+The form contains:
+
+1. Temporal profile updates at the top
+2. Screening questions at the bottom, when configured
+
+The temporal properties are:
 
 - Past medical conditions
 - Present medical conditions
-- Whether the participant is a parent or guardian of a child under 18
+- Parent or guardian of a child under 18
 
-The parent-or-guardian property is collected as a Boolean radio-button response.
+The application intentionally limits the health review to those three properties.
 
-The eligibility recheck uses the refreshed profile information.
+## Atomic backend transaction
 
-## Eligibility recheck
+The entire form is submitted in one request and processed in one backend transaction.
 
-The application does not rely solely on an earlier stored match.
+Processing includes:
 
-It reevaluates eligibility at the time the participant attempts to express interest.
+1. Validate the active participant account.
+2. Validate that the study remains active.
+3. Validate that interest has not already been expressed.
+4. Apply the submitted temporal profile updates.
+5. Reevaluate eligibility using the updated profile.
+6. Reject the transaction if eligibility is `FALSE`.
+7. Validate required questionnaire answers, when applicable.
+8. Store questionnaire answers.
+9. Create the `STUDY_VOLUNTEER` interested-participant relationship.
+10. Create the applicable Redis exclusions that remove the pair from ordinary recommendation flows.
 
-If the eligibility recheck returns `FALSE`:
+If any step fails:
 
-- The participant cannot complete the expression of interest.
-- The application displays a message explaining that the participant cannot show interest because they are not eligible.
+- Profile changes are rolled back
+- Questionnaire answers are not stored
+- `STUDY_VOLUNTEER` is not created
+- No partial interest record remains
 
-## Successful interest workflow
+## Eligibility results
 
-When the eligibility recheck returns `TRUE` or `MAYBE`:
+```text
+TRUE  → may proceed
+MAYBE → may proceed
+FALSE → cannot proceed
+```
 
-1. The application presents the screening questionnaire, if configured.
-2. The participant answers all required questions.
-3. The participant may leave optional questions unanswered.
-4. The participant submits the questionnaire.
-5. The application creates and finalizes the expression of interest.
-6. Permitted participant and questionnaire data becomes available to the authorized study team.
+The participant UI does not label the participant as exact, partial, eligible, or potentially eligible.
+
+A `FALSE` result displays an explanatory message that the participant does not meet the study's eligibility criteria.
+
+## Screening-questionnaire role
+
+Screening answers:
+
+- Are not used by the matching engine
+- Do not change eligibility
+- Do not resolve `MAYBE`
+- Are stored for study-team review
+- Are shown on the interested-participant profile
+- Are included in CSV exports
+
+## Study-status race condition
+
+The study is checked again during form processing.
+
+If the study is no longer active:
+
+- The entire transaction fails
+- No profile update is committed
+- No questionnaire submission is stored
+- No interest is created
+- The participant sees a not-currently-recruiting message
+
+## After interest
+
+After successful interest:
+
+- The participant starts in the `NEW` workflow list
+- Study members may view the participant profile
+- Study members may initiate messaging
+- Later eligibility changes do not remove interest
+- The participant cannot withdraw interest through the application
 
 ## Sequence diagram
 
@@ -69,125 +121,35 @@ sequenceDiagram
     participant P as Participant
     participant A as Application
     participant M as Matching Service
-    participant Q as Screening Questionnaire
-    participant ST as Study Team
+    participant DB as Operational Database
+    participant R as Redis
 
-    P->>A: Select interest action
-    A-->>P: Request temporal profile updates
-    P->>A: Submit current temporal values
-    A->>M: Recheck eligibility
+    A-->>P: Display one show-interest form
+    Note over P,A: Temporal profile fields + optional screening questionnaire
+    P->>A: Submit complete form
+
+    A->>DB: Begin transaction
+    A->>DB: Validate participant and study
+    A->>DB: Apply temporal profile updates
+    A->>M: Reevaluate eligibility
 
     alt TRUE or MAYBE
-        M-->>A: Can proceed
-        A-->>P: Display questionnaire if configured
-        P->>Q: Answer required and optional questions
-        Q-->>A: Submit completed questionnaire
-        A->>A: Recheck study status
-        A->>A: Commit profile updates, questionnaire, and interest
-        A-->>ST: Show permitted participant data
-    else FALSE
-        M-->>A: Ineligible
-        A-->>P: Cannot express interest because not eligible
+        M-->>A: May proceed
+        A->>DB: Validate and store questionnaire answers
+        A->>DB: Create STUDY_VOLUNTEER in NEW
+        A->>R: Create recommendation exclusions
+        A->>DB: Commit transaction
+        A-->>P: Display success message
+    else FALSE or any processing failure
+        M-->>A: Cannot proceed
+        A->>DB: Roll back transaction
+        A-->>P: Display eligibility or failure message
     end
 ```
 
-## Questionnaire completion
-
-Questionnaire completion is required to finalize the interest workflow when the study has a questionnaire.
-
-Completion means:
-
-- Every required question has an answer.
-- Optional questions may be left unanswered.
-- The participant submits the questionnaire.
-
-An incomplete questionnaire cannot be saved or resumed.
-
-## Interest-record timing
-
-The application creates the interest record only after the questionnaire is successfully completed.
-
-It does not create a pending interest record.
-
-A failed or abandoned questionnaire produces no interest record.
-
-The following changes are committed in one transaction:
-
-- Temporal-profile updates
-- Questionnaire submission
-- Finalized expression of interest
-
-If the eligibility recheck, study-status recheck, or a later workflow step fails, none of those changes are saved.
-
-## Participant withdrawal
-
-Participants cannot withdraw a finalized expression of interest through the application.
-
-There is no administrative application workflow for correcting an accidental expression of interest.
-
-Such requests may be raised with support, but they are not handled by a defined application feature.
-
-## Study status at submission
-
-The application rechecks study status when the participant submits the interest workflow.
-
-If the study became inactive or non-publishable during questionnaire completion:
-
-- Interest is not finalized.
-- Temporal-profile and questionnaire changes in the transaction are not saved.
-- The participant sees a message that the study is no longer recruiting.
-
-## Eligibility changes after interest
-
-After interest is finalized:
-
-- Later participant-profile changes do not remove the interest.
-- Later study eligibility-criteria changes do not remove the interest.
-- The application does not reevaluate the completed interest relationship.
-- The participant remains in the interested-participant history even if they would now be ineligible.
-
-## Participant deactivation after interest
-
-If the participant account becomes deactivated:
-
-- The historical interest remains.
-- The participant profile is hidden from the study team.
-- New interactions are blocked.
-
-## Study inactivity after interest
-
-If the study becomes inactive because its date range no longer includes the current date, but `PUBLISHABLE = 1`:
-
-- The historical interest remains.
-- New expressions of interest are blocked.
-- New matching stops.
-- Authorized study team members may continue to access and export historical interested-participant data.
-
-If `PUBLISHABLE = 0`:
-
-- The historical interest remains.
-- Participant information is not accessible to the study team.
-- New participant-data exports are blocked.
-
-Historical relationship retention, active recruitment, and participant-data access are separate concepts.
-
-## Relationship to Ask if interested
-
-Ask if interested does not create an expression of interest.
-
-It only promotes the study in the participant interface.
-
-The participant must still:
-
-- Select the interest action
-- Refresh temporal profile values
-- Pass the eligibility recheck
-- Complete the questionnaire workflow
-- Submit while the study remains active and publishable
-
 ## Related pages
 
-- [Matching and visibility](matching-and-visibility.md)
-- [Ask if interested](ask-if-interested.md)
-- [Questionnaires and exports](questionnaires-and-exports.md)
-- [Study lifecycle](../05-study-management/study-lifecycle.md)
+- [Matching and Visibility](matching-and-visibility.md)
+- [Questionnaires and Exports](questionnaires-and-exports.md)
+- [Interested-Participant Management](interested-participant-management.md)
+- [Messaging](messaging.md)

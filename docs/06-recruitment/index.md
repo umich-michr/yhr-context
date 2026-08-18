@@ -1,52 +1,54 @@
 ---
 title: Recruitment Overview
-summary: Eligibility authoring, matching, promotion, participant interest, screening, and export.
+summary: Public discovery, matching, interest, screening, interested-participant management, and messaging.
 status: authoritative
 ---
 
 # Recruitment Overview
 
-The recruitment workflow combines:
+The recruitment lifecycle includes:
 
-1. Participant profile information
-2. Participant study preferences
-3. Study attributes
-4. Eligibility criteria
-5. Participant visibility settings
-6. Study-team promotion
-7. Participant expressions of interest
-8. Screening questionnaires
-9. Authorized exports
-
-## Workflow summary
+1. Public study discovery
+2. Participant profile and study-interest matching
+3. Study-team promotion through Ask if interested
+4. Participant expression of interest
+5. Temporal profile refresh
+6. Eligibility recheck
+7. Screening-questionnaire capture
+8. Interested-participant workflow management
+9. Study-team-initiated messaging
+10. Labels, notifications, and exports
 
 ```mermaid
 flowchart LR
-    PROFILE[Participant Profile]
-    PREF[Participant Preferences]
-    STUDY[Study Posting]
+    SEARCH[Public Search or My Studies]
     MATCH[Matching]
     PROMPT[Ask if Interested]
-    INTEREST[Expression of Interest]
-    RECHECK[Eligibility Recheck]
-    QUESTION[Questionnaire]
-    EXPORT[Authorized Export]
+    FORM[Single Show-Interest Form]
+    TX[Atomic Backend Transaction]
+    INTEREST[STUDY_VOLUNTEER in NEW]
+    MANAGE[Lists and Labels]
+    MESSAGE[Study Team Initiates Messaging]
+    EXPORT[Export]
 
-    PROFILE --> MATCH
-    PREF --> MATCH
-    STUDY --> MATCH
+    SEARCH --> MATCH
     MATCH --> PROMPT
-    MATCH --> INTEREST
-    PROMPT --> INTEREST
-    INTEREST --> RECHECK
-    RECHECK --> QUESTION
-    QUESTION --> EXPORT
+    MATCH --> FORM
+    PROMPT --> FORM
+    FORM --> TX
+    TX --> INTEREST
+    INTEREST --> MANAGE
+    INTEREST --> MESSAGE
+    MANAGE --> EXPORT
 ```
 
-Read:
+## Pages
 
-- [Eligibility-criteria authoring](eligibility-criteria-authoring.md)
-- [Matching and visibility](matching-and-visibility.md)
-- [Ask if interested](ask-if-interested.md)
-- [Expressions of interest](expressions-of-interest.md)
-- [Questionnaires and exports](questionnaires-and-exports.md)
+- [Public Study Discovery](public-study-discovery.md)
+- [Eligibility-Criteria Authoring](eligibility-criteria-authoring.md)
+- [Matching and Visibility](matching-and-visibility.md)
+- [Ask if Interested](ask-if-interested.md)
+- [Expressions of Interest](expressions-of-interest.md)
+- [Questionnaires and Exports](questionnaires-and-exports.md)
+- [Interested-Participant Management](interested-participant-management.md)
+- [Messaging](messaging.md)

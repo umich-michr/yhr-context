@@ -1,187 +1,230 @@
 ---
 title: Participants
-summary: Participant registration, account activation, profiles, visibility, and account lifecycle.
+summary: Participant accounts, profiles, visibility, lifecycle, agreements, and loved-one management.
 status: authoritative
 relevant_when:
   - answering_participant_account_questions
   - explaining_profile_data
-  - explaining_account_activation
-  - explaining_account_deactivation_or_deletion
+  - explaining_visibility
+  - explaining_account_lifecycle
 ---
 
 # Participants
 
-Participants use local, database-backed application accounts.
-
-Participants normally have the application-wide role:
+Participants use local, database-backed accounts with the application-wide
+role:
 
 ```text
 VOLUNTEER
 ```
 
-Participant accounts are distinct from institutional accounts authenticated through SAML.
+## Participant identity
 
-## Registration
+A participant account represents one participant profile.
 
-A participant registers using an email address as the account username.
+An account may represent:
 
-The application does not attempt to determine whether two participant accounts represent the same real-world person.
+- The account owner
+- A child loved one
+- An adult loved one
 
-The database prevents two active participant accounts from using the same email
-username. This does not provide person-level duplicate detection because a
-person may still use more than one email address.
+One account owner may manage multiple loved-one participant accounts.
 
-## Account activation
+See [Participant Registration, Agreements, and Loved-One Accounts](participant-registration-consent-and-loved-ones.md).
 
-After registration:
+## Profile data
 
-1. The application generates a random Java UUID token.
-2. The application sends an account-activation email.
-3. The email contains a link with the activation token.
-4. The participant follows the link.
-5. The application validates the token and expiration.
-6. The participant account is activated.
-
-The activation-link expiration duration is controlled by an application setting.
-
-## Participant profile
-
-A participant profile may contain:
+Participant profiles may contain:
 
 - Date of birth
 - Derived age
-- Gender
-- Race
-- Other demographic information
-- Location
-- Contact information
+- Biological sex assigned at birth
+- Gender identity
+- Race and ethnicity
+- Smoking status
+- Current medical conditions
 - Past medical conditions
-- Present medical conditions
-- Whether the participant is a parent or guardian of a child under 18
-- Other study-relevant information
-- Study-interest preferences
-- Profile-visibility preference
+- Metal objects or implants
+- Willingness to change medications
+- Willingness to take experimental drugs
+- Fluency in English
+- Weight
+- Height
+- Pregnancy
+- Parent or guardian status
+- Contact information
+- Primary location
+- Study interests
+- Profile visibility
 
-If date of birth is stored, age should be derived from it when needed rather than treated as an independently permanent value.
+Not every profile property is used by matching.
 
-## Study-interest preferences
+## Visibility selection
 
-Participants may specify preferences such as:
+During signup, the participant or account owner selects one of two visibility
+options.
 
-- Research topics or conditions
-- Study locations
+### All study teams
+
+The participant permits all study teams using the branded application instance
+to view the profile when the participant appears to be a suitable match.
+
+This setting allows pre-interest visibility to authorized study teams.
+
+### Only study teams whose studies receive interest
+
+The participant permits profile visibility only after successfully expressing
+interest in a study.
+
+This setting hides the participant from pre-interest study-team result lists.
+
+Visibility affects disclosure to study teams. It does not change the underlying
+eligibility result or prevent participant-facing study recommendations.
+
+## Minimal owning profile
+
+When a person signs up for a loved one, the application creates a minimal owning
+account in addition to the loved-one account.
+
+The owning account contains:
+
+- Username and communication email
+- First name
+- Last name
+- Country copied from the loved-one signup data
+- ZIP code copied from the loved-one signup data
+
+Other participant-profile fields remain incomplete because the flow collects
+the required profile data for the loved one rather than the owner.
+
+The minimal owning profile defaults to hidden from study teams.
+
+If the owner later wants to participate personally, the owner must complete the
+applicable self profile and choose the desired visibility setting.
+
+## Study interests
+
+Participants may limit participant-facing recommendations by:
+
+- Topics or conditions
+- Locations
 - Compensation
-- Visit format
-- Other study characteristics
+- Healthy-participant preference
+- Other supported study properties
 
-Study interests answer:
+Only exact eligibility matches are shown as ordinary participant-facing matched
+studies.
 
-> Is this the type of study the participant wants to see?
+## My Studies and history
 
-Study interests are separate from eligibility criteria.
+Participants may use My Studies to view:
 
-Eligibility criteria answer:
+- System-matched studies
+- Study-team-promoted studies
+- Interested studies
 
-> Does the participant appear to qualify for this study?
+Participants may mark a recommended study Not Interested. This creates a
+participant-side Redis exclusion.
+
+Participant history may show:
+
+- Studies in which interest was expressed
+- Studies dismissed as Not Interested
 
 ## Temporal profile properties
 
-Some participant properties can change over time.
-
-When a participant attempts to express interest in a study, the application asks the participant to update:
+The show-interest form refreshes only:
 
 - Past medical conditions
 - Present medical conditions
-- Whether the participant is a parent or guardian of a child under 18
+- Parent or guardian of a child under 18
 
-The parent-or-guardian property is collected as a Boolean radio-button response.
+This limited review avoids requiring the participant to update the complete
+profile whenever they express interest.
 
-The updated temporal values are used during the eligibility recheck.
+The persistent participant profile and its in-memory matching representation
+must remain synchronized after these updates.
 
-## Visibility modes
+## Agreement updates
 
-Participants can select one of two visibility modes:
+At login, the application checks whether the user has accepted the current
+version of the applicable agreement.
 
-```text
-Restricted
-Discoverable
-```
+If the current agreement version has not been accepted:
 
-### Restricted
+- The user must review the agreement.
+- Acceptance creates a `USER_AGREEMENT_AUDIT` record for the current type and
+  version.
+- A participant who declines is warned that the account will be deactivated.
+- Confirmed decline deactivates the account.
+- Decline by an owning self account cascades deactivation to its loved-one
+  accounts.
 
-A restricted participant is not visible to a study team merely because the participant matches the study.
-
-The participant becomes visible to a study only after successfully expressing interest, subject to the study and participant remaining accessible.
-
-### Discoverable
-
-A discoverable participant may be visible to an authorized study team when the participant matches the study's eligibility criteria.
-
-The study does not need to match the participant's stated interests for study-team visibility.
-
-See [Matching and visibility](../06-recruitment/matching-and-visibility.md).
-
-## Participant deactivation
+## Deactivation
 
 Participants may deactivate their own accounts.
 
-When a participant account is deactivated:
+Deactivation:
 
-- The participant no longer participates in active matching.
-- The participant is removed from current matched-participant lists.
-- Historical expressions of interest remain.
-- Participant profile information is hidden from study teams.
-- New recruitment interactions are blocked.
+- Removes the participant from active matching
+- Removes the participant from active in-memory matching data
+- Hides the profile from study teams
+- Hides historical conversations from study teams
+- Blocks new participant actions
+- Retains historical expressions of interest
 
-## Participant reactivation
+Deactivating an owning self account also deactivates its loved-one accounts.
 
-Participants request reactivation by emailing support. An administrator then
-reactivates the account through the Help Participants administrative interface.
+A loved-one account may be deactivated individually without deactivating the
+owner or other loved-one accounts.
 
-Administrators may:
+## Age-based loved-one deactivation
 
-- Activate participant accounts
-- Reactivate participant accounts
-- Deactivate participant accounts
-- Reset participant passwords
+A scheduled job deactivates a child loved-one account when the represented
+person turns 18.
+
+The owner receives notice before the age-based deactivation.
+
+The deactivation:
+
+- Ends proxy access to that loved-one account
+- Removes the participant from active in-memory matching data
+- Removes the participant from active matching
+- Does not transfer control of the existing account to the represented person
+
+## Reactivation
+
+Participants request reactivation through support.
+
+Administrators reactivate accounts through participant-administration
+functions.
+
+Reactivation of cascaded owner and loved-one accounts must follow the supported
+administrative workflow rather than being inferred from account ownership alone.
 
 ## Hard deletion
 
-Participant deletion is a hard deletion.
+Hard deletion requires an explicit support request and administrator
+confirmation.
 
-The participant requests deletion by emailing support. An administrator uses the
-Help Participants interface, confirms the deletion, and records a reason before
-the application permanently removes the participant's information.
+It removes participant data, including:
 
-After hard deletion:
+- Account
+- Profile
+- Preferences
+- Matches
+- Expressions of interest
+- Questionnaire data
+- Messages and other participant-linked data
+- Participant-linked application audit data
 
-- The deleted email address may be reused.
-- The application cannot recall participant data already downloaded by study teams.
-- The deletion removes the participant account, profile, preferences, match
-  records, expressions of interest, questionnaire submissions, questionnaire
-  responses, and application audit records.
+The application retains the internal participant ID and deletion reason.
 
-The application retains only the internally assigned participant ID and the
-deletion reason as its in-application trace. The support request itself remains
-in the external ServiceNow ticket.
-
-## Institutional accounts
-
-Institutional accounts are managed by institutional identity providers.
-
-Institutional users include application users with roles such as:
-
-```text
-ADMIN
-STUDY_IMPORTER
-STAFF
-```
-
-Institutional accounts cannot be deactivated or deleted through participant-account workflows.
+Previously downloaded CSV files cannot be recalled.
 
 ## Related pages
 
-- [Users and access](index.md)
-- [Institutional users](institutional-users.md)
-- [Matching and visibility](../06-recruitment/matching-and-visibility.md)
-- [Expressions of interest](../06-recruitment/expressions-of-interest.md)
+- [Participant Registration, Agreements, and Loved-One Accounts](participant-registration-consent-and-loved-ones.md)
+- [Matching and Visibility](../06-recruitment/matching-and-visibility.md)
+- [Expressions of Interest](../06-recruitment/expressions-of-interest.md)
+- [Messaging](../06-recruitment/messaging.md)

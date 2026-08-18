@@ -6,182 +6,389 @@ status: authoritative
 
 # Business Rules
 
-This page is the canonical source for confirmed cross-cutting rules.
+This page contains confirmed cross-cutting rules.
 
-## Role systems
+For detailed workflows, use the canonical topic pages linked throughout the documentation rather than treating this page as a complete user manual.
+
+## Product and deployment identity
+
+1. YourHealthResearch.org is the platform and product name.
+1. `YourHealthResearch.org` is also the public marketing website for prospective adopting organizations.
+1. Each adopting organization operates a separately branded instance of the platform.
+1. Each instance has its own:
+   - Application URL
+   - Branding and configuration
+   - Application servers
+   - Database
+   - Supporting IT infrastructure
+   - Institutional identity and governance integrations
+1. Examples include:
+   - Michigan Institute for Clinical and Health Research at the University of Michigan: `UMHealthResearch.org`
+   - Clinical and Translational Science Institute at the University of Miami: `UMiamiHealthResearch.org`
+   - Institute for Translational Medicine: `BeTheNewNormalMatch.org`
+   - University of Illinois Chicago: `healthresearch.ccts.uic.edu`
+1. The Institute for Translational Medicine is a consortium involving Rush University, Northwestern University, Loyola University Chicago, and the University of Chicago, led by the University of Chicago.
+1. Data from one branded instance does not authorize access to data in another instance.
+
+## Identity and authorization
 
 1. The application has four application-wide roles:
    - `ADMIN`
    - `STUDY_IMPORTER`
    - `STAFF`
    - `VOLUNTEER`
-1. Study associations use two separate roles:
+1. Study associations use:
    - `PRINCIPAL_INVESTIGATOR`
    - `STUDY_TEAM_MEMBER`
-1. Application-wide roles and study-association roles must not be treated as the same type of role.
-1. A `STAFF` user must have a study association to access a particular study.
-1. For study-data access, `PRINCIPAL_INVESTIGATOR` and `STUDY_TEAM_MEMBER` have equivalent permissions.
-1. `STUDY_IMPORTER` is limited to institutional CSV import functions.
-1. `ADMIN` is a superuser with access to all studies and participant data.
-1. `VOLUNTEER` represents a participant account.
+1. Application-wide roles and study-association roles are separate authorization domains.
+1. Institutional users authenticate through SAML.
+1. SAML authentication alone does not grant access to a study.
+1. A `STAFF` user ordinarily requires a study association to access a study.
+1. `PRINCIPAL_INVESTIGATOR` and `STUDY_TEAM_MEMBER` have equivalent study-data permissions.
+1. `ADMIN` users may access all studies and participant data without ordinary study membership.
+1. `STUDY_IMPORTER` grants institutional import capability but not study or participant-data access.
+1. Participant accounts use the application-wide role `VOLUNTEER`.
 
-## Participant identity
+## Participant accounts
 
 1. Participants use local, database-backed accounts.
-1. A participant's email address functions as the username.
-1. A participant must activate a new account using an expiring email link.
-1. The activation link contains a randomly generated Java UUID token.
-1. The activation-link expiration duration is an application setting.
-1. Participants may deactivate their own accounts and request reactivation through support.
-1. Administrators may activate, reactivate, and deactivate participant accounts and reset participant passwords.
-1. Participant deletion is a hard deletion initiated only after the participant explicitly emails support.
-1. A deleted participant email address may be reused.
-1. The database prevents duplicate active email usernames, but the application does not attempt to detect that two accounts represent the same person.
-1. Hard deletion removes the participant account, profile, preferences, matches, expressions of interest, questionnaire data, and participant-linked application audit records after administrator confirmation. The application retains the internally assigned participant ID and deletion reason as a deletion marker, while the original request remains in ServiceNow.
+1. A self account ordinarily uses the participant's email address as its username and communication email address.
+1. A loved-one account uses an application-generated GUID-based email-like username.
+1. The loved-one account retains the owning account's real email address for communication.
+1. The database prevents duplicate active usernames.
+1. The application does not determine whether accounts using different usernames represent the same real-world person.
+1. Participant registration requires acceptance of the applicable current agreement.
+1. Agreement acceptance records:
+   - Username
+   - Agreement type
+   - Agreement version
+   - Timestamp
+   - IP address
+   - User agent
+1. An activation email is sent after required registration and agreement processing succeeds.
+1. Activation links contain expiring Java UUID tokens.
+1. Participants choose profile visibility during signup.
+1. The visibility choices are:
+   - All study teams using the branded application instance
+   - Only study teams whose studies the participant shows interest in
+1. Participants may change visibility after registration.
+1. Participants may deactivate their own accounts.
+1. Deactivating an owning self account also deactivates its loved-one accounts.
+1. Participants request reactivation through support.
+1. Hard deletion requires an explicit support request and administrator confirmation.
+1. Hard deletion removes participant data while retaining the internal participant ID and deletion reason.
+1. Previously downloaded participant-data files cannot be recalled.
 
-## Institutional identity and access
+## Loved-one accounts
 
-1. Institutional users authenticate through SAML.
-1. Institutional accounts are managed through institutional identity providers.
-1. Institutional accounts cannot be deactivated or deleted through the application.
-1. SAML authentication alone does not grant access to a study.
-1. Study access normally requires an active study association.
-1. Administrators may access all studies without an ordinary study association.
+1. One participant login may manage multiple loved-one participant accounts.
+1. Each loved one has a separate account and profile.
+1. Loved-one ownership is represented through `LOVED_ONE`.
+1. The owning account switches participant context without authenticating separately as the loved one.
+1. Visibility, matching, interest, questionnaires, and messages belong to the represented participant account.
+1. Agreement acceptance for a loved-one account is performed by the owning account.
+1. A loved-one account may be created:
+   - During initial registration using the signup-for-a-loved-one flow
+   - Later through Add Loved One
+1. The signup-for-a-loved-one flow creates:
+   - A minimal owning account
+   - A complete loved-one participant account
+1. The minimal owning account collects:
+   - Communication email, which is also its username
+   - First name
+   - Last name
+1. Country and ZIP code entered for the loved one are copied to the owning account.
+1. Required participant-profile fields not collected for the owning account remain incomplete.
+1. The minimal owning profile defaults to hidden from study teams.
+1. The loved one's visibility is selected during signup.
+1. The loved-one account receives an application-generated GUID-based email-like username.
+1. The owner's real email address is used as the communication email for both accounts.
+1. Child-versus-adult relationship selection is validated against date of birth.
+1. Child loved-one accounts are automatically deactivated when the represented person turns 18.
+1. The owning account is notified before the age-based deactivation.
+1. Age-based deactivation removes the loved-one account from active in-memory matching data and prevents continued proxy access.
+1. The represented participant cannot assume control of the existing loved-one account.
+
+## Agreement-version enforcement
+
+1. `USER_AGREEMENT` identifies the current version for each agreement type.
+1. `USER_AGREEMENT_AUDIT` records versions accepted by individual users.
+1. At login, the application checks whether the user has accepted the current version for the applicable agreement type.
+1. If no matching audit record exists, the user must review the current agreement.
+1. Agreement types include participant/volunteer and study-team agreements, represented by values such as:
+   - `VOL`
+   - `STM`
+1. When a participant accepts the current agreement, a new `USER_AGREEMENT_AUDIT` record is created.
+1. When a participant declines:
+   - The participant is warned that the account will be deactivated.
+   - The participant must confirm the decision.
+   - On confirmation, the participant account is deactivated.
+   - Deactivation of an owning self account cascades to its loved-one accounts.
+1. When a study team member declines:
+   - The user is denied access to application features.
+   - The user is returned to or removed from the authenticated application workflow.
+1. A user who has not accepted the current version cannot continue ordinary application use.
+
+## Participant profile and system boundaries
+
+1. Participant profile properties may be used for eligibility matching.
+1. Participant study interests determine which exact-matching studies are recommended to the participant.
+1. The required Where did you learn about us? value:
+   - Uses institution-configured lookup values
+   - Is not used in matching
+   - Is not displayed to study teams
+1. YourHealthResearch.org does not integrate with an electronic health record system.
+1. The application does not retrieve participant profile or clinical data from an EHR.
 
 ## Institutional governance
 
-1. Institutional data is loaded into read-only `IMPORTED_*` tables.
+1. Imported institutional data is stored in read-only `IMPORTED_*` tables.
 1. Ordinary study team members cannot modify imported data.
-1. Each institutional import is incremental.
-1. Imported rows absent from a subsequent import remain unchanged.
-1. PI status is controlled by the institutional source.
-1. A valid imported study has exactly one current institutional PI.
-1. Only the imported PI role automatically produces application study access.
-1. Other imported institutional roles do not automatically grant application access.
-1. `PUBLISHABLE` must be either `0` or `1`.
-1. A null, missing, or otherwise invalid publishable value is an application error.
-1. An operational study missing from a later incremental import remains unchanged.
+1. Institutional imports are incremental.
+1. Imported rows absent from a later import remain unchanged.
+1. CSV import rows are processed independently and in file order.
+1. If multiple rows modify the same study property, the last successfully processed row affecting that property determines its final value.
+1. Intermediate rows may temporarily modify operational state before a later row overwrites the same value.
+1. A valid imported study has one current institutional PI.
+1. PI status is controlled by the institutional source of truth.
+1. When the imported PI changes:
+   - The new PI receives the operational `PRINCIPAL_INVESTIGATOR` membership.
+   - The former PI's operational PI membership is removed.
+1. Other imported institutional roles do not automatically grant study access.
+1. Imported PI `USER_NAME` must correspond to the institutional SAML ePPN attribute.
+1. `PUBLISHABLE` must be `0` or `1`.
+1. A missing or invalid publishability value is an application error.
 
-## Study posting creation
+## Study-posting creation
 
-1. A posting can be created only for a `study_num` in `IMPORTED_STUDY`.
-1. Only one operational study posting may exist for a `study_num`.
-1. Study postings cannot be deleted through application UIs.
-1. A posting may be edited but cannot be deleted and recreated through the UI.
-1. The posting creator becomes associated with the study.
-1. A non-PI creator receives the study role `STUDY_TEAM_MEMBER`.
-1. The imported PI receives the study role `PRINCIPAL_INVESTIGATOR`.
-1. An `APP_USER` is created for an imported PI when one does not already exist.
-1. A PI record missing email or ePPN is an application error.
-1. When a PI `APP_USER` already exists, imported name and email changes are not copied into the existing record.
-1. When a PI `APP_USER` is newly created, the imported identity information is copied into it.
-1. The PI is notified of posting creation according to the posting-notification workflow.
+1. A posting may be created only for a `study_num` found in `IMPORTED_STUDY`.
+1. Only one operational posting may exist for one `study_num`.
+1. Beginning Add Study creates a posting-attempt audit record; it does not by itself create the final operational study posting.
+1. The operational study posting is created only after successful final submission of the Study Information and eligibility-authoring workflow.
+1. On successful creation:
+   - The non-PI creator receives `STUDY_TEAM_MEMBER`
+   - The current imported PI receives `PRINCIPAL_INVESTIGATOR`
+   - The PI is notified when applicable
+1. A new posting begins inactive.
+1. Study postings cannot be deleted through ordinary application UIs.
 
-## Study memberships
+See:
 
-1. Any study team member associated with a study may invite another SAML-authenticated institutional user.
-1. Any associated study team member may remove an ordinary `STUDY_TEAM_MEMBER`.
-1. A posting creator may be removed unless the creator is also the institutionally identified PI.
-1. An invited member may be removed.
-1. A current PI cannot be removed through ordinary application UIs.
-1. Administrators cannot directly create study memberships through application UIs.
-1. Backend database intervention may create memberships but is outside the normal UI workflow.
-1. Ordinary study team members may export permitted study data.
+- [Posting Creation](../05-study-management/posting-creation.md)
+- [AI-Assisted Study Posting Authoring](../05-study-management/ai-assisted-posting-authoring.md)
 
-## Publishability and active status
+## Study membership and invitations
 
-1. A study's active status depends on:
-   - The current date falling within the activation and deactivation dates
-   - `PUBLISHABLE` being `1`
-1. Activation and deactivation date boundaries are inclusive.
-1. `PUBLISHABLE = 0` makes the study inactive.
-1. If `PUBLISHABLE` returns to `1` while the date range remains active, the study becomes active again automatically.
-1. The application currently does not change the study's deactivation date when publishability becomes `0`.
-1. An expired study may be reactivated by changing its dates, provided `PUBLISHABLE = 1`; there is no separate manual-deactivation control.
-1. An inactive study loses current matches; fresh matches are recomputed when it becomes active again.
-1. Historical interested-participant data remains accessible while `PUBLISHABLE = 1`, even if the study is inactive.
-1. When an inactive study is accessed through its valid `study_num` URL, the participant sees a message that the study is no longer recruiting.
+1. Any associated study member may invite another SAML-authenticated institutional user.
+1. Accepting an invitation creates a `STUDY_TEAM_MEMBER` membership.
+1. Invitation links are expiring, single-use bearer links.
+1. The invitation is not bound to the emailed recipient.
+1. Membership creation and invitation-record deletion occur atomically.
+1. Any associated study member may remove an ordinary `STUDY_TEAM_MEMBER`.
+1. The current imported PI cannot be removed through ordinary application UIs.
+1. A change in imported PI data removes the former PI's operational PI membership and associates the new current PI.
 
-## Import processing
+## Study active status
 
-1. CSV imports are authenticated using expiring JSON Web Tokens.
-1. Token timing is governed by the `STUDY_IMPORT_TOKEN_GRACE_PERIOD` application setting.
-1. CSV anomalies are detected by application validation.
-1. Validation problems are written to logs and emailed to the responsible study importer.
-1. CSV reconciliation occurs through Java application code when imported data is applied.
-1. U-M reconciliation is performed through a scheduled database workflow and Oracle package.
-1. A CSV may contain multiple chronological updates for the same study.
-1. Only the latest update for a study is applied to operational application data.
-1. Intermediate rows for the same study must not cause temporary study deactivation or notification.
-1. Import batches cannot be rolled back through the application.
+1. Study active status is derived; there is no independent persisted active Boolean.
+1. A study is active only when:
+   - `PUBLISHABLE = 1`
+   - The current date/time falls within the inclusive activation and deactivation boundaries
+1. Initial activation requires explicit study-team action.
+1. A study cannot be activated or assigned new activation dates while `PUBLISHABLE = 0`.
+1. Explicit activation:
+   - Sets the activation boundary to the current date/time
+   - Requires a future deactivation boundary
+1. Manual deactivation:
+   - Is immediate
+   - Sets the deactivation boundary to the current date/time
+   - Prompts for optional total enrollment
+1. After manual deactivation, the derived state becomes inactive as the current time passes the saved deactivation boundary.
+1. Total enrollment is stored through `STUDY_PROPERTY_VALUE`.
+1. Date-based expiration makes the study inactive.
+1. `PUBLISHABLE = 0` makes the study inactive without changing its dates.
+1. `PUBLISHABLE: 0 → 1` automatically reactivates a study only when its unchanged activation range still contains the current date/time.
+1. After the deactivation boundary has passed, publishability alone cannot reactivate the study.
+1. Every derived active/inactive transition creates or closes a `STUDY_ACTIVE_INTERVAL`.
+1. Lifecycle announcements are handled asynchronously rather than being sent synchronously in the status-changing request.
+1. A PI receives a warning approximately one week before a scheduled deactivation date.
+1. Stable active-status changes participate in delayed PI-notification handling.
 
-## Matching
+See [Study Lifecycle](../05-study-management/study-lifecycle.md).
 
-1. Interest matching and eligibility matching are separate evaluations.
-1. Eligibility uses three-valued logic:
+## Study archiving
+
+1. Archive status is independent of active status.
+1. Only an inactive study may be archived.
+1. Archived studies are not publicly accessible.
+1. Archived studies may be unarchived.
+1. An archived study cannot be activated before being unarchived.
+1. Archiving does not hide participant data, block otherwise permitted new exports, or hide existing messages.
+1. `ARCHIVED_DATE` is stored through `STUDY_PROPERTY_VALUE`.
+
+## Matching runtime and memory synchronization
+
+1. Active studies and active participants are maintained in application memory to reduce matching latency.
+1. Match calculations read eligible study and participant entities from memory rather than repeatedly loading every entity from the database.
+1. The relational database remains the authoritative persistent source.
+1. When a participant or study is updated:
+   - The database record is updated.
+   - The corresponding in-memory representation is updated.
+1. Temporal participant-profile updates must also update the in-memory representation.
+1. Deactivated participants and inactive studies must be removed from active in-memory matching collections.
+1. Scheduled synchronization jobs reconcile memory with database state and handle time-based transitions.
+1. Redis stores current directional recommendations and exclusions separately from the in-memory source entities.
+1. Matching recomputation is asynchronous.
+
+## Matching and visibility
+
+1. Study-interest matching and eligibility matching are separate evaluations.
+1. Eligibility results are:
    - `TRUE`
    - `MAYBE`
    - `FALSE`
-1. A missing optional participant profile value referenced by a criterion produces `MAYBE`.
-1. Three-valued `AND`, `OR`, and `NOT` follow the truth tables in [Matching and visibility](../06-recruitment/matching-and-visibility.md).
-1. `TRUE` eligibility matches are exact matches.
-1. `MAYBE` eligibility matches are partial matches.
-1. Restricted participants are hidden from study teams until they express interest.
-1. Discoverable participants may be visible to authorized study teams as exact (`TRUE`) or partial (`MAYBE`) matches. Partial matches are not shown in participant-facing matched-study lists.
-1. Ask if interested does not create an expression of interest.
-1. Participants cannot withdraw an expression of interest.
+1. `TRUE` is an exact match.
+1. `MAYBE` is a partial match.
+1. `FALSE` is not a match.
+1. Partial matches may be visible to authorized study teams.
+1. Partial matches are not shown in ordinary participant-facing matched-study lists.
+1. A participant who selects visibility to all study teams may be visible before interest.
+1. A participant who selects visibility only to study teams whose studies they show interest in is hidden until successful interest.
+1. Matching recommendations and directional exclusions are stored in Redis.
+1. Matching recomputation is asynchronous.
 
-## Match recalculation
+## Public discovery
 
-1. When a participant profile property referenced by eligibility criteria changes, matches between that participant and all active studies are recalculated.
-1. When a participant's study interests change, that participant's matched-study list is recalculated.
-1. A participant-interest change does not recalculate study-side matched-participant lists.
-1. When a study property referenced by participant study interests changes, matched-study lists are recalculated for affected participants.
-1. When study eligibility criteria change:
-   - The study's matched-participant list is recalculated
-   - Participants' matched-study lists are recalculated
-1. Match results are stored in Redis and recomputed asynchronously; failed recalculations require a manually triggered recomputation job.
+1. Public users may browse and search active, non-archived studies without an account.
+1. An account is required to express interest.
+1. Public study details may display study contact information.
+1. Direct and bookmarked posting URLs are supported.
+1. Inactive postings display a not-currently-recruiting message through valid URLs.
+1. Public pages may be indexed by external search engines.
+1. The participant-facing interested count uses an application-configured threshold.
+
+## Ask if interested
+
+1. Ask if interested is available only for a visible matching participant.
+1. It does not create an expression of interest.
+1. It does not create a direct-message conversation.
+1. It promotes the study in the participant interface.
+1. It moves the participant-study pair from the ordinary system-matched presentation to the study-team-promoted presentation.
+1. It creates the applicable Redis promotion and exclusion records and updates the promotion timestamp.
+1. A scheduled notification job identifies promoted matches newer than the participant's last login and may email the participant to return to the application.
+1. The study-team-authored text is displayed with the promoted study rather than delivered as a direct participant message.
 
 ## Expressing interest
 
-1. At the time of expressing interest, participants are asked to refresh specified temporal profile values.
-1. Temporal values include:
+1. A participant may express interest only once in one study.
+1. The show-interest UI uses one form containing:
+   - Temporal profile updates
+   - Screening questions, when configured
+1. The temporal profile properties are:
    - Past medical conditions
    - Present medical conditions
-   - Whether the participant is a parent or guardian of a child under 18
-1. Eligibility is rechecked using current participant information; `TRUE` and `MAYBE` may proceed, while `FALSE` cannot.
-1. Interest is created only after successful questionnaire completion, with temporal-profile updates and questionnaire submission committed atomically.
-1. If the study is inactive or non-publishable at submission, interest is not created and the participant sees a not-recruiting message.
-1. After interest is successfully recorded, later eligibility changes do not alter the interest relationship.
-1. Historical interest remains visible when an active participant later becomes ineligible.
+   - Parent or guardian of a child under 18
+1. The complete form is submitted in one request.
+1. Backend processing occurs in one transaction.
+1. Temporal profile updates are applied before eligibility is reevaluated.
+1. `TRUE` and `MAYBE` may proceed.
+1. `FALSE` prevents interest.
+1. Screening answers do not affect matching or resolve `MAYBE`.
+1. On success, the transaction:
+   - Updates the participant profile
+   - Updates the participant's in-memory representation
+   - Stores questionnaire answers, when applicable
+   - Creates `STUDY_VOLUNTEER`
+   - Creates applicable Redis exclusions
+1. On any failure, none of those changes are committed.
+1. The study must remain active until transaction completion.
+1. Later eligibility changes do not remove interest.
+1. Participants cannot withdraw finalized interest through the application.
+
+## Interested-participant operations
+
+1. New interested participants begin in `NEW`.
+1. Fixed workflow lists are:
+   - `NEW`
+   - `ELIGIBLE`
+   - `INELIGIBLE`
+   - `PENDING`
+1. `ALL` is an aggregate view.
+1. One participant-study interest occupies one fixed workflow list at a time.
+1. Workflow-list movement does not affect matching, messaging, exports, or Redis exclusions.
+1. Labels are study-specific tags.
+1. One interested participant may have multiple labels.
+1. Labels are included in CSV exports.
+1. List movement and label changes are not separately audited.
+
+## Messaging
+
+1. Study teams may message only interested participants.
+1. A study team member must initiate the conversation.
+1. The participant may reply only after study-team initiation.
+1. Conversations are shared among all study members.
+1. Templates and reusable attachments are study-specific.
+1. Attachment file types are unrestricted.
+1. Maximum attachment size is 5 MB.
+1. Date-based study inactivity does not hide existing conversations.
+1. `PUBLISHABLE = 0` hides conversations.
+1. Participant deactivation hides historical conversations from study teams.
 
 ## Questionnaires and exports
 
-1. A study can have only one screening questionnaire.
-1. Questionnaire completion is required to finalize the interest workflow.
-1. Individual questions may be required or optional.
-1. Participants cannot edit submitted questionnaire answers.
-1. A study must be deactivated before its questionnaire structure can be changed.
-1. Study teams may add or delete questionnaire questions while the study is inactive.
-1. Existing question content cannot be edited; question display order may be changed while the study is inactive.
-1. Questionnaires are not versioned.
-1. Only the current questionnaire structure is retained; deleting a question also deletes its prior answers after confirmation.
-1. Authorized study team members may export all participant profile fields, including contact information, and all questionnaire answers.
-1. Exports are allowed whenever `PUBLISHABLE = 1`, including for inactive studies; export actions are not separately audited.
-1. A downloaded CSV cannot be invalidated or recalled by the application.
+1. A study may have at most one screening questionnaire.
+1. Questionnaire completion is required only when a questionnaire exists.
+1. Questionnaires may be edited only while the study is inactive.
+1. Question type cannot change after creation.
+1. Deleting a response option deletes only answers selecting that option.
+1. Deleting a question deletes answers for that question after confirmation.
+1. Questionnaires and responses are not versioned.
+1. Concurrent stale edits are rejected.
+1. Participants cannot edit submitted answers.
+1. Interested-participant exports may include:
+   - Visible profile fields
+   - Contact information
+   - Questionnaire answers
+   - Workflow-list information
+   - Labels
+1. `PUBLISHABLE = 0` blocks participant-data access, conversations, and new exports.
+1. Downloaded files cannot be recalled.
 
-## Deactivation and historical visibility
+## Study notifications
 
-1. A deactivated participant no longer participates in matching.
-1. A non-publishable or otherwise inactive study no longer participates in active matching.
-1. Historical expressions of interest may remain after participant or study deactivation.
-1. Participant profile information is hidden when the participant is deactivated or the study has `PUBLISHABLE = 0`. Date-based study inactivity alone does not prevent authorized access to historical interested-participant data while `PUBLISHABLE = 1`.
-1. Historical relationship retention and current profile visibility are separate concepts.
+1. Notification settings are configured per study and event.
+1. One event uses one shared frequency for its selected recipients.
+1. New interested-participant and new-message events support:
+   - Immediate
+   - Daily digest
+   - Weekly digest
+1. New matched-participant events support:
+   - Daily digest
+   - Weekly digest
+1. The posting creator is subscribed by default.
+1. The current PI is automatically subscribed to Other Announcements.
+1. External non-member email addresses may receive notifications.
+1. Membership removal removes that member's notification settings.
+1. Email settings do not control in-application badges.
+1. Lifecycle announcements are dispatched by scheduled processing.
+1. The PI receives a warning approximately one week before the scheduled study deactivation date.
+1. Participant promotion notifications are evaluated by a scheduled job using the promotion timestamp and participant's last-login time.
+
+## Audit
+
+1. Participant-data access is audited through `PHI_AUDIT`.
+1. List-view records may identify multiple visible participant IDs.
+1. The legacy term `RECOMMENDED` means matched.
+1. Workflow-list movement is not separately audited.
+1. Label changes are not separately audited.
+1. Message records retain sender, recipient, and timestamp as business data.
+1. CSV export generation is not separately audited.
 
 ## Multi-institution deployment
 
-1. Each adopting institution has a separately branded application instance.
-1. Each institutional instance has a separate database schema.
-1. Schemas are structurally identical, while data and configuration differ.
+1. Each adopting organization has a separately branded application instance.
+1. Each instance operates on its own application servers, database, and supporting infrastructure.
+1. Schemas are intended to remain structurally compatible while data and configuration differ.
 1. U-M imports eResearch-derived data.
-1. Other institutions upload incremental CSV data through an authenticated application API.
+1. Other institutions may use authenticated incremental CSV imports.
+1. No cross-instance access is granted merely because identifiers or email addresses match.

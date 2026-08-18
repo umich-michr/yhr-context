@@ -1,88 +1,88 @@
 ---
 title: Audit and Monitoring
-summary: Recommended audit events and operational health metrics.
-status: recommended
+summary: Confirmed PHI auditing and recommended operational monitoring.
+status: mixed
 ---
 
 # Audit and Monitoring
 
-This page distinguishes confirmed audit behavior from recommended improvements.
+This page separates confirmed audit behavior from recommended monitoring.
 
-## Audit events
+## Confirmed participant-data audit
 
-The application audits participant-profile access, including administrator
-access. It does not separately audit CSV export actions or invitation lifecycle
-events.
+Participant-data access is audited through `PHI_AUDIT`.
 
-Recommended additional events include:
+See [PHI Audit](phi-audit.md).
 
-- Participant registration and login
-- Participant profile or visibility change
-- Participant deactivation or deletion
-- Institutional SAML login
-- Import received
-- Import validation result
-- Reconciliation run
-- Publishability change
-- Study creation, activation, or deactivation
-- PI user creation
-- PI membership change
-- Invitation creation, revocation, and consumption
-- Study membership change
-- Ask if interested
-- Expression or withdrawal of interest
-- Questionnaire publication and submission
-- Participant profile view
-- Export request, generation, and download
-- Administrator action
+Confirmed audited activities include:
 
-## Suggested audit fields
+- Administrator participant search results
+- Interested-participant list views
+- Matched-participant list views
+- Interested-participant profile views
+- Matched-participant profile views
+- Administrator password resets
+- Administrator participant deactivation
 
-```text
-EVENT_ID
-EVENT_TYPE
-ACTOR_TYPE
-ACTOR_ID
-TARGET_TYPE
-TARGET_ID
-STUDY_ID
-PARTICIPANT_ID
-TIMESTAMP
-REQUEST_ID
-RESULT
-REASON
-BEFORE_STATE
-AFTER_STATE
-```
+## Confirmed non-audited actions
 
-Audit records should avoid unnecessarily duplicating sensitive participant data.
+Dedicated audit events are not created for:
 
-## Reconciliation metrics
+- Interested-participant workflow-list movement
+- Label changes
+- Invitation lifecycle
+- CSV export generation
+- Message lifecycle
+
+Messages retain sender, recipient, and timestamp as business data.
+
+## Recommended operational events
+
+Potential future audit or monitoring includes:
+
+- Participant registration
+- Consent acceptance
+- Participant visibility changes
+- Import receipt and validation
+- Reconciliation runs
+- Publishability changes
+- PI membership changes
+- Study activation and deactivation
+- Study archiving
+- Invitation creation and acceptance
+- Label changes
+- Workflow-list movement
+- Export generation
+- Redis recomputation failures
+
+## Recommended reconciliation metrics
 
 Monitor:
 
 - Last successful import
 - Last successful reconciliation
-- Imported record counts
-- Rejected record counts
-- Missing imported studies
+- Record counts
+- Rejected records
 - Publishability changes
-- Studies deactivated
-- PI users created
-- PI memberships created or changed
-- Unresolved personnel
+- Active-status changes
+- PI changes
 - Job duration
-- Failure reason
+- Failure reasons
 
 ## Export investigation
 
-Exports are generated in memory and streamed directly to the browser, so there
-is no retained server-side export artifact to monitor.
+Because exports are streamed and not separately audited, investigation may correlate:
 
-To investigate a possible export, correlate:
+- Interested-participant list views
+- Participant profile views
+- Application request logs
+- Request timestamps
 
-- The audited visit to the interested-participants page
-- The participant profile views associated with that visit
-- Splunk request logs around the same time
+This is indirect evidence and not a definitive export event.
 
-This is an investigative approximation, not a definitive export audit trail.
+## Related pages
+
+- [PHI Audit](phi-audit.md)
+- [Interested-Participant Management](../06-recruitment/interested-participant-management.md)
+- [Questionnaires and Exports](../06-recruitment/questionnaires-and-exports.md)
+- [Open Questions](../09-decisions/open-questions.md)

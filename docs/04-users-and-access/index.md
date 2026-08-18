@@ -1,18 +1,26 @@
 ---
 title: Users and Access
-summary: Participant accounts, institutional authentication, application-wide roles, and study-scoped authorization.
+summary: Participant accounts, represented participants, institutional authentication, roles, and study authorization.
 status: authoritative
 ---
 
 # Users and Access
 
-The application supports two broad identity models.
+The application supports participant accounts and institutionally authenticated users.
 
 ## Participants
 
-Participants use local database-backed accounts with email addresses as usernames.
+Participants use local, database-backed accounts.
 
-Participants normally have the application-wide role:
+Participant accounts may represent:
+
+- The account owner
+- A child loved one
+- An adult loved one
+
+One account owner may manage multiple loved-one participant accounts.
+
+Participant accounts normally have the application-wide role:
 
 ```text
 VOLUNTEER
@@ -22,7 +30,7 @@ VOLUNTEER
 
 Study team members, PIs, study importers, and administrators authenticate using institutional SAML.
 
-Institutional authentication does not grant universal study access.
+Institutional authentication does not grant access to every study.
 
 ## Application-wide roles
 
@@ -32,10 +40,6 @@ Institutional authentication does not grant universal study access.
 | `STAFF` | Institutional study-team access |
 | `STUDY_IMPORTER` | Institutional CSV-import access |
 | `ADMIN` | Application-wide administrative access |
-
-A study team member or PI normally has the application-wide role `STAFF`.
-
-Broader application roles, such as `ADMIN`, may grant additional application capabilities.
 
 ## Study-association roles
 
@@ -53,6 +57,7 @@ The user must also have a study association unless broader administrative access
 ## Read next
 
 - [Participants](participants.md)
-- [Institutional users](institutional-users.md)
-- [Study membership](study-membership.md)
-- [Invitations](invitations.md)
+- [Participant Registration, Consent, and Loved-One Accounts](participant-registration-consent-and-loved-ones.md)
+- [Institutional Users](institutional-users.md)
+- [Study Membership](study-membership.md)
+- [Study-Team Invitations](invitations.md)

@@ -1,50 +1,188 @@
 ---
 title: AI-Assisted Study Posting Authoring
-summary: Current AI-assisted study-information workflow, audit records, endpoints, and evaluation telemetry.
+summary: Current optional AI-assisted Study Information workflow, generation auditing, suggestions, feedback, errors, and final submission.
 status: authoritative
+canonical_for:
+  - ai_assisted_study_posting_authoring
+  - study_posting_suggestions
+  - study_posting_generation_workflow
 relevant_when:
   - explaining_ai_assisted_authoring
-  - evaluating_ai_suggestion_effectiveness
+  - evaluating_ai_suggestions
+  - troubleshooting_ai_generation
   - analyzing_study_creation_telemetry
-  - planning_ai_assisted_eligibility_authoring
 ---
 
 # AI-Assisted Study Posting Authoring
 
 YourHealthResearch.org provides optional AI assistance during study-posting creation.
 
-The current AI-assisted implementation applies to the **study-information portion** of posting creation. It does not currently generate or author the structured inclusion and exclusion criteria used by the matching engine.
+The current AI feature assists only with the Study Information form.
 
-Potential expansion into eligibility-criteria authoring is a proposed enhancement.
+It does not currently generate:
 
-## Scope of the current feature
+- Participant types
+- Eligibility groups or arms
+- Inclusion criteria
+- Exclusion criteria
+- Screening-questionnaire questions
 
-The current feature assists with extracting study-information field values from source material supplied by a study team member.
+AI output is advisory.
 
-The source may be:
+The study team remains responsible for reviewing, editing, and submitting the final posting.
 
-- Pasted free text
-- A PDF document
-- A Microsoft Word document
+## Posting-creation steps
 
-The application extracts text from uploaded documents and sends the relevant source text to an OpenAI API model with instructions to identify values for supported study-information fields.
+Study-posting creation has three main UI steps:
 
-The user remains responsible for:
+1. Add Study
+2. Study Information
+3. Inclusion/Exclusion Criteria
 
-- Reviewing suggestions
-- Selecting suggestions
-- Editing the study posting
-- Authoring eligibility criteria
-- Finalizing the study posting
-- Activating the study
+Beginning Add Study creates a posting-attempt audit record.
 
-AI output is advisory. It is not automatically authoritative application data.
+The operational study is not created until successful final eligibility submission.
 
-## Source-type classification
+## Manual and AI paths
 
-The user identifies the source type.
+### Manual path
 
-Supported source categories include:
+When the user declines AI assistance:
+
+1. Add Study creates `STUDY_POSTING_AUDIT`.
+2. No `STUDY_POSTING_GENERATION_AUDIT` is created.
+3. The Study Information form is displayed without suggestions.
+4. The user enters and submits Study Information manually.
+5. The application captures the Study Information page duration.
+6. The user manually authors eligibility criteria.
+7. Successful final submission creates the operational posting.
+
+### AI-assisted path
+
+When the user enables AI assistance:
+
+1. Add Study creates `STUDY_POSTING_AUDIT`.
+2. The application sends source content and the configured prompt to the AI service.
+3. The application creates one `STUDY_POSTING_GENERATION_AUDIT`.
+4. The generation row stores the generated suggestions and response metadata when generation succeeds.
+5. The Study Information form displays the suggestions.
+6. The user may select, ignore, or edit suggestions.
+7. Study Information submission captures:
+   - Selected suggestions
+   - Optional feedback
+   - Study Information page duration
+8. The user manually authors eligibility criteria.
+9. Successful final submission stores final Study Information values and creates the operational posting.
+
+## AI-generation error path
+
+If the AI request fails:
+
+1. The posting attempt retains its `STUDY_POSTING_AUDIT`.
+2. The attempt retains its `STUDY_POSTING_GENERATION_AUDIT`.
+3. One `STUDY_POSTING_GENERATION_AUDIT_ERROR` is associated with the generation row.
+4. The application displays the Study Information page without suggestions.
+5. The application displays an AI-generation error message.
+6. The user may continue entering Study Information manually within that same posting attempt.
+7. The attempt may still be completed successfully.
+
+If the user returns to Add Study and tries again, the application creates a new posting-attempt audit row.
+
+It does not create another generation row under the original attempt.
+
+## Workflow
+
+```mermaid
+flowchart TD
+    START[User submits Add Study]
+    VERIFY[Validate study number and current PI]
+    ATTEMPT[Create STUDY_POSTING_AUDIT]
+    AI_CHOICE{AI assistance enabled?}
+    MANUAL_INFO[Display blank Study Information form]
+    REQUEST[Send source content and configured prompt to AI]
+    GENERATION[Create STUDY_POSTING_GENERATION_AUDIT]
+    SUCCESS{Generation succeeds?}
+    STORE[Store suggestions and LLM metadata]
+    ERROR[Create one generation-error row]
+    AI_INFO[Display Study Information with suggestions]
+    ERROR_INFO[Display error and blank Study Information form]
+    INFO_SUBMIT[Submit Study Information]
+    FEEDBACK[Store selected suggestions and optional feedback]
+    TIME[Store Study Information page duration]
+    CRITERIA[Author eligibility criteria manually]
+    FINAL[Submit final eligibility form]
+    CREATE[Create APP_USER if needed, STUDY, and memberships]
+    FINAL_AUDIT[Store final submission and END_TIME]
+    CONFIRM[Display confirmation]
+
+    START --> VERIFY
+    VERIFY --> ATTEMPT
+    ATTEMPT --> AI_CHOICE
+
+    AI_CHOICE -- No --> MANUAL_INFO
+    MANUAL_INFO --> INFO_SUBMIT
+
+    AI_CHOICE -- Yes --> REQUEST
+    REQUEST --> GENERATION
+    GENERATION --> SUCCESS
+
+    SUCCESS -- Yes --> STORE
+    STORE --> AI_INFO
+    AI_INFO --> INFO_SUBMIT
+
+    SUCCESS -- No --> ERROR
+    ERROR --> ERROR_INFO
+    ERROR_INFO --> INFO_SUBMIT
+
+    INFO_SUBMIT --> FEEDBACK
+    INFO_SUBMIT --> TIME
+    FEEDBACK --> CRITERIA
+    TIME --> CRITERIA
+    CRITERIA --> FINAL
+    FINAL --> CREATE
+    CREATE --> FINAL_AUDIT
+    FINAL_AUDIT --> CONFIRM
+```
+
+For a manual attempt, the feedback request has no generation row to update.
+
+For an AI-assisted attempt, the selected-suggestion and feedback information belongs to the generation row.
+
+## Generation cardinality
+
+The confirmed cardinality is:
+
+```text
+One STUDY_POSTING_AUDIT
+→ zero or one STUDY_POSTING_GENERATION_AUDIT
+
+One STUDY_POSTING_GENERATION_AUDIT
+→ zero or one STUDY_POSTING_GENERATION_AUDIT_ERROR
+```
+
+A manual attempt has no generation row.
+
+An AI-assisted attempt has one generation row.
+
+A failed generation has one associated error row.
+
+A retry that starts again from Add Study creates a new posting-attempt row.
+
+## One-time AI decision
+
+AI assistance is optional.
+
+The current UI permits AI assistance only at the beginning of the posting workflow.
+
+If the user declines AI assistance, it cannot be enabled from a later posting step within that attempt.
+
+The application makes at most one AI generation request for one posting attempt.
+
+## Semantic source type
+
+The user identifies what kind of source content is being supplied.
+
+Configured choices include:
 
 ```text
 Study Protocol
@@ -52,327 +190,365 @@ Informed Consent
 Other
 ```
 
-The LLM is also instructed to infer the source type.
+The selected value is stored through a `LOOKUP_VALUE` reference.
 
-The audit data records both:
+If Other is selected, accompanying free text may be stored.
 
-- The source type selected by the user
-- The source type inferred by the LLM
+The AI is separately instructed to infer the semantic source type from the supplied content.
 
-This permits later comparison of user-supplied and model-inferred source classifications.
+This permits comparison of:
 
-## Study-creation workflow
+- User-selected semantic source
+- AI-inferred semantic source
 
-The relevant workflow has three stages:
+## Source-input method
 
-1. Add Study
-2. Study Information
-3. Study Eligibility Criteria
+`STUDY_POSTING_GENERATION_AUDIT.SOURCE_TYPE` records how the content was supplied.
 
-```mermaid
-flowchart LR
-    ADD[Add Study Form]
-    AI{AI assistance selected?}
-    SOURCE[Extract or receive source text]
-    LLM[Request study-information suggestions]
-    INFO[Study Information Form]
-    ELIG[Eligibility-Criteria Form]
-    FINAL[Final Posting Submission]
-    ACTIVATE[Study may be activated when eligible]
+Current production values are:
 
-    ADD --> AI
-    AI -- Yes --> SOURCE
-    SOURCE --> LLM
-    LLM --> INFO
-    AI -- No --> INFO
-    INFO --> ELIG
-    ELIG --> FINAL
-    FINAL --> ACTIVATE
+| Value | Meaning |
+|---|---|
+| `PDF_FILE` | Source content came from a PDF upload |
+| `DOCX_FILE` | Source content came from a Word document upload |
+| `RAW_TXT` | Source content was supplied to generation as raw text |
+
+Source-input method is separate from semantic source type.
+
+For example:
+
+```text
+SOURCE_TYPE = PDF_FILE
+Semantic source = Study Protocol
 ```
 
-## Add Study form
+## Source-content handling
 
-The Add Study form begins the study-posting workflow.
+Source content may originate from:
 
-When AI assistance is selected, the user supplies:
+- Text entered or pasted into the form
+- PDF upload
+- Word document upload
+- Text extracted from an uploaded file and placed into the form
 
-- Pasted source text, or
-- A PDF or Word document
+The content sent to the AI service is not copied into the generation-audit table.
 
-The application:
+Instead, the generation audit stores metadata such as:
 
-1. Extracts text when necessary.
-2. Builds an LLM prompt.
-3. Sends the source text and prompt to the OpenAI API.
-4. Requests suggestions for supported study-information fields.
-5. Records generation metadata and suggestions.
+- Input method
+- Character count
+- User-selected semantic source
+- AI-inferred semantic source
 
-For some text fields, the LLM is instructed to produce multiple alternatives.
+## Prompt configuration
 
-For the longest supported text field, the LLM is instructed to produce one suggestion.
+The AI prompt is stored in:
 
-The exact field list and number of suggestions per field should be maintained in implementation-specific configuration or documentation rather than inferred from this page.
+```text
+APPLICATION_SETTING
+```
 
-## Initial audit requests
+The prompt may change as product requirements change.
 
-Submitting the Add Study form creates a general posting-attempt audit record.
+The configured prompt may request a particular number of suggestions for a field.
 
-The current endpoint is:
+A prompt-requested count is not a database cardinality constraint.
+
+The following must remain distinct:
+
+```text
+Prompt-requested suggestion count
+AI-returned suggestion count
+Successfully parsed suggestion count
+Stored suggestion count
+Displayed suggestion count
+Selected suggestion count
+```
+
+Analyses must count actual stored suggestions rather than assume that every response contains exactly the number requested by the prompt.
+
+## Initial posting-attempt audit
+
+Submitting Add Study creates the general attempt record.
+
+Endpoint:
 
 ```http
 POST /backend/secure/staff/study-posting-audit
 ```
 
-The request payload includes:
+Example payload:
 
-```text
-studyNum
+```json
+{
+  "studyNum": "HUM00171893"
+}
 ```
 
-This record is created for posting-creation attempts, whether or not AI assistance is used.
+The response supplies the posting-audit identifier used by later requests.
 
-When AI assistance is used, a separate request records the generation attempt:
+## AI suggestion request
+
+When AI assistance is enabled, the frontend submits source content and metadata.
+
+Endpoint:
 
 ```http
 POST /backend/secure/staff/study-posting-suggestions
 ```
 
-The AI-generation audit includes:
+Example payload:
 
-- LLM suggestions
-- Request metadata
-- User-supplied source type
-- LLM-inferred source type
-- Other supported generation metadata
+```json
+{
+  "studyPostingAuditId": 2627,
+  "studyContent": "Source text submitted to the AI model",
+  "srcFileType": "PDF_FILE",
+  "studyContentSourceLVId": 450000
+}
+```
 
-The physical schema and exact payload fields should be documented from the implementation.
+This request creates the generation audit associated with the posting attempt.
 
-## Study Information form
+## Generation response capture
 
-If AI assistance was selected and suggestions were generated, the Study Information form displays those suggestions above the applicable fields.
+The application sends source context and the configured prompt to the AI service.
 
-Suggestions are displayed in collapsible panels.
+The generation audit captures:
+
+- Source method
+- Source character count
+- Semantic source selected by the user
+- Semantic source inferred by the AI
+- AI latency
+- Raw response metadata
+- Field suggestions
+- User-selected suggestions
+- Optional feedback
+
+If generation fails, the application creates one associated generation-error row.
+
+## Study Information suggestions
+
+Suggestions are displayed above applicable Study Information fields.
 
 The user may:
 
-- Select an LLM suggestion
-- Ignore all suggestions
-- Enter a different value
-- Modify a selected suggestion before saving, if the form permits ordinary editing
+- Expand or hide suggestion panels
+- Select one or more suggested lookup values
+- Select a suggested text value
+- Ignore suggestions
+- Enter a manual value
+- Edit a value after selecting a suggestion
 
-The saved study-information values remain the authoritative application values.
+The final saved form values remain authoritative.
 
-## Captured study-information telemetry
+## Suggestion cardinality
 
-When the Study Information form is submitted, the application records information that can later be used to compare:
+The configured prompt currently requests multiple alternatives for fields such as:
 
-1. Values suggested by the LLM
-2. Suggestions selected by the user
-3. Final values saved to the study posting
+- Title
+- Purpose
+- About the study
+- Compensation wording
 
-The application also captures user feedback about the AI-assisted feature.
+The requested cardinality may change when the prompt changes.
 
-The feedback endpoint is:
+The application audit records actual returned and selected values.
+
+Documentation and analytics must not describe prompt-requested cardinality as a guaranteed stored cardinality.
+
+## Selection versus final value
+
+Selecting a suggestion does not make it final.
+
+Example:
+
+1. AI suggests locations A, B, and C.
+2. The user selects A, B, and C.
+3. The form is populated with A, B, and C.
+4. The user removes C and adds F.
+5. The final submitted locations are A, B, and F.
+
+The audit therefore preserves:
+
+```text
+AI suggestion
+→ User-selected suggestion
+→ Final submitted value
+```
+
+For free text, the user may select a suggestion and then edit the populated text before submission.
+
+## Selection and feedback capture
+
+When Study Information is submitted, selected suggestions and optional feedback are captured for the AI-assisted attempt.
+
+Endpoint:
 
 ```http
 PATCH /backend/secure/staff/study-posting-suggestions/{studyPostingAuditId}/feedback
 ```
 
-The application records time spent on the Study Information form using:
+Simplified payload:
+
+```json
+{
+  "selectedSuggestions": {
+    "title": ["Selected title suggestion"],
+    "purpose": ["Selected purpose suggestion"],
+    "description": ["Selected description suggestion"],
+    "offersCompensation": false,
+    "compensation": {
+      "genericCompensation": [],
+      "specificCompensation": []
+    },
+    "topics": [285042],
+    "locations": [420000],
+    "department": [410062],
+    "about": ["Selected about suggestion"],
+    "contact": {
+      "name": "Study contact",
+      "email": "contact@example.org",
+      "phone": null,
+      "website": null
+    }
+  },
+  "userFeedbackComments": "Optional free-text feedback"
+}
+```
+
+Feedback is optional.
+
+Selected suggestions are captured at Study Information submission rather than inferred from the final posting.
+
+## Study Information timing
+
+The frontend records time spent on the Study Information page.
+
+Endpoint:
 
 ```http
 PATCH /backend/secure/staff/study-posting-audit/{studyPostingAuditId}/time-spent
 ```
 
-Timing begins when the user arrives on the Study Information form after submitting the Add Study form and ends when the Study Information form is submitted.
+Example payload:
 
-## Eligibility-criteria stage
+```json
+{
+  "timeSpentOnStudyInfoPageMs": 2090037
+}
+```
 
-The Study Eligibility Criteria form is the final authoring stage.
+This client-reported duration is stored separately from total attempt duration derived from server timestamps.
 
-The current AI feature does not generate structured eligibility criteria.
+## Eligibility-criteria step
 
-Study team members manually author:
+After Study Information submission, the eligibility-authoring page is displayed.
 
+AI assistance is not available on this page.
+
+Study teams manually create:
+
+- Participant types
 - Criteria groups or arms
 - Inclusion criteria
 - Exclusion criteria
-- Structured criterion expressions
-- Participant-facing OTHER text
 
-See:
+Each group is edited by supplying its inclusion and exclusion criteria together.
 
-- [Eligibility-Criteria Authoring](../06-recruitment/eligibility-criteria-authoring.md)
-- [Criteria Data Model](../07-data-model/criteria-data-model.md)
+See [Eligibility-Criteria Authoring](../06-recruitment/eligibility-criteria-authoring.md).
 
 ## Final submission
 
-When the eligibility form is submitted, study-posting creation is finalized.
+After eligibility criteria are successfully submitted:
 
-The current final-submission endpoint follows this form:
+- The operational study posting is created.
+- The creator's `APP_USER` is created if needed.
+- Creator and PI memberships are created or ensured.
+- `STUDY_POSTING_AUDIT.END_TIME` is recorded.
+- Final Study Information values are stored in `STUDY_POSTING_AUDIT.FINAL_SUBMISSION`.
+- The PI is notified when applicable.
+- A confirmation page is displayed.
+
+Endpoint:
 
 ```http
 PATCH /backend/secure/staff/study-posting-audit/{studyPostingAuditId}/final-submission
 ```
 
-Final submission updates audit data so that later analysis can compare:
+Simplified payload:
 
-- LLM-generated suggestions
-- Suggestions selected by the user
-- Final saved study-information values
-- User feedback
-- Time spent on study information
-- Time spent on eligibility authoring
-- Total study-posting creation time
+```json
+{
+  "title": "Final participant-facing title",
+  "purpose": "Final purpose",
+  "description": "Final What Is Involved description",
+  "offersCompensation": true,
+  "compensation": "Final compensation text",
+  "contact": {
+    "name": "Study contact",
+    "email": "contact@example.org",
+    "phone": "555-555-5555",
+    "website": "https://example.org"
+  },
+  "about": "Final additional study information",
+  "topics": [285042],
+  "locations": [420000, 420002],
+  "department": [410062]
+}
+```
 
-Final submission does not itself guarantee that the study is actively recruiting.
+## Audit ownership
 
-Study activation remains governed by:
-
-- Publishability
-- Activation and deactivation dates
-- Other study-lifecycle requirements
-
-See [Study Lifecycle](study-lifecycle.md).
-
-## Audit entities
-
-### `STUDY_POSTING_AUDIT`
-
-Conceptually records the overall posting-creation attempt.
-
-Potentially relevant attributes include:
+Final values are stored in:
 
 ```text
-ID
-STUDY_NUM
-CREATED_BY
-CREATED_AT
-STUDY_INFORMATION_TIME
-ELIGIBILITY_CRITERIA_TIME
-TOTAL_CREATION_TIME
-FINAL_SUBMISSION_AT
-STATUS
+STUDY_POSTING_AUDIT.FINAL_SUBMISSION
 ```
 
-Exact physical columns must be verified.
+They are not stored in `STUDY_POSTING_GENERATION_AUDIT`.
 
-### `STUDY_POSTING_GENERATION_AUDIT`
-
-Conceptually records the AI-assisted generation attempt.
-
-Potentially relevant attributes include:
+The comparison chain is:
 
 ```text
-ID
-STUDY_POSTING_AUDIT_ID
-REQUESTED_AT
-USER_SOURCE_TYPE
-INFERRED_SOURCE_TYPE
-MODEL
-PROMPT_OR_PROMPT_VERSION
-SOURCE_METADATA
-GENERATED_SUGGESTIONS
-SELECTED_SUGGESTIONS
-USER_FEEDBACK
-GENERATION_STATUS
-ERROR_INFORMATION
+STUDY_POSTING_GENERATION_AUDIT.LLM_SUGGESTIONS
+STUDY_POSTING_GENERATION_AUDIT.SELECTED_SUGGESTIONS
+STUDY_POSTING_AUDIT.FINAL_SUBMISSION
 ```
 
-Exact physical columns must be verified.
+## Generation errors
 
-## Audit relationship
+AI errors are recorded in:
 
-```mermaid
-erDiagram
-    STUDY_POSTING_AUDIT {
-        NUMBER ID PK
-        VARCHAR2 STUDY_NUM
-        NUMBER CREATED_BY
-        TIMESTAMP CREATED_AT
-        NUMBER STUDY_INFORMATION_TIME
-        NUMBER ELIGIBILITY_CRITERIA_TIME
-        NUMBER TOTAL_CREATION_TIME
-        TIMESTAMP FINAL_SUBMISSION_AT
-    }
-
-    STUDY_POSTING_GENERATION_AUDIT {
-        NUMBER ID PK
-        NUMBER STUDY_POSTING_AUDIT_ID FK
-        VARCHAR2 USER_SOURCE_TYPE
-        VARCHAR2 INFERRED_SOURCE_TYPE
-        VARCHAR2 MODEL
-        CLOB GENERATED_SUGGESTIONS
-        CLOB SELECTED_SUGGESTIONS
-        VARCHAR2 USER_FEEDBACK
-    }
-
-    STUDY_POSTING_AUDIT ||--o| STUDY_POSTING_GENERATION_AUDIT : may_have
+```text
+STUDY_POSTING_GENERATION_AUDIT_ERROR
 ```
 
-The actual relationship may permit multiple generation attempts per posting attempt. That cardinality must be confirmed from the physical model.
+The error row includes:
 
-## Evaluation questions supported by telemetry
+- Generation-audit identifier
+- Error timestamp
+- Stack trace
 
-The audit data can help answer questions such as:
+An AI error does not necessarily mean the posting attempt was abandoned.
 
-- How frequently is AI assistance selected?
-- How frequently does generation succeed?
-- Which fields receive useful suggestions?
-- Which suggestions are selected?
-- How often are selected suggestions changed before final save?
-- Do users report that the feature is helpful?
-- Does AI assistance reduce Study Information form time?
-- Does it reduce overall posting-creation time?
-- Does usefulness differ by source type?
-- Does usefulness differ by document format?
-- Does inferred source type agree with user-selected source type?
-- Do users abandon posting creation after requesting suggestions?
-- Does the feature shift effort from study information to eligibility authoring?
+The user may continue manually and complete the same posting attempt.
 
-## Limitations of observational comparisons
+Analyses should therefore keep separate:
 
-A simple comparison between AI-assisted and non-AI-assisted posting times does not prove that AI caused a time difference.
-
-Potential confounders include:
-
-- Study complexity
-- Source-document length
-- Source-document quality
-- User experience
-- Number of posting sessions
-- Eligibility-criteria complexity
-- Number of interruptions
-- Study type
-- Number of study locations or conditions
-- Failed or repeated generation attempts
-
-Eligibility-complexity measures can help control for differences between studies.
-
-See [Authoring Telemetry and Complexity Analysis](../08-operations/authoring-telemetry-and-complexity.md).
-
-## Expansion to eligibility criteria
-
-Potential AI-assisted eligibility authoring could:
-
-- Extract candidate inclusion criteria from source documents
-- Extract candidate exclusion criteria
-- Map source statements to criterion variables
-- Propose relational operators
-- Propose scalar or lookup values
-- Propose criteria groups or arms
-- Identify unsupported free-text criteria
-- Explain uncertainty or missing mappings
-
-Any expansion must preserve human review.
-
-The system must not silently convert AI output into active matching logic without explicit study-team confirmation.
+```text
+generation_error_flag
+attempt_completed_flag
+```
 
 ## Related pages
 
-- [Posting Creation](posting-creation.md)
-- [Study Property Model](../07-data-model/study-property-model.md)
+- [Study Posting Creation](posting-creation.md)
+- [Study Information Authoring](study-information-authoring.md)
 - [Eligibility-Criteria Authoring](../06-recruitment/eligibility-criteria-authoring.md)
-- [Criteria Data Model](../07-data-model/criteria-data-model.md)
-- [Authoring Telemetry and Complexity Analysis](../08-operations/authoring-telemetry-and-complexity.md)
-- [Authoring and Analytics Open Questions](../09-decisions/authoring-analytics-open-questions.md)
+- [Study-Posting Authoring Audit Model](../07-data-model/study-posting-authoring-audit-model.md)
+- [Study Posting Authoring Telemetry](../08-operations/study-posting-authoring-telemetry.md)
+- [Study Posting Authoring Timing Analysis](../08-operations/study-posting-authoring-timing-analysis.md)
+- [Study Posting Authoring Analysis Dataset](../08-operations/study-posting-authoring-analysis-dataset.md)
+- [AI-Assisted Study Posting Authoring Effectiveness](../08-operations/ai-assisted-study-posting-authoring-effectiveness.md)

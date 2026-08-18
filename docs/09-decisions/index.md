@@ -17,7 +17,7 @@ The documentation uses these status categories:
 
 Before answering a question about behavior not explicitly documented as authoritative, consult [Open questions](open-questions.md).
 
-For AI-assisted authoring and analytics questions, consult [Authoring analytics open questions](authoring-analytics-open-questions.md).
+For AI-assisted study-posting authoring and analytics questions, consult [Study Posting Authoring and Analytics Open Questions](study-posting-authoring-analytics-open-questions.md).
 
 When an open question is resolved:
 

@@ -23,19 +23,18 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Configure Python
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
         with:
-          python-version: "3.12"
-          cache: pip
+          enable-cache: true
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: Install Python and dependencies
+        run: uv sync --locked
 
-      - name: Build documentation
+      - name: Build and validate documentation
         env:
           SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
-        run: mkdocs build --strict
+        run: make ci
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5

@@ -1,22 +1,20 @@
 ---
 title: Study Property Model
-summary: Generic property-value storage used by the Study Information form.
-status: mixed
+summary: Flexible property-value storage for Study Information and other study-level values.
+status: authoritative
+canonical_for:
+  - study_property_model
+  - study_property_storage
+  - study_property_lookup_storage
 relevant_when:
   - mapping_study_information_ui_to_database
-  - comparing_ai_suggestions_to_saved_values
-  - analyzing_study_property_changes
+  - querying_study_properties
+  - comparing_ai_suggestions_to_final_values
 ---
 
 # Study Property Model
 
-The Study Information form uses a generic property-value model.
-
-This model provides the final saved values that can be compared with:
-
-- LLM suggestions
-- User-selected suggestions
-- Audit records
+Study-level values use a flexible property-value model.
 
 ## Core entities
 
@@ -26,184 +24,17 @@ This model provides the final saved values that can be compared with:
 | `ENTITY_PROPERTY` | Defines a supported study property |
 | `STUDY_PROPERTY_VALUE` | Stores one study's value for one property |
 | `STUDY_PROP_VAL_LOOKUP_VAL` | Connects a property value to selected lookup values |
-| `LOOKUP_VALUE` | Defines selectable vocabulary values |
+| `LOOKUP_VALUE` | Defines controlled vocabulary values |
 
-## UI-to-database mapping
-
-```mermaid
-flowchart TB
-    subgraph UI["Study Information Form"]
-        TITLE[Title]
-        DESCRIPTION[Study Description]
-        PURPOSE[Purpose]
-        ABOUT[About Study]
-        LOCATION[Locations]
-        COMP[Compensation]
-        OFFER[Offers Compensation]
-        CONDITION[Conditions or Topics]
-        TYPE[Participant Type]
-        PI[PI User Reference]
-        DEPT[Department]
-        ARCHIVE[Archived Date]
-        ENROLL[Enrollment Number]
-    end
-
-    subgraph API["API Representation"]
-        PAYLOAD[propertyValues array]
-        SCALAR[savedValue]
-        LOOKUPS[lookupValues array]
-    end
-
-    subgraph DB["Relational Storage"]
-        STUDY[STUDY]
-        EP[ENTITY_PROPERTY]
-        SPV[STUDY_PROPERTY_VALUE]
-        JOIN[STUDY_PROP_VAL_LOOKUP_VAL]
-        LV[LOOKUP_VALUE]
-    end
-
-    TITLE --> PAYLOAD
-    DESCRIPTION --> PAYLOAD
-    PURPOSE --> PAYLOAD
-    ABOUT --> PAYLOAD
-    LOCATION --> PAYLOAD
-    COMP --> PAYLOAD
-    OFFER --> PAYLOAD
-    CONDITION --> PAYLOAD
-    TYPE --> PAYLOAD
-    PI --> PAYLOAD
-    DEPT --> PAYLOAD
-    ARCHIVE --> PAYLOAD
-    ENROLL --> PAYLOAD
-
-    PAYLOAD --> SCALAR
-    PAYLOAD --> LOOKUPS
-
-    SCALAR --> SPV
-    LOOKUPS --> JOIN
-
-    STUDY --> SPV
-    EP --> SPV
-    SPV --> JOIN
-    LV --> JOIN
-```
-
-## `ENTITY_PROPERTY`
-
-`ENTITY_PROPERTY` identifies a supported property.
-
-Relevant fields include:
-
-```text
-ID
-NAME
-VALUE_TYPE
-```
-
-Possible value types include:
-
-```text
-STRING
-DATE
-LOOKUP
-```
-
-Examples of property names include:
-
-```text
-title
-studyDescription
-purpose
-aboutStudy
-locations
-conditions
-offersCompensation
-participantType
-department
-```
-
-The actual property names should be obtained from application reference data.
-
-## Scalar property values
-
-Scalar fields are stored in:
-
-```text
-STUDY_PROPERTY_VALUE.SAVED_VALUE
-```
-
-Examples include:
-
-- Title
-- Study description
-- Purpose
-- About the study
-- Compensation text
-- Enrollment number
-- Dates
-- PI user identifier, when represented as a scalar property
-
-## Lookup property values
-
-Lookup selections are stored through:
-
-```text
-STUDY_PROP_VAL_LOOKUP_VAL
-```
-
-This table associates a `STUDY_PROPERTY_VALUE` with one or more `LOOKUP_VALUE` rows.
-
-Examples include:
-
-- Locations
-- Conditions or topics
-- Participant type
-- Offers compensation
-- Department
-
-## Scalar-versus-lookup invariant
-
-For one logical study property value, the current model expects either:
-
-- A scalar `saved_value`, or
-- One or more associated lookup values
-
-It is an application-data error for the same property-value record to contain both:
-
-- A non-null `saved_value`
-- Associated lookup selections
-
-Analytics should validate this invariant before comparing final values with AI suggestions.
-
-## Common storage patterns
-
-| Property kind | Storage pattern |
-|---|---|
-| Text | `saved_value` |
-| Long text | `saved_value` |
-| Date | `saved_value` |
-| Single lookup | One lookup join |
-| Multiple lookup | Multiple lookup joins |
-| Boolean | Lookup value such as `TRUE` or `FALSE` |
-
-## Example lookup types
-
-Possible lookup types include:
-
-```text
-STUDY_LOCATION
-MEDICAL_CONDITION
-BOOLEAN
-STUDY_DEPARTMENT
-PARTICIPANT_TYPE
-```
-
-The values should be verified against deployment reference data.
-
-## Conceptual relationships
+## Storage hierarchy
 
 ```mermaid
 erDiagram
+    STUDY ||--o{ STUDY_PROPERTY_VALUE : has
+    ENTITY_PROPERTY ||--o{ STUDY_PROPERTY_VALUE : defines
+    STUDY_PROPERTY_VALUE ||--o{ STUDY_PROP_VAL_LOOKUP_VAL : selects
+    LOOKUP_VALUE ||--o{ STUDY_PROP_VAL_LOOKUP_VAL : referenced_by
+
     STUDY {
         NUMBER ID PK
         VARCHAR2 STUDY_NUM
@@ -212,7 +43,7 @@ erDiagram
     ENTITY_PROPERTY {
         NUMBER ID PK
         VARCHAR2 NAME
-        VARCHAR2 VALUE_TYPE
+        VARCHAR2 PROPERTY_VALUE_TYPE
     }
 
     STUDY_PROPERTY_VALUE {
@@ -236,55 +67,141 @@ erDiagram
         VARCHAR2 LANGUAGE
         NUMBER VISIBLE
     }
-
-    STUDY ||--o{ STUDY_PROPERTY_VALUE : has
-    ENTITY_PROPERTY ||--o{ STUDY_PROPERTY_VALUE : defines
-    STUDY_PROPERTY_VALUE ||--o{ STUDY_PROP_VAL_LOOKUP_VAL : selects
-    LOOKUP_VALUE ||--o{ STUDY_PROP_VAL_LOOKUP_VAL : referenced_by
 ```
 
-## AI-assisted comparison
+## Property definitions
 
-For AI-effectiveness analysis, compare values at the normalized property level.
+`ENTITY_PROPERTY` identifies a supported study property.
 
-### Scalar normalization
-
-Possible normalization includes:
-
-- Trimming whitespace
-- Normalizing line endings
-- Normalizing dates
-- Preserving original text for audit
-- Measuring exact and semantic similarity separately
-
-### Lookup normalization
-
-Lookup comparisons should use stable lookup identifiers instead of display text when possible.
-
-Possible measures include:
-
-- Exact set equality
-- Suggestion-to-final overlap
-- Added values
-- Removed values
-- Selected suggestion retained unchanged
-- Selected suggestion edited before save
-
-## Proposed comparison categories
-
-The following are proposed analytical categories, not current database statuses:
+Relevant values include:
 
 ```text
-SUGGESTION_NOT_GENERATED
-SUGGESTION_GENERATED_NOT_SELECTED
-SUGGESTION_SELECTED_UNCHANGED
-SUGGESTION_SELECTED_THEN_EDITED
-FINAL_VALUE_MATCHES_UNSELECTED_SUGGESTION
-FINAL_VALUE_DIFFERS_FROM_ALL_SUGGESTIONS
+ID
+NAME
+PROPERTY_VALUE_TYPE
 ```
+
+Value types include:
+
+```text
+STRING
+DATE
+LOOKUP
+```
+
+## Scalar properties
+
+Scalar values are stored in:
+
+```text
+STUDY_PROPERTY_VALUE.SAVED_VALUE
+```
+
+Examples include:
+
+- Title
+- Purpose
+- What is involved
+- Additional information
+- Compensation text
+- Contact information
+- Enrollment number
+- Dates
+
+## Lookup properties
+
+Lookup-backed values are stored through:
+
+```text
+STUDY_PROP_VAL_LOOKUP_VAL
+```
+
+Examples include:
+
+- Topics and conditions
+- Locations
+- Offers compensation
+- Department
+- Participant type
+
+## Scalar-versus-lookup invariant
+
+One logical property-value record uses either:
+
+- A non-null scalar `SAVED_VALUE`
+- One or more lookup relationships
+
+It is an application-data error for one property-value record to contain both.
+
+## Study Information mapping
+
+The Study Information workflow uses properties such as:
+
+- Title
+- Topics or conditions
+- Purpose
+- What is involved
+- Locations
+- Compensation
+- PI display
+- Department
+- Study contact
+- Additional information
+
+See [Study Information Authoring](../05-study-management/study-information-authoring.md).
+
+## Properties authored outside Study Information
+
+Some values use the same property model but are authored in other workflows.
+
+### Participant type
+
+Participant type is selected during eligibility authoring and stored as a study property.
+
+Values may include:
+
+```text
+HEALTHY
+CONDITION
+```
+
+Both values may be selected.
+
+### Archived date
+
+Archive and unarchive operations manage the archived-date property.
+
+### Enrollment number
+
+Manual deactivation may capture total enrollment through a study property.
+
+## AI comparison ownership
+
+The persisted study-property rows represent operational study data.
+
+AI telemetry comparison uses:
+
+```text
+STUDY_POSTING_GENERATION_AUDIT.LLM_SUGGESTIONS
+STUDY_POSTING_GENERATION_AUDIT.SELECTED_SUGGESTIONS
+STUDY_POSTING_AUDIT.FINAL_SUBMISSION
+```
+
+The authoritative final-submission comparison is documented in [Study-Posting Authoring Audit Model](study-posting-authoring-audit-model.md).
+
+## Query examples
+
+See [Study Property Query Cookbook](study-property-query-cookbook.md) for:
+
+- One-row-per-property extraction
+- Lookup aggregation
+- Storage-shape validation
+- Property-specific querying
 
 ## Related pages
 
-- [AI-Assisted Study Posting Authoring](../05-study-management/ai-assisted-posting-authoring.md)
-- [Operational Schema](operational-schema.md)
-- [Authoring Telemetry and Complexity Analysis](../08-operations/authoring-telemetry-and-complexity.md)
+- [Study Information Authoring](../05-study-management/study-information-authoring.md)
+- [Study Property Query Cookbook](study-property-query-cookbook.md)
+- [Study-Posting Authoring Audit Model](study-posting-authoring-audit-model.md)
+- [Study Lifecycle](../05-study-management/study-lifecycle.md)
+- [Study Archiving](../05-study-management/study-archiving.md)
