@@ -238,32 +238,33 @@ The same participant-study pair can therefore have more than one member:
 flowchart TD
     PA{Participant active?}
     SA{Study active?}
-    EXC{Directional exclusion exists?}
-    ELIG[Evaluate eligibility]
-    EXACT{Exact match?}
-    PARTIAL{Partial match?}
-    INTEREST[Evaluate participant study interests]
-    STUDYSIDE[Write std.rec]
+    EXC{Directional exclusion?}
+    ELIG{Eligibility result}
+    VISIBLE{Profile visible to all study teams?}
+    INTEREST{Participant study interests match?}
+    EXACT[Write exact std.rec]
+    PARTIAL[Write partial std.rec]
     VOLSIDE[Write vol.rec SYSTEM]
-    HIDE[Do not write recommendation in direction]
-    VISIBILITY[Apply participant visibility when displaying]
+    HIDE[Do not write or remove recommendation in direction]
 
-    PA -- No --> HIDE
-    PA -- Yes --> SA
-    SA -- No --> HIDE
-    SA -- Yes --> EXC
-    EXC -- Yes --> HIDE
-    EXC -- No --> ELIG
+    PA -->|No| HIDE
+    PA -->|Yes| SA
+    SA -->|No| HIDE
+    SA -->|Yes| EXC
+    EXC -->|Yes| HIDE
+    EXC -->|No| ELIG
 
-    ELIG --> EXACT
-    ELIG --> PARTIAL
+    ELIG -->|TRUE| VISIBLE
+    ELIG -->|MAYBE| VISIBLE
+    ELIG -->|FALSE| HIDE
 
-    EXACT -- Yes --> STUDYSIDE
-    PARTIAL -- Yes --> STUDYSIDE
-    STUDYSIDE --> VISIBILITY
+    VISIBLE -->|No| HIDE
+    VISIBLE -->|Yes, eligibility TRUE| EXACT
+    VISIBLE -->|Yes, eligibility MAYBE| PARTIAL
 
-    EXACT -- Yes --> INTEREST
-    INTEREST -->|Interest match| VOLSIDE
+    ELIG -->|TRUE| INTEREST
+    INTEREST -->|Yes| VOLSIDE
+    INTEREST -->|No| HIDE
 ```
 
 Direction-specific behavior:
@@ -274,8 +275,8 @@ Direction-specific behavior:
 - Ask if interested can produce a participant-facing promoted recommendation independently of the
   ordinary system-interest match.
 - Directional exclusions suppress future recommendation computation in the applicable direction.
-- Participant visibility affects display and authorization rather than all underlying study-facing
-  storage.
+- Participant visibility affects study-facing recommendation computation and storage. Restricted participants do not retain exact or partial study-facing recommendations in `std.rec`.
+- Restricted visibility does not prevent participant-facing recommendation computation.
 
 ## Match freshness
 

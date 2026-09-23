@@ -61,47 +61,40 @@ Not every profile property is used by matching.
 
 ## Visibility selection
 
-During signup, the participant or account owner selects one of two visibility options. The selection
-may later be changed.
+During signup, the participant or account owner selects one of two visibility
+options. The selection may later be changed.
 
-Visibility affects study-facing matching and disclosure to study teams. It does not change the
-underlying eligibility result or prevent participant-facing study recommendations.
+Visibility does not change eligibility or prevent participant-facing study
+recommendations. It does affect pre-interest study-facing recommendations and
+access.
 
 ### All study teams
 
-The participant permits all study teams using the branded application instance to view the profile
-when the participant appears to be a suitable match.
-
-This setting allows the participant to participate in pre-interest study-facing matching. When the
-applicable study-facing requirements are satisfied, the participant may appear in the study's
-Matched Participants list, where authorized study-team members may access the available participant
-information.
+The participant may participate in pre-interest study-facing matching. When
+otherwise matched, the participant may appear in Matched Participants, where
+authorized study-team members may access the available participant information.
 
 ### Only study teams whose studies receive interest
 
-The participant permits profile visibility only after successfully expressing interest in the
-applicable study.
-
 Before interest:
 
-- The participant is ignored by pre-interest study-side matching.
-- The participant does not appear in the study's Matched Participants list.
-- Study-team members cannot access the participant through the matched-participant workflow.
+- The participant is treated as not recommendable in the study-facing direction.
+- The participant does not appear in Matched Participants.
 - Participant-facing matching still runs.
-- An otherwise qualifying study may appear in the participant's My Studies.
+- An otherwise qualifying study may appear in My Studies.
 
-After the participant successfully expresses interest:
+After successful interest:
 
-- The participant appears in the applicable study's Interested Participants workflow.
-- Authorized members of that study team may access the participant information available through the
-  interested-participant workflow.
+- The participant appears in the applicable study's Interested Participants
+  workflow.
+- Authorized members of that study team may access the available participant
+  information.
 - The participant remains hidden from unrelated study teams.
 
-Access after interest results from the participant's interest relationship with the applicable
-study. It does not change the participant's visibility selection.
-
 For the canonical matching rules, see
-[Matching and Visibility](../06-recruitment/matching-and-visibility.md).
+[Matching and Visibility](../06-recruitment/matching-and-visibility.md). For
+study-facing Redis storage, see
+[Redis Match and Exclusion Model](../07-data-model/redis-match-model.md).
 
 ## Minimal owning profile
 

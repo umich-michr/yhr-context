@@ -276,42 +276,57 @@ See [Study Lifecycle](../05-study-management/study-lifecycle.md).
    - `TRUE`
    - `MAYBE`
    - `FALSE`
-1. `TRUE` means the available participant properties satisfy the applicable structured eligibility
-   expression or aggregated criteria.
-1. `MAYBE` means the known participant properties do not establish a mismatch, but the available
-   information is insufficient to decide one or more applicable eligibility expressions.
-1. A participant-profile property that is missing produces `MAYBE` when it is referenced by an
-   eligibility expression.
-1. A known value representing none is different from a missing value. For present and past medical
-   conditions, `NO_CONDITION` is explicitly supplied information and is evaluated normally; it is
-   not equivalent to a missing or null condition property.
-1. `FALSE` means the available participant properties establish that the applicable structured
-   eligibility expression or aggregated criteria are not satisfied.
-1. Expression results are aggregated using the documented three-valued `AND`, `OR`, and `NOT` rules.
+1. `TRUE` means the available participant properties satisfy the applicable
+   structured eligibility expression or aggregated criteria.
+1. `MAYBE` means the known participant properties do not establish a mismatch,
+   but the available information is insufficient to decide one or more
+   applicable eligibility expressions.
+1. A missing participant property ordinarily produces `MAYBE` when referenced
+   by an eligibility expression.
+1. Calculated properties may define property-specific missing-value behavior.
+   Pregnancy at enrollment is calculated from due date, and a missing due date
+   is currently treated as not pregnant.
+1. A known value representing none is different from a missing value.
+   `NO_CONDITION` is explicitly supplied information and is not equivalent to a
+   missing or null condition property.
+1. Missing values ordinarily produce `MAYBE` for negated operators as well as
+   positive operators.
+1. `FALSE` means the available participant properties establish that the
+   applicable structured eligibility expression or aggregated criteria are not
+   satisfied.
+1. Expression results are aggregated using the documented three-valued `AND`,
+   `OR`, and `NOT` rules.
 1. Within a criteria group, current-UI structured expressions use `AND`.
 1. Multiple criteria groups are alternatives and use `OR`.
-1. `OTHER` eligibility text is displayed to participants but is ignored by structured matching. It
-   does not produce an expression result or affect aggregation of structured expression results.
+1. If a study has no saved structured eligibility groups, structured
+   eligibility evaluates to `TRUE`.
+1. `OTHER` eligibility text is displayed to participants but is skipped by
+   structured matching.
+1. An `OTHER`-only current-UI group has no evaluated structured
+   expressions. Its empty `AND` expression set evaluates to `TRUE` and does not
+   restrict structured eligibility.
 1. Participant-facing recommendations ordinarily require:
    - An active participant
    - An active study
    - Exact eligibility
    - A study-interest match
    - No participant-side exclusion
-1. Partial matches are not shown in ordinary participant-facing matched-study lists.
-1. Study-facing matching may include exact and partial eligibility matches.
-1. A participant who selects visibility to all study teams may participate in study-facing matching
-   and may be visible before interest.
-1. A participant who selects visibility only to study teams whose studies they show interest in is
-   ignored by pre-interest study-side matching and does not appear in Matched Participants.
-1. Restricted visibility does not prevent participant-facing matching. An otherwise qualifying study
-   may still appear in the participant's My Studies.
-1. After a restricted-visibility participant successfully expresses interest, the participant
-   appears in the applicable study's Interested Participants workflow, and authorized members of
-   that study team may access the participant information available through that workflow.
+1. Partial matches are not shown in ordinary participant-facing matched-study
+   lists.
+1. Study-facing recommendations may include exact and partial eligibility
+   matches.
+1. A participant who selects visibility to all study teams may participate in
+   pre-interest study-facing matching.
+1. Restricted visibility does not change eligibility and does not prevent
+   participant-facing matching.
+1. Restricted visibility causes a participant-study pair to be treated as not
+   recommendable in the pre-interest study-facing direction. No exact or
+   partial study-facing Redis recommendation is retained.
+1. A restricted-visibility participant does not appear in Matched Participants.
+1. After successful interest, the participant appears in the applicable
+   study's Interested Participants workflow, where authorized study-team
+   members may access the available participant information.
 1. Interest does not make the participant visible to unrelated study teams.
-1. Visibility affects study-facing matching and disclosure; it does not change the underlying
-   eligibility result.
 1. Matching recommendations and directional exclusions are stored in Redis.
 1. Matching recomputation is asynchronous.
 

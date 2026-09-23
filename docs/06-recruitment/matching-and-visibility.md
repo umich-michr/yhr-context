@@ -58,7 +58,8 @@ Examples include:
 
 ## Eligibility matching
 
-Eligibility matching compares participant profile properties with study eligibility criteria.
+Eligibility matching compares participant profile properties with study
+eligibility criteria.
 
 Results are:
 
@@ -76,57 +77,34 @@ FALSE
 
 ### When an expression returns `MAYBE`
 
-An eligibility expression returns `MAYBE` when the participant property needed to evaluate the
-expression is unknown, but the known participant information does not establish that the participant
-fails the expression.
-
-This commonly occurs when an optional participant-profile property referenced by the study's
-eligibility criteria is blank.
+An eligibility expression ordinarily returns `MAYBE` when the participant
+property needed to evaluate it is missing or unset. The engine cannot conclude
+that the expression is satisfied, but it also cannot conclude that it fails.
 
 For example:
 
 ```text
 Study criterion:
 WILLING_TO_TAKE_EXPERIMENTAL_DRUGS EQUAL TRUE
+
 Participant profile:
 WILLING_TO_TAKE_EXPERIMENTAL_DRUGS is blank
+
 Expression result:
 MAYBE
 ```
 
-The blank value does not establish that the participant is willing to take experimental drugs, so
-the result is not `TRUE`. It also does not establish that the participant is unwilling, so the
-result is not `FALSE`.
-
-Conceptually:
-
-```text
-Known value that satisfies the expression → TRUE
-Known value that fails the expression → FALSE
-Insufficient participant information to decide → MAYBE
-```
-
 ### Missing and explicitly supplied values
 
-When a participant property referenced by an eligibility expression is missing, the expression
-returns `MAYBE`.
-
-This applies to every missing optional participant-profile property. The matching engine cannot
-conclude that the expression is satisfied, but it also cannot conclude that the expression fails.
-
-Required fields are normally enforced by participant-profile validation and therefore should not be
-missing during matching. Matching semantics are based on the available value, however: if a
-referenced property is missing, its expression is `MAYBE` regardless of whether the field is
-currently designated as required or optional by the user interface.
-
-A known value that represents none is different from a missing value.
+A known value representing none is different from a missing value.
 
 For present and past medical conditions:
 
-- A missing or null property is unknown and returns `MAYBE` when referenced.
-- `NO_CONDITION` is an explicitly supplied lookup value.
-- `NO_CONDITION` is evaluated as known information and does not match named medical-condition lookup
-  values such as asthma or diabetes.
+- A missing or null property is unknown and ordinarily returns `MAYBE` when
+  referenced.
+- `NO_CONDITION` is explicitly supplied information.
+- `NO_CONDITION` is evaluated normally and does not match named medical
+  conditions such as asthma or diabetes.
 
 For example:
 
@@ -144,21 +122,65 @@ Participant property is [Asthma]:
 TRUE
 ```
 
+### Missing values in negated expressions
+
+Missing participant properties also ordinarily produce `MAYBE` for negated
+operators. The engine does not treat an unknown property as proof that a
+negated expression is satisfied.
+
+For example:
+
+```
+Study qualification expression:
+BMI NOT_BETWEEN 30:40
+
+Participant BMI is 25:
+TRUE
+
+Participant BMI is 35:
+FALSE
+
+Participant BMI is missing because height or weight is missing:
+MAYBE
+```
+
+Although this expression encodes exclusion authoring, its result describes
+whether the participant satisfies the stored qualification expression.
+`FALSE` means the known participant value triggers the exclusion. `MAYBE`
+means the available participant information cannot determine whether the
+exclusion applies.
+
+### Calculated-property exception: pregnancy
+
+Calculated properties may define property-specific missing-value behavior.
+
+Pregnancy at enrollment is calculated from due date. When due date is missing,
+the current calculation treats the participant as not pregnant rather than
+treating pregnancy as unknown.
+
+### No saved structured eligibility groups
+
+If a study has no saved structured eligibility groups, structured eligibility
+evaluates to `TRUE`.
+
 ### `OTHER` expressions
 
 `OTHER` eligibility text is participant-facing display content only.
 
-Study teams use it to describe inclusion or exclusion requirements that cannot be represented
-accurately by the available structured eligibility fields. The text may appear in the applicable
-eligibility section of the study posting.
+Study teams use it to describe inclusion or exclusion requirements that cannot
+be represented accurately by the available structured eligibility fields. The
+text may appear in the applicable eligibility section of the study posting.
 
-Because the matching engine cannot interpret this free text as a structured participant-profile
-predicate, it ignores `OTHER` expressions during eligibility evaluation. An `OTHER` expression does
-not produce `TRUE`, `MAYBE`, or `FALSE` and does not affect aggregation of the structured expression
-results.
+The matching engine skips `OTHER` expressions during eligibility evaluation.
+An `OTHER` expression does not produce `TRUE`, `MAYBE`, or `FALSE`.
 
-The persistence encoding that distinguishes inclusion `OTHER` text from exclusion `OTHER` text is
-documented in
+An `OTHER`-only group authored through the current UI has no evaluated
+structured expressions. Because current-UI expressions within a group use
+`AND`, the empty structured expression set evaluates to `TRUE` and does not
+restrict structured eligibility.
+
+The persistence encoding that distinguishes inclusion `OTHER` text from
+exclusion `OTHER` text is documented in
 [Criterion Operator and Value Reference](../07-data-model/criterion-operator-reference.md).
 
 ## Three-valued logic
@@ -242,14 +264,16 @@ Partial matches are not shown in participant-facing matched-study lists.
 
 ## Directional matching and participant visibility
 
-Participant-facing and study-facing matching are directional.
+Participant-facing and study-facing recommendations are calculated separately.
 
-A participant's visibility selection affects study-facing matching and access, but it does not
-prevent the participant from receiving participant-facing study recommendations.
+A participant's visibility selection does not change the participant's
+eligibility result and does not prevent participant-facing recommendations.
+It does affect the final study-facing recommendation.
 
 ### Effect on participant-facing recommendations
 
-A participant who selected either visibility option may receive a study in My Studies when:
+A participant using either visibility option may receive a study in My Studies
+when:
 
 - The participant is active
 - The study is active
@@ -257,88 +281,79 @@ A participant who selected either visibility option may receive a study in My St
 - The participant's study interests match the study
 - No participant-side exclusion suppresses the study
 
-Selecting restricted visibility does not prevent an otherwise qualifying study from appearing in the
-participant's My Studies.
+Restricted visibility does not prevent an otherwise qualifying study from
+appearing in My Studies.
 
 ### Study-facing recommendations with discoverable visibility
 
-When the participant selects:
+A participant who selects visibility to all study teams may receive exact or
+partial study-facing recommendations before expressing interest.
 
-```text
-MY PROFILE IS VISIBLE TO
-All study teams
-```
+When the applicable study-facing requirements are satisfied:
 
-the participant may participate in study-facing matching before expressing interest.
-
-Study-facing matching may include:
-
-- Exact eligibility matches
-- Partial eligibility matches
-
-When the applicable study-facing matching requirements are satisfied, the participant may appear in
-the study's Matched Participants list. Authorized study-team members may access the participant
-information made available through that list.
+- The exact or partial recommendation is stored in the applicable study-facing
+  Redis recommendation set.
+- The participant may appear in the study's Matched Participants list.
+- Authorized study-team members may access the participant information
+  available through that workflow.
 
 ### Study-facing behavior with restricted visibility
 
-When the participant selects:
-
-```text
-MY PROFILE IS VISIBLE TO
-Only the study teams whose studies I show interest in
-```
-
-study-side matching ignores that participant before the participant expresses interest.
+A participant who selects visibility only to study teams whose studies receive
+interest is treated as not recommendable in the pre-interest study-facing
+direction.
 
 Before interest:
 
+- No exact or partial study-facing Redis recommendation is retained.
 - The participant does not appear in the study's Matched Participants list.
-- Study-team members cannot access the participant through the matched-participant workflow.
-- The participant may still receive the study in My Studies when the participant-facing interest and
-  eligibility requirements are satisfied.
+- Study-team members cannot access the participant through the
+  matched-participant workflow.
+- Participant-facing matching still runs.
+- An otherwise qualifying study may appear in the participant's My Studies.
 
 ### Visibility after successful interest
 
-When a restricted-visibility participant successfully expresses interest in a study:
+When a restricted-visibility participant successfully expresses interest:
 
-- The participant appears in that study's Interested Participants list.
-- Authorized members of that study team may access the participant profile information available
-  through the interested-participant workflow.
-- The participant does not become discoverable to unrelated study teams.
-- The visibility change applies only through the participant's interest relationship with the
-  applicable study.
+- The participant appears in the applicable study's Interested Participants
+  list.
+- Authorized members of that study team may access the participant information
+  available through the interested-participant workflow.
+- The participant remains hidden from unrelated study teams.
 
-Expression of interest creates the applicable historical and operational relationship independently
-of whether the participant was previously visible in study-facing matching.
+Access after interest results from the participant-study interest relationship;
+it does not change the participant's visibility selection.
 
 ```mermaid
 flowchart TD
     P[Active participant]
     V{Visibility selection}
 
-    V -->|All study teams| DS[Eligible for study-facing matching]
-    V -->|Only teams whose studies receive interest| RS[Ignore in pre-interest study-side matching]
+    V -->|All study teams| DS[Evaluate study-facing eligibility]
+    V -->|Only teams whose studies receive interest| RS[Treat as not recommendable in study-facing direction]
 
-    DS --> EM{Study-facing match?}
-    EM -->|Exact or partial, as applicable| ML[May appear in Matched Participants]
-    EM -->|No match| NM[Does not appear in Matched Participants]
+    DS --> EM{Eligibility result}
+    EM -->|TRUE| EXACT[Store exact study-facing recommendation]
+    EM -->|MAYBE| PARTIAL[Store partial study-facing recommendation]
+    EM -->|FALSE| NOMATCH[Do not store study-facing recommendation]
 
-    RS --> H[Does not appear in Matched Participants]
+    RS --> REMOVE[Do not store or remove study-facing recommendation]
     RS --> PF[Participant-facing matching still runs]
 
     PF --> PM{Exact eligibility and interest match?}
-    PM -->|Yes| MS[Study may appear in participant's My Studies]
+    PM -->|Yes| MS[Study may appear in My Studies]
     PM -->|No| NS[No ordinary participant recommendation]
 
-    ML --> ACCESS1[Authorized study team may access profile through matched workflow]
-    H --> NOACCESS[No pre-interest access through matched workflow]
+    EXACT --> ML[May appear in Matched Participants]
+    PARTIAL --> ML
+    ML --> ACCESS1[Authorized study team may access profile]
 
     MS --> INT{Participant successfully shows interest?}
     INT -->|Yes| IL[Participant appears in Interested Participants]
-    INT -->|No| H
+    INT -->|No| HIDDEN[Participant remains hidden from study team]
 
-    IL --> ACCESS2[Applicable study team may access profile through interested workflow]
+    IL --> ACCESS2[Applicable study team may access profile]
     IL --> LIMITED[Participant remains hidden from unrelated study teams]
 ```
 
