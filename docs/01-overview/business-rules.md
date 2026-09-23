@@ -8,12 +8,14 @@ status: authoritative
 
 This page contains confirmed cross-cutting rules.
 
-For detailed workflows, use the canonical topic pages linked throughout the documentation rather than treating this page as a complete user manual.
+For detailed workflows, use the canonical topic pages linked throughout the documentation rather
+than treating this page as a complete user manual.
 
 ## Product and deployment identity
 
 1. YourHealthResearch.org is the platform and product name.
-1. `YourHealthResearch.org` is also the public marketing website for prospective adopting organizations.
+1. `YourHealthResearch.org` is also the public marketing website for prospective adopting
+   organizations.
 1. Each adopting organization operates a separately branded instance of the platform.
 1. Each instance has its own:
    - Application URL
@@ -23,11 +25,15 @@ For detailed workflows, use the canonical topic pages linked throughout the docu
    - Supporting IT infrastructure
    - Institutional identity and governance integrations
 1. Examples include:
-   - Michigan Institute for Clinical and Health Research at the University of Michigan: `UMHealthResearch.org`
-   - Clinical and Translational Science Institute at the University of Miami: `UMiamiHealthResearch.org`
+   - Michigan Institute for Clinical and Health Research at the University of Michigan:
+     `UMHealthResearch.org`
+   - Clinical and Translational Science Institute at the University of Miami:
+     `UMiamiHealthResearch.org`
    - Institute for Translational Medicine: `BeTheNewNormalMatch.org`
    - University of Illinois Chicago: `healthresearch.ccts.uic.edu`
-1. The Institute for Translational Medicine is a consortium involving Rush University, Northwestern University, Loyola University Chicago, and the University of Chicago, led by the University of Chicago.
+1. The Institute for Translational Medicine is a consortium involving Rush University, Northwestern
+   University, Loyola University Chicago, and the University of Chicago, led by the University of
+   Chicago.
 1. Data from one branded instance does not authorize access to data in another instance.
 
 ## Identity and authorization
@@ -52,11 +58,13 @@ For detailed workflows, use the canonical topic pages linked throughout the docu
 ## Participant accounts
 
 1. Participants use local, database-backed accounts.
-1. A self account ordinarily uses the participant's email address as its username and communication email address.
+1. A self account ordinarily uses the participant's email address as its username and communication
+   email address.
 1. A loved-one account uses an application-generated GUID-based email-like username.
 1. The loved-one account retains the owning account's real email address for communication.
 1. The database prevents duplicate active usernames.
-1. The application does not determine whether accounts using different usernames represent the same real-world person.
+1. The application does not determine whether accounts using different usernames represent the same
+   real-world person.
 1. Participant registration requires acceptance of the applicable current agreement.
 1. Agreement acceptance records:
    - Username
@@ -76,7 +84,8 @@ For detailed workflows, use the canonical topic pages linked throughout the docu
 1. Deactivating an owning self account also deactivates its loved-one accounts.
 1. Participants request reactivation through support.
 1. Hard deletion requires an explicit support request and administrator confirmation.
-1. Hard deletion removes participant data while retaining the internal participant ID and deletion reason.
+1. Hard deletion removes participant data while retaining the internal participant ID and deletion
+   reason.
 1. Previously downloaded participant-data files cannot be recalled.
 
 ## Loved-one accounts
@@ -84,8 +93,10 @@ For detailed workflows, use the canonical topic pages linked throughout the docu
 1. One participant login may manage multiple loved-one participant accounts.
 1. Each loved one has a separate account and profile.
 1. Loved-one ownership is represented through `LOVED_ONE`.
-1. The owning account switches participant context without authenticating separately as the loved one.
-1. Visibility, matching, interest, questionnaires, and messages belong to the represented participant account.
+1. The owning account switches participant context without authenticating separately as the loved
+   one.
+1. Visibility, matching, interest, questionnaires, and messages belong to the represented
+   participant account.
 1. Agreement acceptance for a loved-one account is performed by the owning account.
 1. A loved-one account may be created:
    - During initial registration using the signup-for-a-loved-one flow
@@ -106,16 +117,19 @@ For detailed workflows, use the canonical topic pages linked throughout the docu
 1. Child-versus-adult relationship selection is validated against date of birth.
 1. Child loved-one accounts are automatically deactivated when the represented person turns 18.
 1. The owning account is notified before the age-based deactivation.
-1. Age-based deactivation removes the loved-one account from active in-memory matching data and prevents continued proxy access.
+1. Age-based deactivation removes the loved-one account from active in-memory matching data and
+   prevents continued proxy access.
 1. The represented participant cannot assume control of the existing loved-one account.
 
 ## Agreement-version enforcement
 
 1. `USER_AGREEMENT` identifies the current version for each agreement type.
 1. `USER_AGREEMENT_AUDIT` records versions accepted by individual users.
-1. At login, the application checks whether the user has accepted the current version for the applicable agreement type.
+1. At login, the application checks whether the user has accepted the current version for the
+   applicable agreement type.
 1. If no matching audit record exists, the user must review the current agreement.
-1. Agreement types include participant/volunteer and study-team agreements, represented by values such as:
+1. Agreement types include participant/volunteer and study-team agreements, represented by values
+   such as:
    - `VOL`
    - `STM`
 1. When a participant accepts the current agreement, a new `USER_AGREEMENT_AUDIT` record is created.
@@ -132,7 +146,8 @@ For detailed workflows, use the canonical topic pages linked throughout the docu
 ## Participant profile and system boundaries
 
 1. Participant profile properties may be used for eligibility matching.
-1. Participant study interests determine which exact-matching studies are recommended to the participant.
+1. Participant study interests determine which exact-matching studies are recommended to the
+   participant.
 1. The required Where did you learn about us? value:
    - Uses institution-configured lookup values
    - Is not used in matching
@@ -147,8 +162,10 @@ For detailed workflows, use the canonical topic pages linked throughout the docu
 1. Institutional imports are incremental.
 1. Imported rows absent from a later import remain unchanged.
 1. CSV import rows are processed independently and in file order.
-1. If multiple rows modify the same study property, the last successfully processed row affecting that property determines its final value.
-1. Intermediate rows may temporarily modify operational state before a later row overwrites the same value.
+1. If multiple rows modify the same study property, the last successfully processed row affecting
+   that property determines its final value.
+1. Intermediate rows may temporarily modify operational state before a later row overwrites the same
+   value.
 1. A valid imported study has one current institutional PI.
 1. PI status is controlled by the institutional source of truth.
 1. When the imported PI changes:
@@ -163,8 +180,10 @@ For detailed workflows, use the canonical topic pages linked throughout the docu
 
 1. A posting may be created only for a `study_num` found in `IMPORTED_STUDY`.
 1. Only one operational posting may exist for one `study_num`.
-1. Beginning Add Study creates a posting-attempt audit record; it does not by itself create the final operational study posting.
-1. The operational study posting is created only after successful final submission of the Study Information and eligibility-authoring workflow.
+1. Beginning Add Study creates a posting-attempt audit record; it does not by itself create the
+   final operational study posting.
+1. The operational study posting is created only after successful final submission of the Study
+   Information and eligibility-authoring workflow.
 1. On successful creation:
    - The non-PI creator receives `STUDY_TEAM_MEMBER`
    - The current imported PI receives `PRINCIPAL_INVESTIGATOR`
@@ -186,7 +205,8 @@ See:
 1. Membership creation and invitation-record deletion occur atomically.
 1. Any associated study member may remove an ordinary `STUDY_TEAM_MEMBER`.
 1. The current imported PI cannot be removed through ordinary application UIs.
-1. A change in imported PI data removes the former PI's operational PI membership and associates the new current PI.
+1. A change in imported PI data removes the former PI's operational PI membership and associates the
+   new current PI.
 
 ## Study active status
 
@@ -203,14 +223,17 @@ See:
    - Is immediate
    - Sets the deactivation boundary to the current date/time
    - Prompts for optional total enrollment
-1. After manual deactivation, the derived state becomes inactive as the current time passes the saved deactivation boundary.
+1. After manual deactivation, the derived state becomes inactive as the current time passes the
+   saved deactivation boundary.
 1. Total enrollment is stored through `STUDY_PROPERTY_VALUE`.
 1. Date-based expiration makes the study inactive.
 1. `PUBLISHABLE = 0` makes the study inactive without changing its dates.
-1. `PUBLISHABLE: 0 → 1` automatically reactivates a study only when its unchanged activation range still contains the current date/time.
+1. `PUBLISHABLE: 0 → 1` automatically reactivates a study only when its unchanged activation range
+   still contains the current date/time.
 1. After the deactivation boundary has passed, publishability alone cannot reactivate the study.
 1. Every derived active/inactive transition creates or closes a `STUDY_ACTIVE_INTERVAL`.
-1. Lifecycle announcements are handled asynchronously rather than being sent synchronously in the status-changing request.
+1. Lifecycle announcements are handled asynchronously rather than being sent synchronously in the
+   status-changing request.
 1. A PI receives a warning approximately one week before a scheduled deactivation date.
 1. Stable active-status changes participate in delayed PI-notification handling.
 
@@ -223,37 +246,72 @@ See [Study Lifecycle](../05-study-management/study-lifecycle.md).
 1. Archived studies are not publicly accessible.
 1. Archived studies may be unarchived.
 1. An archived study cannot be activated before being unarchived.
-1. Archiving does not hide participant data, block otherwise permitted new exports, or hide existing messages.
+1. Archiving does not hide participant data, block otherwise permitted new exports, or hide existing
+   messages.
 1. `ARCHIVED_DATE` is stored through `STUDY_PROPERTY_VALUE`.
 
 ## Matching runtime and memory synchronization
 
-1. Active studies and active participants are maintained in application memory to reduce matching latency.
-1. Match calculations read eligible study and participant entities from memory rather than repeatedly loading every entity from the database.
+1. Active studies and active participants are maintained in application memory to reduce matching
+   latency.
+1. Match calculations read eligible study and participant entities from memory rather than
+   repeatedly loading every entity from the database.
 1. The relational database remains the authoritative persistent source.
 1. When a participant or study is updated:
    - The database record is updated.
    - The corresponding in-memory representation is updated.
 1. Temporal participant-profile updates must also update the in-memory representation.
-1. Deactivated participants and inactive studies must be removed from active in-memory matching collections.
-1. Scheduled synchronization jobs reconcile memory with database state and handle time-based transitions.
-1. Redis stores current directional recommendations and exclusions separately from the in-memory source entities.
+1. Deactivated participants and inactive studies must be removed from active in-memory matching
+   collections.
+1. Scheduled synchronization jobs reconcile memory with database state and handle time-based
+   transitions.
+1. Redis stores current directional recommendations and exclusions separately from the in-memory
+   source entities.
 1. Matching recomputation is asynchronous.
 
 ## Matching and visibility
 
 1. Study-interest matching and eligibility matching are separate evaluations.
-1. Eligibility results are:
+1. Eligibility expressions and aggregated eligibility results use:
    - `TRUE`
    - `MAYBE`
    - `FALSE`
-1. `TRUE` is an exact match.
-1. `MAYBE` is a partial match.
-1. `FALSE` is not a match.
-1. Partial matches may be visible to authorized study teams.
+1. `TRUE` means the available participant properties satisfy the applicable structured eligibility
+   expression or aggregated criteria.
+1. `MAYBE` means the known participant properties do not establish a mismatch, but the available
+   information is insufficient to decide one or more applicable eligibility expressions.
+1. A participant-profile property that is missing produces `MAYBE` when it is referenced by an
+   eligibility expression.
+1. A known value representing none is different from a missing value. For present and past medical
+   conditions, `NO_CONDITION` is explicitly supplied information and is evaluated normally; it is
+   not equivalent to a missing or null condition property.
+1. `FALSE` means the available participant properties establish that the applicable structured
+   eligibility expression or aggregated criteria are not satisfied.
+1. Expression results are aggregated using the documented three-valued `AND`, `OR`, and `NOT` rules.
+1. Within a criteria group, current-UI structured expressions use `AND`.
+1. Multiple criteria groups are alternatives and use `OR`.
+1. `OTHER` eligibility text is displayed to participants but is ignored by structured matching. It
+   does not produce an expression result or affect aggregation of structured expression results.
+1. Participant-facing recommendations ordinarily require:
+   - An active participant
+   - An active study
+   - Exact eligibility
+   - A study-interest match
+   - No participant-side exclusion
 1. Partial matches are not shown in ordinary participant-facing matched-study lists.
-1. A participant who selects visibility to all study teams may be visible before interest.
-1. A participant who selects visibility only to study teams whose studies they show interest in is hidden until successful interest.
+1. Study-facing matching may include exact and partial eligibility matches.
+1. A participant who selects visibility to all study teams may participate in study-facing matching
+   and may be visible before interest.
+1. A participant who selects visibility only to study teams whose studies they show interest in is
+   ignored by pre-interest study-side matching and does not appear in Matched Participants.
+1. Restricted visibility does not prevent participant-facing matching. An otherwise qualifying study
+   may still appear in the participant's My Studies.
+1. After a restricted-visibility participant successfully expresses interest, the participant
+   appears in the applicable study's Interested Participants workflow, and authorized members of
+   that study team may access the participant information available through that workflow.
+1. Interest does not make the participant visible to unrelated study teams.
+1. Visibility affects study-facing matching and disclosure; it does not change the underlying
+   eligibility result.
 1. Matching recommendations and directional exclusions are stored in Redis.
 1. Matching recomputation is asynchronous.
 
@@ -273,10 +331,14 @@ See [Study Lifecycle](../05-study-management/study-lifecycle.md).
 1. It does not create an expression of interest.
 1. It does not create a direct-message conversation.
 1. It promotes the study in the participant interface.
-1. It moves the participant-study pair from the ordinary system-matched presentation to the study-team-promoted presentation.
-1. It creates the applicable Redis promotion and exclusion records and updates the promotion timestamp.
-1. A scheduled notification job identifies promoted matches newer than the participant's last login and may email the participant to return to the application.
-1. The study-team-authored text is displayed with the promoted study rather than delivered as a direct participant message.
+1. It moves the participant-study pair from the ordinary system-matched presentation to the
+   study-team-promoted presentation.
+1. It creates the applicable Redis promotion and exclusion records and updates the promotion
+   timestamp.
+1. A scheduled notification job identifies promoted matches newer than the participant's last login
+   and may email the participant to return to the application.
+1. The study-team-authored text is displayed with the promoted study rather than delivered as a
+   direct participant message.
 
 ## Expressing interest
 
@@ -372,7 +434,8 @@ See [Study Lifecycle](../05-study-management/study-lifecycle.md).
 1. Email settings do not control in-application badges.
 1. Lifecycle announcements are dispatched by scheduled processing.
 1. The PI receives a warning approximately one week before the scheduled study deactivation date.
-1. Participant promotion notifications are evaluated by a scheduled job using the promotion timestamp and participant's last-login time.
+1. Participant promotion notifications are evaluated by a scheduled job using the promotion
+   timestamp and participant's last-login time.
 
 ## Audit
 

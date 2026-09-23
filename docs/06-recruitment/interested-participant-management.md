@@ -55,6 +55,24 @@ List movement does not change:
 
 Moving to `INELIGIBLE` does not create a Redis exclusion.
 
+## Restricted-visibility participants
+
+Successful expression of interest makes the participant available to the applicable study team
+through the Interested Participants workflow even when the participant selected restricted
+visibility.
+
+In this case:
+
+- The participant appears in the applicable study's Interested Participants list.
+- Authorized members of that study team may access the participant profile information available
+  through the interested-participant workflow.
+- The participant's restricted visibility preference remains in effect for pre-interest matching by
+  other studies.
+- The expression of interest does not make the participant visible to unrelated study teams.
+
+This access results from the participant's interest relationship with the applicable study, not from
+changing the participant's visibility preference.
+
 ## Profile access
 
 Selecting an interested participant displays:

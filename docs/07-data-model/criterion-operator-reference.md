@@ -37,15 +37,17 @@ The application database contains criteria created through:
 - A legacy eligibility-authoring UI used approximately from 2013 through 2018
 - The current eligibility-authoring UI used from approximately 2018 onward
 
-A variable/operator combination found in historical data does not necessarily mean that the current UI still exposes that combination.
+A variable/operator combination found in historical data does not necessarily mean that the current
+UI still exposes that combination.
 
 This page distinguishes:
 
 1. Current UI mappings
-2. General persisted-value formats
-3. Historically observed combinations
+1. General persisted-value formats
+1. Historically observed combinations
 
-Analyses spanning both authoring eras should identify or control for the authoring era when possible.
+Analyses spanning both authoring eras should identify or control for the authoring era when
+possible.
 
 ## Expression storage
 
@@ -81,12 +83,12 @@ BMI
 
 ## Numeric units and validation
 
-| Variable | Unit | Allowed numeric form |
-|---|---|---|
-| `AGE` | Years | Nonnegative whole number |
-| `HEIGHT` | Inches | Nonnegative whole number |
-| `WEIGHT` | Pounds | Nonnegative whole number |
-| `BMI` | Unitless BMI value | Nonnegative decimal number |
+| Variable | Unit               | Allowed numeric form       |
+| -------- | ------------------ | -------------------------- |
+| `AGE`    | Years              | Nonnegative whole number   |
+| `HEIGHT` | Inches             | Nonnegative whole number   |
+| `WEIGHT` | Pounds             | Nonnegative whole number   |
+| `BMI`    | Unitless BMI value | Nonnegative decimal number |
 
 Additional rules:
 
@@ -100,11 +102,11 @@ Additional rules:
 
 For `AGE`, `HEIGHT`, `WEIGHT`, and `BMI`:
 
-| UI input | Inclusion operator | Exclusion operator | `SAVED_VALUE` |
-|---|---|---|---|
-| Minimum or lower bound only | `GREATER_THAN_OR_EQUAL` | `NOT_GREATER_THAN_OR_EQUAL` | `<lower>` |
-| Maximum or upper bound only | `LESS_THAN_OR_EQUAL` | `NOT_LESS_THAN_OR_EQUAL` | `<upper>` |
-| Both lower and upper bounds | `BETWEEN` | `NOT_BETWEEN` | `<lower>:<upper>` |
+| UI input                    | Inclusion operator      | Exclusion operator          | `SAVED_VALUE`     |
+| --------------------------- | ----------------------- | --------------------------- | ----------------- |
+| Minimum or lower bound only | `GREATER_THAN_OR_EQUAL` | `NOT_GREATER_THAN_OR_EQUAL` | `<lower>`         |
+| Maximum or upper bound only | `LESS_THAN_OR_EQUAL`    | `NOT_LESS_THAN_OR_EQUAL`    | `<upper>`         |
+| Both lower and upper bounds | `BETWEEN`               | `NOT_BETWEEN`               | `<lower>:<upper>` |
 
 The range delimiter is a colon:
 
@@ -211,7 +213,8 @@ Example:
 2026-03-24
 ```
 
-These variables are part of the generic criterion-variable vocabulary. Their presence in `CRITERION_VARIABLE` does not mean that they are exposed by the current eligibility-authoring form.
+These variables are part of the generic criterion-variable vocabulary. Their presence in
+`CRITERION_VARIABLE` does not mean that they are exposed by the current eligibility-authoring form.
 
 ## Lookup-backed expressions
 
@@ -231,39 +234,42 @@ For these expressions:
 
 ## Current inclusion-control mappings
 
-| Current inclusion UI control | Criterion variable | Stored operator | Value storage |
-|---|---|---|---|
-| Biological sex at birth | `GENDER` | `ANY_OF` | `GENDER` lookups |
-| Race | `RACE` | `ANY_OF` | `RACE` lookups |
-| Currently has any selected condition | `PRESENT_MEDICAL_CONDITION` | `ANY_OF` | `MEDICAL_CONDITION` lookups |
-| Currently has all selected conditions | `PRESENT_MEDICAL_CONDITION` | `ALL_OF` | `MEDICAL_CONDITION` lookups |
-| Previously had any selected condition | `PAST_MEDICAL_CONDITION` | `ANY_OF` | `MEDICAL_CONDITION` lookups |
-| Previously had all selected conditions | `PAST_MEDICAL_CONDITION` | `ALL_OF` | `MEDICAL_CONDITION` lookups |
-| Willing to change medications or treatments | `WILLING_TO_CHANGE_MEDICATIONS` | `EQUAL` | `BOOLEAN` lookup |
-| Willing to take experimental drugs | `WILLING_TO_TAKE_EXPERIMENTAL_DRUGS` | `EQUAL` | `BOOLEAN` lookup |
-| Has metal implants | `HAS_METAL_IMPLANTS` | `EQUAL` | `BOOLEAN` lookup |
-| Smoking status | `SMOKING_STATUS` | `ANY_OF` | `SMOKING_STATUS` lookups |
-| Parent or guardian of a child under 18 | `PARENT_OR_GUARDIAN_OF_A_CHILD` | `EQUAL` | `BOOLEAN` lookup |
-| Fluent in English | `FLUENCY_IN_ENGLISH` | `EQUAL` | `FLUENT_ENGLISH` lookup |
+| Current inclusion UI control                | Criterion variable                   | Stored operator | Value storage               |
+| ------------------------------------------- | ------------------------------------ | --------------- | --------------------------- |
+| Biological sex at birth                     | `GENDER`                             | `ANY_OF`        | `GENDER` lookups            |
+| Race                                        | `RACE`                               | `ANY_OF`        | `RACE` lookups              |
+| Currently has any selected condition        | `PRESENT_MEDICAL_CONDITION`          | `ANY_OF`        | `MEDICAL_CONDITION` lookups |
+| Currently has all selected conditions       | `PRESENT_MEDICAL_CONDITION`          | `ALL_OF`        | `MEDICAL_CONDITION` lookups |
+| Previously had any selected condition       | `PAST_MEDICAL_CONDITION`             | `ANY_OF`        | `MEDICAL_CONDITION` lookups |
+| Previously had all selected conditions      | `PAST_MEDICAL_CONDITION`             | `ALL_OF`        | `MEDICAL_CONDITION` lookups |
+| Willing to change medications or treatments | `WILLING_TO_CHANGE_MEDICATIONS`      | `EQUAL`         | `BOOLEAN` lookup            |
+| Willing to take experimental drugs          | `WILLING_TO_TAKE_EXPERIMENTAL_DRUGS` | `EQUAL`         | `BOOLEAN` lookup            |
+| Has metal implants                          | `HAS_METAL_IMPLANTS`                 | `EQUAL`         | `BOOLEAN` lookup            |
+| Smoking status                              | `SMOKING_STATUS`                     | `ANY_OF`        | `SMOKING_STATUS` lookups    |
+| Parent or guardian of a child under 18      | `PARENT_OR_GUARDIAN_OF_A_CHILD`      | `EQUAL`         | `BOOLEAN` lookup            |
+| Fluent in English                           | `FLUENCY_IN_ENGLISH`                 | `EQUAL`         | `FLUENT_ENGLISH` lookup     |
 
-Numeric inclusion controls use the mappings defined in [Numeric scalar and range encoding](#numeric-scalar-and-range-encoding).
+Numeric inclusion controls use the mappings defined in
+[Numeric scalar and range encoding](#numeric-scalar-and-range-encoding).
 
 ## Current exclusion-control mappings
 
-| Current exclusion UI control | Criterion variable | Stored operator | Value storage |
-|---|---|---|---|
-| Pregnant at the time of enrollment | `PREGNANT_AT_THE_TIME_OF_ENROLLMENT` | `NOT_EQUAL` | `BOOLEAN` lookup |
-| Currently has any selected condition | `PRESENT_MEDICAL_CONDITION` | `NOT_ANY_OF` | `MEDICAL_CONDITION` lookups |
-| Currently has all selected conditions | `PRESENT_MEDICAL_CONDITION` | `NOT_ALL_OF` | `MEDICAL_CONDITION` lookups |
-| Previously had any selected condition | `PAST_MEDICAL_CONDITION` | `NOT_ANY_OF` | `MEDICAL_CONDITION` lookups |
-| Previously had all selected conditions | `PAST_MEDICAL_CONDITION` | `NOT_ALL_OF` | `MEDICAL_CONDITION` lookups |
-| Has metal implants | `HAS_METAL_IMPLANTS` | `NOT_EQUAL` | `BOOLEAN` lookup |
-| Excluded smoking status | `SMOKING_STATUS` | `NOT_ANY_OF` | `SMOKING_STATUS` lookups |
-| Not fluent in English | `FLUENCY_IN_ENGLISH` | `NOT_EQUAL` | `FLUENT_ENGLISH` lookup |
+| Current exclusion UI control           | Criterion variable                   | Stored operator | Value storage               |
+| -------------------------------------- | ------------------------------------ | --------------- | --------------------------- |
+| Pregnant at the time of enrollment     | `PREGNANT_AT_THE_TIME_OF_ENROLLMENT` | `NOT_EQUAL`     | `BOOLEAN` lookup            |
+| Currently has any selected condition   | `PRESENT_MEDICAL_CONDITION`          | `NOT_ANY_OF`    | `MEDICAL_CONDITION` lookups |
+| Currently has all selected conditions  | `PRESENT_MEDICAL_CONDITION`          | `NOT_ALL_OF`    | `MEDICAL_CONDITION` lookups |
+| Previously had any selected condition  | `PAST_MEDICAL_CONDITION`             | `NOT_ANY_OF`    | `MEDICAL_CONDITION` lookups |
+| Previously had all selected conditions | `PAST_MEDICAL_CONDITION`             | `NOT_ALL_OF`    | `MEDICAL_CONDITION` lookups |
+| Has metal implants                     | `HAS_METAL_IMPLANTS`                 | `NOT_EQUAL`     | `BOOLEAN` lookup            |
+| Excluded smoking status                | `SMOKING_STATUS`                     | `NOT_ANY_OF`    | `SMOKING_STATUS` lookups    |
+| Not fluent in English                  | `FLUENCY_IN_ENGLISH`                 | `NOT_EQUAL`     | `FLUENT_ENGLISH` lookup     |
 
-Numeric exclusion controls use the negated mappings defined in [Numeric scalar and range encoding](#numeric-scalar-and-range-encoding).
+Numeric exclusion controls use the negated mappings defined in
+[Numeric scalar and range encoding](#numeric-scalar-and-range-encoding).
 
-The current exclusion form does not expose every criterion variable available in the generic criteria model.
+The current exclusion form does not expose every criterion variable available in the generic
+criteria model.
 
 ## Medical-condition operators
 
@@ -276,27 +282,29 @@ ALL
 
 For inclusion criteria:
 
-| UI choice | Stored operator |
-|---|---|
-| Any selected condition | `ANY_OF` |
-| All selected conditions | `ALL_OF` |
+| UI choice               | Stored operator |
+| ----------------------- | --------------- |
+| Any selected condition  | `ANY_OF`        |
+| All selected conditions | `ALL_OF`        |
 
 For exclusion criteria:
 
-| UI choice | Stored operator |
-|---|---|
-| Any selected condition | `NOT_ANY_OF` |
-| All selected conditions | `NOT_ALL_OF` |
+| UI choice               | Stored operator |
+| ----------------------- | --------------- |
+| Any selected condition  | `NOT_ANY_OF`    |
+| All selected conditions | `NOT_ALL_OF`    |
 
 Selected conditions are stored as `MEDICAL_CONDITION` lookup relationships.
 
-Medical-condition selections are drawn from the current visible `MEDICAL_CONDITION` lookup vocabulary.
+Medical-condition selections are drawn from the current visible `MEDICAL_CONDITION` lookup
+vocabulary.
 
 The available values and vocabulary size may change as lookup reference data is maintained.
 
 ## Boolean expressions
 
-Boolean controls use a lookup value rather than storing the words `true` or `false` directly in `SAVED_VALUE`.
+Boolean controls use a lookup value rather than storing the words `true` or `false` directly in
+`SAVED_VALUE`.
 
 The meaning of a Boolean expression depends on:
 
@@ -353,11 +361,15 @@ Example:
 $#exclusion#$Completed allogeneic stem cell transplantation
 ```
 
-The prefix allows the application to distinguish OTHER inclusion text from OTHER exclusion text even though both have a null relational operator.
+The prefix allows the application to distinguish OTHER inclusion text from OTHER exclusion text even
+though both have a null relational operator.
 
 The prefix is an internal application encoding and is not participant-facing text.
 
-The matching engine does not directly evaluate OTHER free text.
+The matching engine ignores `OTHER` free text during structured eligibility evaluation. An `OTHER`
+expression does not produce `TRUE`, `MAYBE`, or `FALSE` and does not affect aggregation of the
+structured expression results. See
+[Matching and Visibility](../06-recruitment/matching-and-visibility.md).
 
 ## Historically observed operator combinations
 
@@ -393,7 +405,8 @@ Historical observations must not be used by themselves to define current UI beha
 
 ## Legacy-data analysis
 
-Criteria analyses spanning legacy and current authoring periods should derive an authoring-era category when possible:
+Criteria analyses spanning legacy and current authoring periods should derive an authoring-era
+category when possible:
 
 ```text
 LEGACY_UI
@@ -403,7 +416,8 @@ TRANSITION_OR_UNKNOWN
 
 The exact current-UI deployment date should be used when available.
 
-If only the year is known, records from the transition period should not be assigned to one UI generation without additional evidence.
+If only the year is known, records from the transition period should not be assigned to one UI
+generation without additional evidence.
 
 ## Data-quality considerations
 
