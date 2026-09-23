@@ -300,6 +300,10 @@ topics:
     label: "Recruitment operations model"
     primary: "07-data-model/recruitment-operations-model.md"
 
+  administrative_scheduled_jobs:
+    label: "Administrative scheduled jobs"
+    primary: "08-operations/administrative-scheduled-jobs.md"
+
   support_routing:
     label: "Support routing"
     primary: "08-operations/support-routing.md"

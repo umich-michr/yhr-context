@@ -34,3 +34,7 @@ Operational support may require tracing a problem across:
 - [Study Posting Authoring Telemetry](study-posting-authoring-telemetry.md)
 - [Eligibility-Criteria Authoring Complexity](eligibility-criteria-authoring-complexity.md)
 - [AI-Assisted Study Posting Authoring Effectiveness](ai-assisted-study-posting-authoring-effectiveness.md)
+
+## Operational topics
+
+- [Administrative Scheduled Jobs](administrative-scheduled-jobs.md)

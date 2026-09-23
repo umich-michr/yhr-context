@@ -384,6 +384,82 @@ instance.
 
 The application does not retrieve participant data from an electronic health record.
 
+## Agreement acceptance records
+
+Current agreement acceptance is determined by username, agreement type, and
+current agreement version.
+
+The backend supports exactly two agreement types:
+
+```text
+VOL
+STM
+```
+
+Users with the application-wide `VOLUNTEER` role use `VOL`; other supported
+authenticated users use `STM`.
+
+An acceptance record stores username, type, version, agreement time, remote
+address, and user agent. It does not identify represented loved-one context,
+child-versus-adult relationship, rendered wording, or presentation variant.
+
+`USER_AGREEMENT_AUDIT` alone therefore cannot prove which loved-one-specific
+presentation was displayed.
+
+Acceptance submitted through the authenticated agreement endpoint is
+attributed to the authenticated security principal's username.
+
+## Current-version enforcement
+
+The application requires an acceptance for the current version of the
+role-appropriate agreement type. Previous-version records remain historical
+but do not satisfy the current-version check.
+
+A user without current acceptance may access only the endpoints needed to
+submit acceptance, submit participant deactivation, and retrieve a CSRF token.
+
+## Agreement decline and reactivation
+
+The backend does not persist a separate declined-agreement audit record.
+Decline is represented through participant-account deactivation.
+
+Deactivating an owning account deactivates its enabled loved-one accounts.
+Deactivating one loved-one account does not deactivate the owner or siblings.
+
+Reactivation does not itself record agreement acceptance. After reactivation,
+the current-version agreement filter blocks ordinary use until acceptance.
+
+Reactivating a loved-one account also reactivates an inactive owner.
+Reactivating an owner does not automatically reactivate loved-one accounts.
+
+A child loved-one account deactivated because the represented person reached
+the configured maturity age cannot be reactivated.
+
+## Child loved-one warning and age-out
+
+`childAccountDeactivationJob` handles warnings and age-out. Mature age, warning
+interval, and the persisted cron schedule are configurable.
+
+For each active child loved-one account:
+
+1. The application determines age from date of birth.
+1. A warning may be sent during the configured pre-age-out interval.
+1. The warning is recorded in `CHILD_DEACTIVATION_NOTICE`.
+1. The same parent, child, and recorded birth-date value are not warned again.
+1. On or after the maturity threshold, the account is deactivated with reason
+   `CHILD_TURNED_ADULT`.
+1. The owning account receives a deactivation notification when available.
+
+A changed date of birth may permit another warning because the recorded value
+is part of duplicate detection.
+
+The job is interruptible between child accounts. An interruption may leave
+part of the collection unprocessed until a later run.
+
+The former child loved-one account cannot be reactivated or transferred to the
+represented adult. Future participation requires the supported self-account or
+support workflow.
+
 ## Related pages
 
 - [Participants](participants.md)

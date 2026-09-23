@@ -111,6 +111,7 @@ nav:
       - Support Routing: 08-operations/support-routing.md
       - Troubleshooting: 08-operations/troubleshooting.md
       - PHI Audit: 08-operations/phi-audit.md
+      - Administrative Scheduled Jobs: 08-operations/administrative-scheduled-jobs.md
       - Audit and Monitoring: 08-operations/audit-and-monitoring.md
       - Study Posting Authoring Analytics: 08-operations/study-posting-authoring-analytics.md
       - Study Posting Authoring Telemetry: 08-operations/study-posting-authoring-telemetry.md

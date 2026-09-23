@@ -202,110 +202,53 @@ ______________________________________________________________________
 These questions should be resolved before agreement analytics or detailed deactivation behavior is
 described as complete.
 
-## AGREEMENT-001: Loved-one signup audit username
+## AGREEMENT-001: Loved-one-context principal username
 
-During initial signup for a loved one, which username is written to:
+The authenticated agreement endpoint stores the authenticated principal's
+username.
 
-```text
-USER_AGREEMENT_AUDIT.USER_NAME
-```
+Determine whether loved-one context changes that username during login-time
+re-agreement, initial loved-one signup, or Add Loved One.
 
-Possible implementations include:
+## AGREEMENT-003: Child-versus-adult displayed clauses
 
-- The owning account's username
-- The generated loved-one username
-- One record for each account
-- A workflow-dependent result
+The backend distinguishes child and adult relationships, but presentation
+variants are not persisted.
 
-Also determine whether the same rule applies to:
+Determine from the frontend whether wording differs, how the variant is
+selected, and whether it is configuration-driven.
 
-- Initial signup for a loved one
-- Add Loved One
-- Login-time re-agreement while using loved-one context
+## AGREEMENT-004: Decline target in loved-one context
 
-## AGREEMENT-002: Agreement presentation persistence
+Decline uses account deactivation. Owner deactivation cascades; loved-one
+deactivation does not.
 
-Is the fact that loved-one-specific clauses were presented stored anywhere?
+Determine which account ID the frontend submits during decline in loved-one
+context.
 
-If so, identify:
+## AGREEMENT-005: Decline reason and operational history
 
-- Table or log
-- Context value
-- Agreement rendering version
-- Loved-one relationship type
-- Timestamp
+No separate declined-agreement record exists; decline is represented through
+`USER_DEACTIVATION`.
 
-If not, document that `USER_AGREEMENT_AUDIT` alone cannot prove whether the self or loved-one
-presentation was displayed.
+Confirm the submitted reason, decline-specific email behavior, and
+administrator-visible history.
 
-## AGREEMENT-003: Child versus adult loved-one clauses
+## AGREEMENT-006: Support reactivation workflow
 
-Does the displayed loved-one wording differ between:
+Backend reactivation does not itself accept the agreement. Ordinary use is
+blocked afterward until current acceptance.
 
-- Child loved one
-- Adult loved one
+Confirm support procedures for account selection, cascaded loved-one review,
+and communication of the required agreement step.
 
-If the wording differs, determine whether:
+## AGREEMENT-008: Agreement-definition and policy retention
 
-- The distinction is configuration-driven
-- It is determined from `LOVED_ONE.RELATIONSHIP`
-- It is determined from date of birth
-- The rendered variant is audited
+Hard deletion removes participant agreement-audit rows. Acceptance rows retain
+version strings, but this model does not store historical agreement text.
 
-## AGREEMENT-004: Decline in loved-one context
-
-If an owner declines an updated participant agreement while operating in a loved-one context, which
-accounts are deactivated?
-
-Possible outcomes to verify:
-
-- Represented loved-one only
-- Owning account and all loved ones
-- Owning account only
-- A confirmation screen allows choosing the affected account
-
-## AGREEMENT-005: Decline evidence
-
-Is agreement decline stored separately from account deactivation?
-
-Check for:
-
-- A declined-agreement audit record
-- A deactivation reason
-- Application logs
-- Email notification
-- Administrator-visible history
-
-## AGREEMENT-006: Reactivation after agreement decline
-
-When support or an administrator reactivates an account that was deactivated because of agreement
-decline:
-
-- Must the current agreement be accepted before reactivation?
-- Is the account reactivated first and blocked at login?
-- Are cascaded loved-one accounts reactivated automatically?
-- Must each loved-one account be reviewed separately?
-
-## AGREEMENT-007: Additional agreement types
-
-Are `VOL` and `STM` the only agreement types in every branded instance?
-
-Determine whether institutions can configure:
-
-- Additional participant agreement types
-- Institution-specific study-team agreements
-- Language-specific agreement records
-- Supplemental agreements
-
-## AGREEMENT-008: Agreement retention
-
-Determine:
-
-- How long `USER_AGREEMENT` definitions are retained
-- Whether old definitions remain after a version change
-- How long `USER_AGREEMENT_AUDIT` records are retained
-- Whether hard deletion removes participant agreement audit rows
-- Whether institutional policy requires longer retention
+Determine audit retention, external definition archives, and institutional
+records-retention requirements.
 
 ______________________________________________________________________
 
@@ -422,18 +365,15 @@ instance:
 - Whether multiple application servers run the same schedules
 - Whether cluster coordination prevents duplicate execution
 
-## MEMORY-007: Temporal transitions
+## MEMORY-007: Remaining temporal-transition behavior
 
-List every time-based transition handled by synchronization or scheduled jobs, including:
+Direct activation changes, active-view synchronization, child age-out, and
+interactive deactivation are documented.
 
-- Study activation
-- Study expiration
-- Publishability changes
-- Child loved-one age-out
-- Participant deactivation
-- Agreement-related deactivation
-
-For each transition, document the source, job, and memory-removal behavior.
+Determine the exact `updateActiveIntervalsJob` behavior, imported
+publishability handling, interval updates for date-driven transitions, and
+resolution of the `V_ACTIVE_STUDY` versus `V_STUDY_STATUS` deactivation-date
+inconsistency.
 
 ## MEMORY-008: Production freshness monitoring
 
@@ -466,92 +406,23 @@ ______________________________________________________________________
 
 Detailed administrator job control is confirmed to exist but remains to be documented.
 
-## ADMINJOB-001: Exposed jobs
+## ADMINJOB-004: Cluster-wide and general job concurrency
 
-Which scheduled jobs appear in the administrator UI?
+Full recommendation recomputation has a per-scheduler manual-execution guard
+and a synchronized service method within one application process.
 
-Candidate categories include:
+Determine whether Quartz clustering is enabled, whether runs overlap across
+servers, whether other jobs may overlap, and whether duplicate execution is
+acceptable for each job.
 
-- Memory synchronization
-- Participant rematching
-- Study rematching
-- Notification delivery
-- Study lifecycle processing
-- Upcoming-deactivation warnings
-- Loved-one age-out
-- Import or reconciliation
-- Email retry
+## ADMINJOB-006: Durable job-control audit
 
-## ADMINJOB-002: Schedule format
+Application job-control actions produce logs, and scheduler errors create
+application errors and notifications. No dedicated durable action-audit table
+is confirmed.
 
-Determine:
-
-- Schedule representation
-- Time zone
-- Minimum frequency
-- Maximum frequency
-- Validation rules
-- Institution-specific defaults
-
-## ADMINJOB-003: Allowed actions
-
-Can administrators:
-
-- Edit schedules
-- Run a job immediately
-- Pause a job
-- Disable a job
-- Resume a job
-- Cancel a running job
-- Retry a failed job
-
-## ADMINJOB-004: Concurrency control
-
-How does the application prevent:
-
-- Duplicate execution
-- Overlapping runs
-- Two administrators launching the same job
-- A manual run overlapping a scheduled run
-
-## ADMINJOB-005: Execution status
-
-What information is visible to administrators?
-
-Possible fields include:
-
-- Last start
-- Last completion
-- Current status
-- Duration
-- Processed count
-- Failure count
-- Error message
-- Next scheduled run
-
-## ADMINJOB-006: Audit
-
-Are these events audited?
-
-- Schedule change
-- Manual execution
-- Pause or disable
-- Cancellation
-- Retry
-- Failure acknowledgement
-
-Identify physical audit tables or log events when available.
-
-## ADMINJOB-007: Authorization
-
-Which roles can:
-
-- View jobs
-- Modify schedules
-- Run jobs
-- Inspect failures
-
-Determine whether every `ADMIN` has equal job-control permissions.
+Determine production retention and actor attribution for schedule changes,
+manual execution, interruption, and failure acknowledgement.
 
 ______________________________________________________________________
 
@@ -820,54 +691,35 @@ ______________________________________________________________________
 
 # Phase 8: Loved-One Age-Out
 
-## AGEOUT-001: Warning interval
+## AGEOUT-001: Deployed warning interval
 
-How long before the eighteenth birthday is the owning account notified?
+Mature age and warning interval are application settings. Unit tests use age
+18 and a 14-day warning interval.
 
-## AGEOUT-002: Warning frequency
+Confirm effective setting values for each branded deployment.
 
-Is the warning:
+## AGEOUT-004: Immediate age-out cleanup and audit
 
-- Sent once
-- Repeated
-- Retried after delivery failure
-- Recorded in `CHILD_DEACTIVATION_NOTICE`
+Age-out persists `USER_DEACTIVATION` with reason `CHILD_TURNED_ADULT` and
+records warnings in `CHILD_DEACTIVATION_NOTICE`.
 
-## AGEOUT-003: Deactivation time
+Confirm immediate local-memory removal, Redis cleanup timing, and whether
+age-out creates a distinct audit event.
 
-At what time and in which time zone does age-based deactivation occur?
+## AGEOUT-005: Adult self-registration and historical data
 
-## AGEOUT-004: Deactivation persistence
+A loved-one account deactivated for `CHILD_TURNED_ADULT` cannot be reactivated
+or transferred.
 
-Identify:
+Determine the supported path for self-registration, username/email reuse,
+historical-data linkage, and support requests.
 
-- Deactivation reason
-- Deactivation table
-- Notice table
-- Audit event
-- Memory-removal action
-- Redis-removal action
+## AGEOUT-006: Age-out failure operations
 
-## AGEOUT-005: Adult registration path
+An interrupted run may leave unvisited accounts active until a later run.
 
-After age-out, what should the represented adult do to participate?
-
-Determine whether they:
-
-- Create a new self account
-- May reuse the communication email
-- Must use a different username
-- Can request data transfer
-- Can reference historical study interest
-
-## AGEOUT-006: Failed job behavior
-
-If the age-out job fails:
-
-- Does proxy access continue?
-- Is the failure retried?
-- Is an administrator alerted?
-- Is the account removed during the next full synchronization?
+Determine business-exception alerting, manual rerun procedures, partial-run
+identification, and proxy-access review.
 
 ______________________________________________________________________
 

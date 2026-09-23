@@ -213,6 +213,46 @@ stateDiagram-v2
     Archived --> Inactive: Unarchive
 ```
 
+## Active-view date semantics
+
+The database view used to populate active matching studies compares calendar
+dates rather than exact timestamps.
+
+In `V_ACTIVE_STUDY`:
+
+- Activation date is inclusive.
+- Deactivation date is exclusive.
+- Time-of-day is ignored.
+- `PUBLISHABLE` must be `1`.
+
+Date-driven membership changes reach each process-local active-study store
+through scheduled active-study synchronization. A direct study update may
+update the local store and trigger matching or cleanup immediately.
+
+## Status-view inconsistency
+
+`V_STUDY_STATUS` uses an inclusive `BETWEEN` comparison, while
+`V_ACTIVE_STUDY` excludes the deactivation date.
+
+On the saved deactivation date, these views may disagree about whether a study
+is active. Until this inconsistency is resolved, documentation must identify
+which view governs the workflow being described.
+
+Matching uses active entities loaded from `V_ACTIVE_STUDY`.
+
+## Active-interval updates
+
+Direct activation-boundary changes create or update
+`STUDY_ACTIVE_INTERVAL`.
+
+- First activation creates an interval.
+- Reactivation after a prior interval creates another interval.
+- Changing the current interval end updates its deactivation and update
+  timestamps.
+
+Existing infrastructure does not by itself prove that every date-driven or
+publishability-driven transition creates or closes an interval row.
+
 ## Related pages
 
 - [Publishability](../03-institutional-governance/publishability.md)

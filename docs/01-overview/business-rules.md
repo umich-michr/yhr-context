@@ -115,7 +115,7 @@ than treating this page as a complete user manual.
 1. The loved-one account receives an application-generated GUID-based email-like username.
 1. The owner's real email address is used as the communication email for both accounts.
 1. Child-versus-adult relationship selection is validated against date of birth.
-1. Child loved-one accounts are automatically deactivated when the represented person turns 18.
+1. Child loved-one accounts are deactivated by a scheduled job at the configured maturity age.
 1. The owning account is notified before the age-based deactivation.
 1. Age-based deactivation removes the loved-one account from active in-memory matching data and
    prevents continued proxy access.
@@ -451,6 +451,22 @@ See [Study Lifecycle](../05-study-management/study-lifecycle.md).
 1. The PI receives a warning approximately one week before the scheduled study deactivation date.
 1. Participant promotion notifications are evaluated by a scheduled job using the promotion
    timestamp and participant's last-login time.
+
+## Administrative scheduled jobs
+
+1. Application-managed jobs use persisted Quartz cron expressions.
+1. The administrator job API exposes dynamic Spring job beans, not
+   database-native Oracle Scheduler jobs.
+1. The administrator job controller requires the application-wide `ADMIN`
+   role.
+1. The controller supports viewing jobs, immediate execution, cron updates,
+   and cron validation with execution-time previews.
+1. Pause, resume, clear, and interrupt operations exist in the scheduling
+   service but are not exposed by the current administrator job controller.
+1. Only full recommendation recomputation has a confirmed explicit
+   manual-execution overlap guard.
+1. Application jobs use the effective server or Quartz default time zone
+   unless configured otherwise.
 
 ## Audit
 
