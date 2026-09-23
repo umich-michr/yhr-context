@@ -5,12 +5,15 @@ PYTHON := $(UV) run python
 MKDOCS := $(UV) run mkdocs
 PRE_COMMIT := $(UV) run pre-commit
 PIP_AUDIT := $(UV) run pip-audit
+MDFORMAT := $(UV) run mdformat
+MARKDOWN_FILES := README.md $(shell find docs .github -type f -name '*.md' | sort)
 
 .PHONY: help
 .PHONY: lock sync setup hooks
 .PHONY: generate validate build check test ci serve audit
 .PHONY: clean distclean
 .PHONY: upgrade upgrade-hooks outdated
+.PHONY: format format-check
 
 .DEFAULT_GOAL := help
 
@@ -19,26 +22,39 @@ help:
 	  'YourHealthResearch.org context documentation' \
 	  '' \
 	  'Environment:' \
-	  '  make lock       Create or update uv.lock' \
-	  '  make sync       Create/update .venv from uv.lock' \
-	  '  make setup      Sync dependencies and install Git hooks' \
-	  '  make hooks      Install pre-commit and pre-push hooks' \
+	  '  make lock          Create or update uv.lock' \
+	  '  make sync          Create/update .venv from uv.lock' \
+	  '  make setup         Sync dependencies and install Git hooks' \
+	  '  make hooks         Install pre-commit and pre-push hooks' \
 	  '' \
 	  'Documentation:' \
-	  '  make generate   Generate docs/llms.txt' \
-	  '  make validate   Validate context routing and generated links' \
-	  '  make build      Validate and build site/' \
-	  '  make check      Run the complete local/CI validation workflow' \
-	  '  make test       Alias for make check' \
-	  '  make serve      Run the local MkDocs development server' \
-	  '  make audit      Audit Python dependencies for vulnerabilities' \
+	  '  make generate      Generate docs/llms.txt' \
+	  '  make validate      Validate context routing and generated links' \
+	  '  make format        Format Markdown documentation' \
+	  '  make format-check  Check Markdown formatting without modifying files' \
+	  '  make build         Validate and build site/' \
+	  '  make check         Run the complete local/CI validation workflow' \
+	  '  make test          Alias for make check' \
+	  '  make serve         Run the local MkDocs development server' \
+	  '  make audit         Audit Python dependencies for vulnerabilities' \
+	  '' \
+	  'Maintenance:' \
+	  '  make upgrade        Upgrade locked Python dependencies and validate' \
+	  '  make upgrade-hooks  Update pre-commit hook revisions and validate' \
+	  '  make outdated       Show outdated Python dependencies' \
 	  '' \
 	  'Cleanup:' \
-	  '  make clean      Remove generated documentation and caches' \
-	  '  make distclean  Also remove .venv'
+	  '  make clean         Remove generated documentation and caches' \
+	  '  make distclean     Also remove .venv'
 
 uv.lock: pyproject.toml
 	$(UV) lock
+
+format:
+	$(MDFORMAT) $(MARKDOWN_FILES)
+
+format-check:
+	$(MDFORMAT) --check $(MARKDOWN_FILES)
 
 lock:
 	$(UV) lock
@@ -81,7 +97,7 @@ build: validate
 audit: sync
 	$(PIP_AUDIT)
 
-check: build audit
+check: format-check build audit
 	git diff --check
 
 test: check

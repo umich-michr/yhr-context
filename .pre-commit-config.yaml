@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
         exclude: ^site/
@@ -16,6 +16,15 @@ repos:
 
       - id: check-yaml
         exclude: ^mkdocs\.yml$
+
+  - repo: https://github.com/executablebooks/mdformat
+    rev: 1.0.0
+    hooks:
+      - id: mdformat
+        files: '^(README\.md|docs/.*\.md|\.github/.*\.md)$'
+        additional_dependencies:
+          - mdformat-gfm
+          - mdformat-frontmatter
 
   - repo: local
     hooks:

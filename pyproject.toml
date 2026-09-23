@@ -12,6 +12,9 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "mdformat>=1.0.0",
+    "mdformat-frontmatter>=2.1.2",
+    "mdformat-gfm>=1.0.0",
     "pip-audit",
     "pre-commit>=4,<5",
 ]
@@ -19,3 +22,7 @@ dev = [
 [tool.uv]
 package = false
 default-groups = ["dev"]
+
+[tool.mdformat]
+wrap = 100
+number = false
