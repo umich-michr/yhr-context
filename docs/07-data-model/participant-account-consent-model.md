@@ -26,20 +26,19 @@ An account may be:
 - An owning account that manages one or more loved-one accounts
 - A loved-one account managed through an owning account
 
-An owning account is not a separate database account class. Ownership is
-established through the `LOVED_ONE` relationship.
+An owning account is not a separate database account class. Ownership is established through the
+`LOVED_ONE` relationship.
 
 ## Loved-one ownership
 
-`LOVED_ONE` maps one owning participant account to one represented loved-one
-account.
+`LOVED_ONE` maps one owning participant account to one represented loved-one account.
 
-| Column | Type | Meaning |
-|---|---|---|
-| `ID` | `NUMBER` | Relationship identifier |
-| `PARENT_ID` | `NUMBER` | Owning `UMCS_USER.ID` |
-| `CHILD_ID` | `NUMBER` | Represented loved-one `UMCS_USER.ID` |
-| `RELATIONSHIP` | `VARCHAR2` | Relationship enum value |
+| Column         | Type       | Meaning                              |
+| -------------- | ---------- | ------------------------------------ |
+| `ID`           | `NUMBER`   | Relationship identifier              |
+| `PARENT_ID`    | `NUMBER`   | Owning `UMCS_USER.ID`                |
+| `CHILD_ID`     | `NUMBER`   | Represented loved-one `UMCS_USER.ID` |
+| `RELATIONSHIP` | `VARCHAR2` | Relationship enum value              |
 
 Cardinality:
 
@@ -70,20 +69,20 @@ erDiagram
     }
 ```
 
-The owning and represented records both reside in `UMCS_USER`; the relationship
-roles distinguish them.
+The owning and represented records both reside in `UMCS_USER`; the relationship roles distinguish
+them.
 
-The terms `PARENT_ID` and `CHILD_ID` describe relationship direction in the
-schema. They must not be interpreted as proving that every owner is the
-represented participant's legal parent or that every loved one is a minor.
+The terms `PARENT_ID` and `CHILD_ID` describe relationship direction in the schema. They must not be
+interpreted as proving that every owner is the represented participant's legal parent or that every
+loved one is a minor.
 
 ## Signup-for-a-loved-one account creation
 
 The signup-for-a-loved-one workflow creates:
 
 1. A minimal owning account
-2. A complete loved-one participant account
-3. A `LOVED_ONE` relationship between them
+1. A complete loved-one participant account
+1. A `LOVED_ONE` relationship between them
 
 ### Owning-account identity
 
@@ -98,11 +97,10 @@ The signup flow captures:
 - Last name
 - Communication email
 
-Country and ZIP code entered for the loved-one profile are copied to the owning
-account during signup.
+Country and ZIP code entered for the loved-one profile are copied to the owning account during
+signup.
 
-Other profile fields required for ordinary self participation may remain
-incomplete.
+Other profile fields required for ordinary self participation may remain incomplete.
 
 The owning profile defaults to hidden from study teams.
 
@@ -127,8 +125,8 @@ Loved-one account:
     EMAIL = owner's real email
 ```
 
-The generated loved-one username is an internal unique identity. It must not be
-treated as the loved one's actual email address.
+The generated loved-one username is an internal unique identity. It must not be treated as the loved
+one's actual email address.
 
 ## Add Loved One
 
@@ -149,12 +147,10 @@ Therefore:
 - The owning self profile has its own visibility.
 - Each loved-one profile has its own visibility.
 - Changing one loved-one's visibility does not redefine the owner's visibility.
-- Changing the owner's visibility does not redefine every loved-one's
-  visibility.
+- Changing the owner's visibility does not redefine every loved-one's visibility.
 
-An owning account created through signup for a loved one defaults to hidden
-because its self profile is incomplete and was created primarily to manage the
-loved-one account.
+An owning account created through signup for a loved one defaults to hidden because its self profile
+is incomplete and was created primarily to manage the loved-one account.
 
 The loved-one visibility is selected during the loved-one creation workflow.
 
@@ -162,11 +158,11 @@ The loved-one visibility is selected during the loved-one creation workflow.
 
 ### `USER_AGREEMENT`
 
-| Column | Type | Meaning |
-|---|---|---|
-| `ID` | `NUMBER` | Agreement-definition identifier |
-| `TYPE` | `VARCHAR2` | Agreement type |
-| `VERSION` | `VARCHAR2` | Current agreement version |
+| Column    | Type       | Meaning                         |
+| --------- | ---------- | ------------------------------- |
+| `ID`      | `NUMBER`   | Agreement-definition identifier |
+| `TYPE`    | `VARCHAR2` | Agreement type                  |
+| `VERSION` | `VARCHAR2` | Current agreement version       |
 
 Known type values include:
 
@@ -177,22 +173,20 @@ STM
 
 Conceptually:
 
-| Type | Applies to |
-|---|---|
+| Type  | Applies to                         |
+| ----- | ---------------------------------- |
 | `VOL` | Participant or volunteer agreement |
-| `STM` | Study-team-member agreement |
+| `STM` | Study-team-member agreement        |
 
-The values may be represented as configured strings or codes in a particular
-deployment.
+The values may be represented as configured strings or codes in a particular deployment.
 
 ## Self and loved-one agreement treatment
 
-Self and loved-one participant workflows use the same participant agreement
-type and version for audit storage.
+Self and loved-one participant workflows use the same participant agreement type and version for
+audit storage.
 
-The body of the participant agreement is shared, but loved-one workflows
-present additional clauses that address agreement and responsibility on behalf
-of the represented loved one.
+The body of the participant agreement is shared, but loved-one workflows present additional clauses
+that address agreement and responsibility on behalf of the represented loved one.
 
 Conceptually:
 
@@ -209,11 +203,10 @@ Loved-one presentation:
     + Loved-one or proxy clauses
 ```
 
-The additional loved-one clauses do not create separate agreement types or
-versions in the confirmed audit model.
+The additional loved-one clauses do not create separate agreement types or versions in the confirmed
+audit model.
 
-The following are presentation contexts, not confirmed
-`USER_AGREEMENT.TYPE` values:
+The following are presentation contexts, not confirmed `USER_AGREEMENT.TYPE` values:
 
 ```text
 SELF
@@ -226,20 +219,19 @@ ADULT_LOVED_ONE
 
 ### `USER_AGREEMENT_AUDIT`
 
-| Column | Type | Meaning |
-|---|---|---|
-| `ID` | `NUMBER` | Agreement-acceptance identifier |
-| `USER_NAME` | `VARCHAR2` | Username associated with acceptance |
-| `TYPE` | `VARCHAR2` | Agreement type |
-| `VERSION` | `VARCHAR2` | Agreement version |
-| `REMOTE_ADDRESS` | `VARCHAR2` | Client IP address |
-| `USER_AGENT` | `VARCHAR2` | Browser or client user agent |
-| `AGREED_TIME` | `TIMESTAMP(6)` | Agreement-acceptance timestamp |
+| Column           | Type           | Meaning                             |
+| ---------------- | -------------- | ----------------------------------- |
+| `ID`             | `NUMBER`       | Agreement-acceptance identifier     |
+| `USER_NAME`      | `VARCHAR2`     | Username associated with acceptance |
+| `TYPE`           | `VARCHAR2`     | Agreement type                      |
+| `VERSION`        | `VARCHAR2`     | Agreement version                   |
+| `REMOTE_ADDRESS` | `VARCHAR2`     | Client IP address                   |
+| `USER_AGENT`     | `VARCHAR2`     | Browser or client user agent        |
+| `AGREED_TIME`    | `TIMESTAMP(6)` | Agreement-acceptance timestamp      |
 
 ## Version comparison
 
-At login, the application determines whether a user has accepted the current
-agreement version.
+At login, the application determines whether a user has accepted the current agreement version.
 
 Conceptually:
 
@@ -250,18 +242,16 @@ Required acceptance exists =
     AND USER_AGREEMENT_AUDIT.VERSION = USER_AGREEMENT.VERSION
 ```
 
-If no corresponding audit row exists, the user must review the current
-agreement.
+If no corresponding audit row exists, the user must review the current agreement.
 
 Acceptance creates a new audit row for the current type and version.
 
-The previous acceptance is historical evidence of an earlier version; it does
-not satisfy the current-version check.
+The previous acceptance is historical evidence of an earlier version; it does not satisfy the
+current-version check.
 
 ## Loved-one audit interpretation
 
-Because self and loved-one participant agreement acceptance uses the same
-participant type:
+Because self and loved-one participant agreement acceptance uses the same participant type:
 
 ```text
 TYPE = VOL
@@ -291,8 +281,8 @@ The context must instead be determined using other evidence, such as:
 - Registration timing
 - Application logs or request context, when available
 
-The exact rule identifying which username is stored during initial loved-one
-signup, Add Loved One, and later loved-one re-agreement remains to be verified.
+The exact rule identifying which username is stored during initial loved-one signup, Add Loved One,
+and later loved-one re-agreement remains to be verified.
 
 ## Decline behavior
 
@@ -309,8 +299,8 @@ For a study team member:
 - Decline prevents continued application use.
 - The institutional SAML identity is not deactivated by the application.
 
-The physical persistence of a decline event, apart from resulting account
-deactivation, remains to be documented.
+The physical persistence of a decline event, apart from resulting account deactivation, remains to
+be documented.
 
 ## Relationship model
 
@@ -349,8 +339,7 @@ erDiagram
     }
 ```
 
-Agreement audit records are logically associated with agreement definitions
-through:
+Agreement audit records are logically associated with agreement definitions through:
 
 ```text
 TYPE
@@ -363,22 +352,19 @@ and with participant identities through:
 USER_NAME
 ```
 
-This documentation does not assert an undeclared physical foreign key between
-`USER_AGREEMENT` and `USER_AGREEMENT_AUDIT`.
+This documentation does not assert an undeclared physical foreign key between `USER_AGREEMENT` and
+`USER_AGREEMENT_AUDIT`.
 
 ## Analytical cautions
 
 1. `TYPE = VOL` does not distinguish self from loved-one presentation.
-2. Shared communication email does not mean the owning and loved-one accounts
-   are the same account.
-3. The GUID-based loved-one username is not a real communication address.
-4. `LOVED_ONE.PARENT_ID` identifies the owning account, not necessarily a legal
-   parent.
-5. Country and ZIP copying during signup does not establish ongoing address
-   synchronization.
-6. An old agreement acceptance does not satisfy a newer agreement version.
-7. The absence of a current-version audit row indicates that re-agreement is
-   required; it does not by itself prove that the user declined.
+1. Shared communication email does not mean the owning and loved-one accounts are the same account.
+1. The GUID-based loved-one username is not a real communication address.
+1. `LOVED_ONE.PARENT_ID` identifies the owning account, not necessarily a legal parent.
+1. Country and ZIP copying during signup does not establish ongoing address synchronization.
+1. An old agreement acceptance does not satisfy a newer agreement version.
+1. The absence of a current-version audit row indicates that re-agreement is required; it does not
+   by itself prove that the user declined.
 
 ## Related pages
 

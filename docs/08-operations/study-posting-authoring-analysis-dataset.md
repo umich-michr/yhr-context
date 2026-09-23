@@ -81,7 +81,8 @@ If a user returns to Add Study and tries again, the application creates a new `S
 
 The analytical query should join the generation and error tables directly.
 
-It should not use `ROW_NUMBER()` to choose one generation or error row because duplicate rows would represent a violated application invariant.
+It should not use `ROW_NUMBER()` to choose one generation or error row because duplicate rows would
+represent a violated application invariant.
 
 ## Attempt identity
 
@@ -115,16 +116,17 @@ LOGIN_AUDIT.USER_ID = 0
 When a first-time institutional author successfully creates a posting:
 
 1. The application creates the author's `APP_USER`.
-2. The application creates the operational study.
-3. The application creates the creator's study membership.
-4. A non-PI creator receives `STUDY_TEAM_MEMBER`.
-5. A creator who is the current imported PI receives `PRINCIPAL_INVESTIGATOR`.
+1. The application creates the operational study.
+1. The application creates the creator's study membership.
+1. A non-PI creator receives `STUDY_TEAM_MEMBER`.
+1. A creator who is the current imported PI receives `PRINCIPAL_INVESTIGATOR`.
 
 An abandoned or failed attempt does not by itself prove that an `APP_USER` was created.
 
 ## `USER_TYPE` as a current-state sanity check
 
-The analytical report may include a `USER_TYPE` field indicating whether the attempt username currently appears in `APP_USER`.
+The analytical report may include a `USER_TYPE` field indicating whether the attempt username
+currently appears in `APP_USER`.
 
 The correct current-state derivation is:
 
@@ -149,9 +151,9 @@ APP_USER.USER_NAME
 
 It must not depend on membership in the attempted study.
 
-| Value | Meaning at report execution |
-|---|---|
-| `EXISTED` | The username currently has an `APP_USER` |
+| Value          | Meaning at report execution                       |
+| -------------- | ------------------------------------------------- |
+| `EXISTED`      | The username currently has an `APP_USER`          |
 | `NON_EXISTENT` | The username currently has no matching `APP_USER` |
 
 This field is only a current-state sanity check.
@@ -161,11 +163,11 @@ It is not historically stable.
 Example:
 
 1. A new user makes two unsuccessful attempts.
-2. No `APP_USER` exists.
-3. A report executed at that time returns `NON_EXISTENT`.
-4. The same user later successfully creates a study.
-5. The application creates the user's `APP_USER`.
-6. A later report returns `EXISTED` for all earlier attempts by that username.
+1. No `APP_USER` exists.
+1. A report executed at that time returns `NON_EXISTENT`.
+1. The same user later successfully creates a study.
+1. The application creates the user's `APP_USER`.
+1. A later report returns `EXISTED` for all earlier attempts by that username.
 
 The field must not be interpreted as:
 
@@ -277,7 +279,8 @@ AI_ERROR_THEN_MANUAL_COMPLETE
 AI_ERROR_THEN_DROPPED
 ```
 
-These categories must be derived from separate facts rather than used as the only analytical representation.
+These categories must be derived from separate facts rather than used as the only analytical
+representation.
 
 Do not treat `LATENCY_MS = 0` as definitive proof of an AI error unless that rule is validated.
 
@@ -314,9 +317,9 @@ Do not silently collapse it with row ranking.
 For an AI-assisted attempt:
 
 1. The generation request creates the generation row.
-2. Successful generation stores suggestions and metadata.
-3. The Study Information page displays suggestions.
-4. Study Information submission captures:
+1. Successful generation stores suggestions and metadata.
+1. The Study Information page displays suggestions.
+1. Study Information submission captures:
    - Selected suggestions
    - Optional feedback
    - Study Information page duration
@@ -331,9 +334,11 @@ LLM_SUGGESTIONS
 
 `SELECTED_SUGGESTIONS` records what the user selected when submitting Study Information.
 
-`FINAL_SUBMISSION` records authoritative final Study Information values after final eligibility submission.
+`FINAL_SUBMISSION` records authoritative final Study Information values after final eligibility
+submission.
 
-The user may edit a populated value after selecting a suggestion, so these values are not necessarily equal.
+The user may edit a populated value after selecting a suggestion, so these values are not
+necessarily equal.
 
 ## Study linkage
 
@@ -370,7 +375,8 @@ A conservative attempt-to-study attribution should require:
 - The attempt completed.
 - The study has the same `study_num`.
 - The study creator is the attempt author.
-- The study creation time is within the attempt interval or a validated persistence tolerance after `END_TIME`.
+- The study creation time is within the attempt interval or a validated persistence tolerance after
+  `END_TIME`.
 
 Any timing tolerance must be empirically validated.
 
@@ -400,7 +406,8 @@ STUDY_POSTING_AUDIT.START_TIME
 
 Current and backup login tables should first be filtered by a distinct author list.
 
-Do not join every login row directly to every posting attempt before aggregation because that multiplies login records for users with multiple attempts.
+Do not join every login row directly to every posting attempt before aggregation because that
+multiplies login records for users with multiple attempts.
 
 Recommended attempt-time login fields include:
 
@@ -420,7 +427,8 @@ lifetime_login_days_at_extract
 has_zero_user_id_login_ever
 ```
 
-A zero login-audit user ID is evidence that a login occurred without a matching application user at that time.
+A zero login-audit user ID is evidence that a login occurred without a matching application user at
+that time.
 
 ## Author experience
 
@@ -449,7 +457,8 @@ member_of_other_studies_at_extract
 lifetime_login_days_at_extract
 ```
 
-Lifetime values may contain information from after earlier attempts and must not be used as pre-attempt predictors without adjustment.
+Lifetime values may contain information from after earlier attempts and must not be used as
+pre-attempt predictors without adjustment.
 
 ## Attempt sequence
 
@@ -516,7 +525,8 @@ Other
 
 The AI prompt is stored in `APPLICATION_SETTING` and may change.
 
-It may request a particular number of suggestions, but that requested count is not a database constraint.
+It may request a particular number of suggestions, but that requested count is not a database
+constraint.
 
 Analyses must distinguish:
 
@@ -679,7 +689,8 @@ It is not a measure of content generated by the current AI feature.
 
 Final eligibility criteria generally exist only after successful posting creation.
 
-Do not attach criteria from a later successful attempt to an earlier incomplete attempt as though the earlier attempt authored those criteria.
+Do not attach criteria from a later successful attempt to an earlier incomplete attempt as though
+the earlier attempt authored those criteria.
 
 Recommended fields include:
 
@@ -690,7 +701,8 @@ complexity_source_study_id
 later_successful_study_complexity_flag
 ```
 
-Using later study complexity for an earlier incomplete attempt is a sensitivity analysis rather than a direct attempt-time observation.
+Using later study complexity for an earlier incomplete attempt is a sensitivity analysis rather than
+a direct attempt-time observation.
 
 ## HR enrichment
 

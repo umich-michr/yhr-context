@@ -53,8 +53,8 @@ Activation:
 - Initiates asynchronous lifecycle-notification handling
 - Initiates applicable match recomputation
 
-A study team member cannot activate the study or assign a new activation range
-while `PUBLISHABLE = 0`.
+A study team member cannot activate the study or assign a new activation range while
+`PUBLISHABLE = 0`.
 
 ## Manual deactivation
 
@@ -69,8 +69,7 @@ Manual deactivation:
 - Closes the current active interval
 - Initiates asynchronous lifecycle-notification handling
 
-The enrollment question is displayed, but the user may indicate that the value
-is unknown.
+The enrollment question is displayed, but the user may indicate that the value is unknown.
 
 Total enrollment is stored through `STUDY_PROPERTY_VALUE`.
 
@@ -78,27 +77,23 @@ There is no separate manual-deactivation Boolean.
 
 ## Date-based expiration
 
-The study becomes inactive when the current date/time is later than its
-deactivation boundary.
+The study becomes inactive when the current date/time is later than its deactivation boundary.
 
-Scheduled processing detects time-based transitions, updates active intervals,
-removes expired studies from active in-memory matching data, and initiates
-applicable notifications.
+Scheduled processing detects time-based transitions, updates active intervals, removes expired
+studies from active in-memory matching data, and initiates applicable notifications.
 
-After the deactivation boundary has passed, publishability returning to `1`
-cannot reactivate the study unless a study member explicitly sets a new
-activation range.
+After the deactivation boundary has passed, publishability returning to `1` cannot reactivate the
+study unless a study member explicitly sets a new activation range.
 
 ## Upcoming-deactivation warning
 
-The current PI receives an email warning approximately one week before the
-configured deactivation date.
+The current PI receives an email warning approximately one week before the configured deactivation
+date.
 
-This warning is separate from the notification generated after the study
-actually becomes inactive.
+This warning is separate from the notification generated after the study actually becomes inactive.
 
-The warning gives the study team an opportunity to review recruitment and, when
-permitted, establish an appropriate future deactivation date before expiration.
+The warning gives the study team an opportunity to review recruitment and, when permitted, establish
+an appropriate future deactivation date before expiration.
 
 ## Governance-driven inactivation
 
@@ -117,11 +112,10 @@ When `PUBLISHABLE` changes to `0`:
 
 ## Automatic reactivation
 
-When `PUBLISHABLE` changes from `0` to `1`, the application recalculates active
-status.
+When `PUBLISHABLE` changes from `0` to `1`, the application recalculates active status.
 
-Automatic reactivation occurs only if the unchanged activation range still
-contains the current date/time.
+Automatic reactivation occurs only if the unchanged activation range still contains the current
+date/time.
 
 When automatically reactivated:
 
@@ -130,16 +124,14 @@ When automatically reactivated:
 - A new active interval is created.
 - Delayed lifecycle-notification handling begins.
 
-If the deactivation boundary has passed, publishability alone cannot reactivate
-the study.
+If the deactivation boundary has passed, publishability alone cannot reactivate the study.
 
-Manual deactivation therefore prevents future automatic reactivation unless the
-study team explicitly establishes a new activation range.
+Manual deactivation therefore prevents future automatic reactivation unless the study team
+explicitly establishes a new activation range.
 
 ## Active intervals
 
-`STUDY_ACTIVE_INTERVAL` records periods during which the derived study state was
-active.
+`STUDY_ACTIVE_INTERVAL` records periods during which the derived study state was active.
 
 An interval is created or closed whenever the derived state changes because of:
 
@@ -169,11 +161,11 @@ Example:
 ACTIVE → INACTIVE → ACTIVE within one day
 ```
 
-The operational transitions and active intervals may still occur, but a
-stable-state PI notification is not sent for the transient change.
+The operational transitions and active intervals may still occur, but a stable-state PI notification
+is not sent for the transient change.
 
-If the changed state remains beyond the stabilization period, the applicable PI
-notification is sent.
+If the changed state remains beyond the stabilization period, the applicable PI notification is
+sent.
 
 ## Effects of date-based inactivity
 
@@ -185,11 +177,9 @@ When a study is inactive by date but remains publishable:
 - It is removed from active in-memory matching data
 - New Ask if interested actions are blocked
 - New expressions of interest are blocked
-- Historical interested-participant data remains available for active
-  participants
+- Historical interested-participant data remains available for active participants
 - Existing conversations remain visible
-- New exports of otherwise visible historical interested-participant data
-  remain permitted
+- New exports of otherwise visible historical interested-participant data remain permitted
 
 The application does not retain a server-side historical export file.
 

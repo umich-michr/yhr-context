@@ -15,7 +15,8 @@ relevant_when:
 
 # AI-Assisted Study Posting Authoring Effectiveness
 
-The AI-assisted Study Information feature is intended to reduce study-team effort while improving the usability and completeness of participant-facing study postings.
+The AI-assisted Study Information feature is intended to reduce study-team effort while improving
+the usability and completeness of participant-facing study postings.
 
 ## Theory of benefit
 
@@ -136,7 +137,8 @@ Exploratory downstream outcomes may include:
 - Study-team promotion activity
 - Interested-participant workflow progression
 
-These outcomes are strongly confounded by study population and design. They should not be attributed to AI without careful adjustment.
+These outcomes are strongly confounded by study population and design. They should not be attributed
+to AI without careful adjustment.
 
 ## Suggestion funnel
 
@@ -205,7 +207,8 @@ Questions include:
 - Are specific suggestions selected more often when the source names an amount?
 - Do users remove amounts from specific suggestions?
 - Do final postings with specific compensation receive more interest?
-- Is that interest associated with lower subsequent eligibility rates or other indicators of poor-fit recruitment?
+- Is that interest associated with lower subsequent eligibility rates or other indicators of
+  poor-fit recruitment?
 
 Any analysis of fake or inaccurate profiles requires a defensible operational definition.
 
@@ -288,7 +291,8 @@ It must account for:
 
 Users who have both manual and AI-assisted attempts can support a within-user comparison.
 
-This may reduce confounding from stable user characteristics but not from study complexity or learning over time.
+This may reduce confounding from stable user characteristics but not from study complexity or
+learning over time.
 
 ### Sensitivity analysis
 
@@ -310,20 +314,20 @@ Recommended sensitivity analyses include:
 Potential publication questions include:
 
 1. Does AI assistance reduce Study Information authoring time?
-2. Which Study Information fields receive the most useful AI suggestions?
-3. How does suggestion usefulness vary by user experience and role?
-4. Does source type or source length predict generation quality?
-5. Does AI assistance increase posting completion?
-6. How much of the AI text is retained in final postings?
-7. Do users systematically remove or add certain content?
-8. Does generic versus specific compensation wording affect user selection or recruitment outcomes?
-9. Does eligibility complexity moderate the effect of AI assistance on total creation time?
-10. What workflow bottlenecks become visible only after introducing detailed telemetry?
-11. Do AI errors lead to abandonment or successful retry?
-12. Does source-type agreement between user and LLM predict suggestion usefulness?
-13. Are there organizational differences in adoption or benefit?
-14. Does the feature disproportionately benefit new or infrequent users?
-15. Does AI assistance change participant-facing readability or completeness?
+1. Which Study Information fields receive the most useful AI suggestions?
+1. How does suggestion usefulness vary by user experience and role?
+1. Does source type or source length predict generation quality?
+1. Does AI assistance increase posting completion?
+1. How much of the AI text is retained in final postings?
+1. Do users systematically remove or add certain content?
+1. Does generic versus specific compensation wording affect user selection or recruitment outcomes?
+1. Does eligibility complexity moderate the effect of AI assistance on total creation time?
+1. What workflow bottlenecks become visible only after introducing detailed telemetry?
+1. Do AI errors lead to abandonment or successful retry?
+1. Does source-type agreement between user and LLM predict suggestion usefulness?
+1. Are there organizational differences in adoption or benefit?
+1. Does the feature disproportionately benefit new or infrequent users?
+1. Does AI assistance change participant-facing readability or completeness?
 
 ## Avoiding unsupported conclusions
 

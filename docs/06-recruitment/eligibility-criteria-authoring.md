@@ -16,11 +16,11 @@ relevant_when:
 
 # Eligibility-Criteria Authoring
 
-Study eligibility criteria determine whether a participant is an exact match, a
-partial match, or not a match.
+Study eligibility criteria determine whether a participant is an exact match, a partial match, or
+not a match.
 
-The underlying data model supports more complex criteria and clause structures
-than the current authoring interface exposes.
+The underlying data model supports more complex criteria and clause structures than the current
+authoring interface exposes.
 
 ## Who to recruit
 
@@ -50,8 +50,7 @@ Study eligibility =
     OR ...
 ```
 
-If no groups are saved, the study has no group-specific structured eligibility
-expressions.
+If no groups are saved, the study has no group-specific structured eligibility expressions.
 
 ## Inclusion and exclusion in one group
 
@@ -78,8 +77,8 @@ Inclusion result =
     AND ...
 ```
 
-Blank controls do not add an expression and therefore do not restrict the
-participant for that property.
+Blank controls do not add an expression and therefore do not restrict the participant for that
+property.
 
 ## Exclusion logic
 
@@ -123,16 +122,14 @@ Current controls include:
 
 ## Legacy medication and treatment criteria
 
-The current UI does not support selecting actual medications or treatments as
-matching criteria.
+The current UI does not support selecting actual medications or treatments as matching criteria.
 
 The current UI supports only:
 
 - Willingness to change medications
 - Willingness to take experimental drugs
 
-Historical data may contain actual medication or treatment criteria produced by
-a legacy interface.
+Historical data may contain actual medication or treatment criteria produced by a legacy interface.
 
 Those historical combinations must not be treated as current authoring behavior.
 
@@ -153,12 +150,12 @@ The study team may enter:
 - Maximum only
 - Both bounds
 
-| Variable | Unit | Input |
-|---|---|---|
-| `AGE` | Years | Nonnegative whole number |
-| `HEIGHT` | Inches | Nonnegative whole number |
-| `WEIGHT` | Pounds | Nonnegative whole number |
-| `BMI` | Unitless | Nonnegative decimal |
+| Variable | Unit     | Input                    |
+| -------- | -------- | ------------------------ |
+| `AGE`    | Years    | Nonnegative whole number |
+| `HEIGHT` | Inches   | Nonnegative whole number |
+| `WEIGHT` | Pounds   | Nonnegative whole number |
+| `BMI`    | Unitless | Nonnegative decimal      |
 
 See [Criterion Operator and Value Reference](../07-data-model/criterion-operator-reference.md).
 
@@ -177,8 +174,7 @@ The current values come from the visible `MEDICAL_CONDITION` lookup vocabulary.
 
 ## OTHER free text
 
-OTHER allows participant-facing criteria that cannot be evaluated by structured
-matching.
+OTHER allows participant-facing criteria that cannot be evaluated by structured matching.
 
 OTHER text:
 
@@ -197,8 +193,8 @@ Expression connector = AND
 Clause connector = TERMINAL
 ```
 
-The current UI does not allow study teams to author arbitrary clause trees or
-choose general-purpose clause connectors.
+The current UI does not allow study teams to author arbitrary clause trees or choose general-purpose
+clause connectors.
 
 ## Data-model capability
 
@@ -209,11 +205,10 @@ The underlying criteria model supports:
 - Clause-level connectors
 - More general AND/OR structures
 
-A multi-clause example describes the capability of the data model or historical
-data. It does not describe what the current eligibility-authoring UI creates.
+A multi-clause example describes the capability of the data model or historical data. It does not
+describe what the current eligibility-authoring UI creates.
 
-Documentation must not infer current UI functionality solely from the more
-flexible database model.
+Documentation must not infer current UI functionality solely from the more flexible database model.
 
 ## Matching results
 
@@ -235,7 +230,8 @@ Historical and current criteria data may differ because:
 - The data model supports structures not exposed by the current UI
 - Current UI data normally contains one clause per group
 
-See [Eligibility-Criteria Authoring Complexity](../08-operations/eligibility-criteria-authoring-complexity.md).
+See
+[Eligibility-Criteria Authoring Complexity](../08-operations/eligibility-criteria-authoring-complexity.md).
 
 ## Related pages
 

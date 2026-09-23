@@ -36,8 +36,8 @@ The study team remains responsible for reviewing, editing, and submitting the fi
 Study-posting creation has three main UI steps:
 
 1. Add Study
-2. Study Information
-3. Inclusion/Exclusion Criteria
+1. Study Information
+1. Inclusion/Exclusion Criteria
 
 Beginning Add Study creates a posting-attempt audit record.
 
@@ -50,43 +50,46 @@ The operational study is not created until successful final eligibility submissi
 When the user declines AI assistance:
 
 1. Add Study creates `STUDY_POSTING_AUDIT`.
-2. No `STUDY_POSTING_GENERATION_AUDIT` is created.
-3. The Study Information form is displayed without suggestions.
-4. The user enters and submits Study Information manually.
-5. The application captures the Study Information page duration.
-6. The user manually authors eligibility criteria.
-7. Successful final submission creates the operational posting.
+1. No `STUDY_POSTING_GENERATION_AUDIT` is created.
+1. The Study Information form is displayed without suggestions.
+1. The user enters and submits Study Information manually.
+1. The application captures the Study Information page duration.
+1. The user manually authors eligibility criteria.
+1. Successful final submission creates the operational posting.
 
 ### AI-assisted path
 
 When the user enables AI assistance:
 
 1. Add Study creates `STUDY_POSTING_AUDIT`.
-2. The application sends source content and the configured prompt to the AI service.
-3. The application creates one `STUDY_POSTING_GENERATION_AUDIT`.
-4. The generation row stores the generated suggestions and response metadata when generation succeeds.
-5. The Study Information form displays the suggestions.
-6. The user may select, ignore, or edit suggestions.
-7. Study Information submission captures:
+1. The application sends source content and the configured prompt to the AI service.
+1. The application creates one `STUDY_POSTING_GENERATION_AUDIT`.
+1. The generation row stores the generated suggestions and response metadata when generation
+   succeeds.
+1. The Study Information form displays the suggestions.
+1. The user may select, ignore, or edit suggestions.
+1. Study Information submission captures:
    - Selected suggestions
    - Optional feedback
    - Study Information page duration
-8. The user manually authors eligibility criteria.
-9. Successful final submission stores final Study Information values and creates the operational posting.
+1. The user manually authors eligibility criteria.
+1. Successful final submission stores final Study Information values and creates the operational
+   posting.
 
 ## AI-generation error path
 
 If the AI request fails:
 
 1. The posting attempt retains its `STUDY_POSTING_AUDIT`.
-2. The attempt retains its `STUDY_POSTING_GENERATION_AUDIT`.
-3. One `STUDY_POSTING_GENERATION_AUDIT_ERROR` is associated with the generation row.
-4. The application displays the Study Information page without suggestions.
-5. The application displays an AI-generation error message.
-6. The user may continue entering Study Information manually within that same posting attempt.
-7. The attempt may still be completed successfully.
+1. The attempt retains its `STUDY_POSTING_GENERATION_AUDIT`.
+1. One `STUDY_POSTING_GENERATION_AUDIT_ERROR` is associated with the generation row.
+1. The application displays the Study Information page without suggestions.
+1. The application displays an AI-generation error message.
+1. The user may continue entering Study Information manually within that same posting attempt.
+1. The attempt may still be completed successfully.
 
-If the user returns to Add Study and tries again, the application creates a new posting-attempt audit row.
+If the user returns to Add Study and tries again, the application creates a new posting-attempt
+audit row.
 
 It does not create another generation row under the original attempt.
 
@@ -146,7 +149,8 @@ flowchart TD
 
 For a manual attempt, the feedback request has no generation row to update.
 
-For an AI-assisted attempt, the selected-suggestion and feedback information belongs to the generation row.
+For an AI-assisted attempt, the selected-suggestion and feedback information belongs to the
+generation row.
 
 ## Generation cardinality
 
@@ -174,7 +178,8 @@ AI assistance is optional.
 
 The current UI permits AI assistance only at the beginning of the posting workflow.
 
-If the user declines AI assistance, it cannot be enabled from a later posting step within that attempt.
+If the user declines AI assistance, it cannot be enabled from a later posting step within that
+attempt.
 
 The application makes at most one AI generation request for one posting attempt.
 
@@ -207,11 +212,11 @@ This permits comparison of:
 
 Current production values are:
 
-| Value | Meaning |
-|---|---|
-| `PDF_FILE` | Source content came from a PDF upload |
-| `DOCX_FILE` | Source content came from a Word document upload |
-| `RAW_TXT` | Source content was supplied to generation as raw text |
+| Value       | Meaning                                               |
+| ----------- | ----------------------------------------------------- |
+| `PDF_FILE`  | Source content came from a PDF upload                 |
+| `DOCX_FILE` | Source content came from a Word document upload       |
+| `RAW_TXT`   | Source content was supplied to generation as raw text |
 
 Source-input method is separate from semantic source type.
 
@@ -265,7 +270,8 @@ Displayed suggestion count
 Selected suggestion count
 ```
 
-Analyses must count actual stored suggestions rather than assume that every response contains exactly the number requested by the prompt.
+Analyses must count actual stored suggestions rather than assume that every response contains
+exactly the number requested by the prompt.
 
 ## Initial posting-attempt audit
 
@@ -356,7 +362,8 @@ The requested cardinality may change when the prompt changes.
 
 The application audit records actual returned and selected values.
 
-Documentation and analytics must not describe prompt-requested cardinality as a guaranteed stored cardinality.
+Documentation and analytics must not describe prompt-requested cardinality as a guaranteed stored
+cardinality.
 
 ## Selection versus final value
 
@@ -365,10 +372,10 @@ Selecting a suggestion does not make it final.
 Example:
 
 1. AI suggests locations A, B, and C.
-2. The user selects A, B, and C.
-3. The form is populated with A, B, and C.
-4. The user removes C and adds F.
-5. The final submitted locations are A, B, and F.
+1. The user selects A, B, and C.
+1. The form is populated with A, B, and C.
+1. The user removes C and adds F.
+1. The final submitted locations are A, B, and F.
 
 The audit therefore preserves:
 
@@ -382,7 +389,8 @@ For free text, the user may select a suggestion and then edit the populated text
 
 ## Selection and feedback capture
 
-When Study Information is submitted, selected suggestions and optional feedback are captured for the AI-assisted attempt.
+When Study Information is submitted, selected suggestions and optional feedback are captured for the
+AI-assisted attempt.
 
 Endpoint:
 
@@ -420,7 +428,8 @@ Simplified payload:
 
 Feedback is optional.
 
-Selected suggestions are captured at Study Information submission rather than inferred from the final posting.
+Selected suggestions are captured at Study Information submission rather than inferred from the
+final posting.
 
 ## Study Information timing
 
@@ -440,7 +449,8 @@ Example payload:
 }
 ```
 
-This client-reported duration is stored separately from total attempt duration derived from server timestamps.
+This client-reported duration is stored separately from total attempt duration derived from server
+timestamps.
 
 ## Eligibility-criteria step
 

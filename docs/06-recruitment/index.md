@@ -9,15 +9,15 @@ status: authoritative
 The recruitment lifecycle includes:
 
 1. Public study discovery
-2. Participant profile and study-interest matching
-3. Study-team promotion through Ask if interested
-4. Participant expression of interest
-5. Temporal profile refresh
-6. Eligibility recheck
-7. Screening-questionnaire capture
-8. Interested-participant workflow management
-9. Study-team-initiated messaging
-10. Labels, notifications, and exports
+1. Participant profile and study-interest matching
+1. Study-team promotion through Ask if interested
+1. Participant expression of interest
+1. Temporal profile refresh
+1. Eligibility recheck
+1. Screening-questionnaire capture
+1. Interested-participant workflow management
+1. Study-team-initiated messaging
+1. Labels, notifications, and exports
 
 ```mermaid
 flowchart LR

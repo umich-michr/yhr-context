@@ -14,7 +14,8 @@ relevant_when:
 
 # Criterion Variable Reference
 
-`CRITERION_VARIABLE` defines the variables available to the application's generic criteria-expression model.
+`CRITERION_VARIABLE` defines the variables available to the application's generic
+criteria-expression model.
 
 The table is not limited to study eligibility criteria.
 
@@ -25,7 +26,8 @@ Its vocabulary includes variables associated with:
 - Study-information properties
 - Other criteria-based application functions
 
-The presence of a variable in this table does not, by itself, establish that the variable is currently exposed by the eligibility-authoring UI.
+The presence of a variable in this table does not, by itself, establish that the variable is
+currently exposed by the eligibility-authoring UI.
 
 UI availability and supported operators must be documented separately.
 
@@ -41,37 +43,37 @@ ORDER BY name;
 
 ## Current reference values
 
-| ID | Name |
-|---:|---|
-| 435 | `ABOUT_STUDY` |
-| 401 | `AGE` |
-| 437 | `ARCHIVED_DATE` |
-| 403 | `BMI` |
-| 423 | `COMPENSATION` |
-| 431 | `DATE_OF_BIRTH` |
-| 436 | `DEPARTMENT` |
-| 433 | `DUE_DATE` |
-| 413 | `FLUENCY_IN_ENGLISH` |
-| 400 | `GENDER` |
-| 415 | `HAS_METAL_IMPLANTS` |
-| 402 | `HEIGHT` |
-| 426 | `LOCATIONS` |
-| 424 | `OFFERS_COMPENSATION` |
-| 410 | `OTHER` |
-| 438 | `PARENT_OR_GUARDIAN_OF_A_CHILD` |
-| 414 | `PAST_MEDICAL_CONDITION` |
-| 405 | `PREGNANT_AT_THE_TIME_OF_ENROLLMENT` |
-| 404 | `PRESENT_MEDICAL_CONDITION` |
-| 428 | `PRINCIPAL_INVESTIGATOR` |
-| 411 | `RACE` |
-| 407 | `SMOKING_STATUS` |
-| 421 | `STUDY_DESCRIPTION` |
-| 422 | `STUDY_PURPOSE` |
-| 420 | `STUDY_TITLE` |
+|  ID | Name                                              |
+| --: | ------------------------------------------------- |
+| 435 | `ABOUT_STUDY`                                     |
+| 401 | `AGE`                                             |
+| 437 | `ARCHIVED_DATE`                                   |
+| 403 | `BMI`                                             |
+| 423 | `COMPENSATION`                                    |
+| 431 | `DATE_OF_BIRTH`                                   |
+| 436 | `DEPARTMENT`                                      |
+| 433 | `DUE_DATE`                                        |
+| 413 | `FLUENCY_IN_ENGLISH`                              |
+| 400 | `GENDER`                                          |
+| 415 | `HAS_METAL_IMPLANTS`                              |
+| 402 | `HEIGHT`                                          |
+| 426 | `LOCATIONS`                                       |
+| 424 | `OFFERS_COMPENSATION`                             |
+| 410 | `OTHER`                                           |
+| 438 | `PARENT_OR_GUARDIAN_OF_A_CHILD`                   |
+| 414 | `PAST_MEDICAL_CONDITION`                          |
+| 405 | `PREGNANT_AT_THE_TIME_OF_ENROLLMENT`              |
+| 404 | `PRESENT_MEDICAL_CONDITION`                       |
+| 428 | `PRINCIPAL_INVESTIGATOR`                          |
+| 411 | `RACE`                                            |
+| 407 | `SMOKING_STATUS`                                  |
+| 421 | `STUDY_DESCRIPTION`                               |
+| 422 | `STUDY_PURPOSE`                                   |
+| 420 | `STUDY_TITLE`                                     |
 | 425 | `TYPE_OF_RESEARCH_PATIENTS_THIS_STUDY_IS_SEEKING` |
-| 412 | `WEIGHT` |
-| 418 | `WILLING_TO_CHANGE_MEDICATIONS` |
-| 417 | `WILLING_TO_TAKE_EXPERIMENTAL_DRUGS` |
+| 412 | `WEIGHT`                                          |
+| 418 | `WILLING_TO_CHANGE_MEDICATIONS`                   |
+| 417 | `WILLING_TO_TAKE_EXPERIMENTAL_DRUGS`              |
 
 ## Eligibility-authoring variables
 
@@ -114,7 +116,8 @@ Current eligibility-form exposure and operator mappings are documented in:
 - [Eligibility-Criteria Authoring](../06-recruitment/eligibility-criteria-authoring.md)
 - [Criterion Operator and Value Reference](criterion-operator-reference.md)
 
-The operator reference, rather than historical operator combinations alone, is authoritative for the current UI.
+The operator reference, rather than historical operator combinations alone, is authoritative for the
+current UI.
 
 ## Study-information variables
 
@@ -135,9 +138,11 @@ STUDY_TITLE
 TYPE_OF_RESEARCH_PATIENTS_THIS_STUDY_IS_SEEKING
 ```
 
-Study Information form values are persisted through the generic study-property model documented in [Study Property Model](study-property-model.md).
+Study Information form values are persisted through the generic study-property model documented in
+[Study Property Model](study-property-model.md).
 
-A variable having a corresponding name in `CRITERION_VARIABLE` does not mean that the Study Information form stores its value directly in `CRITERION_VARIABLE`.
+A variable having a corresponding name in `CRITERION_VARIABLE` does not mean that the Study
+Information form stores its value directly in `CRITERION_VARIABLE`.
 
 ## Participant-profile variables
 
@@ -162,7 +167,8 @@ WILLING_TO_CHANGE_MEDICATIONS
 WILLING_TO_TAKE_EXPERIMENTAL_DRUGS
 ```
 
-The matching engine uses a criterion variable to identify which participant or study property must be evaluated.
+The matching engine uses a criterion variable to identify which participant or study property must
+be evaluated.
 
 ## IDs and names
 
@@ -173,9 +179,11 @@ Database analyses should retain both:
 - `CRITERION_VARIABLE.ID`
 - `CRITERION_VARIABLE.NAME`
 
-The numeric ID is required for database relationships, while the name makes analytical output interpretable.
+The numeric ID is required for database relationships, while the name makes analytical output
+interpretable.
 
-Neither an analytical query nor an external integration should assume that the IDs are identical across unrelated institutional deployments unless that consistency is explicitly guaranteed.
+Neither an analytical query nor an external integration should assume that the IDs are identical
+across unrelated institutional deployments unless that consistency is explicitly guaranteed.
 
 ## Related pages
 

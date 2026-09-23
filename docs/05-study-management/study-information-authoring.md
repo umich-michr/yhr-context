@@ -116,7 +116,8 @@ The following required selection occurs on the eligibility-authoring page:
 - Participants with specific conditions
 - Both
 
-The selected participant type is stored as a study property even though it is authored during the next workflow step.
+The selected participant type is stored as a study property even though it is authored during the
+next workflow step.
 
 See [Eligibility-Criteria Authoring](../06-recruitment/eligibility-criteria-authoring.md).
 

@@ -1,7 +1,7 @@
 # YourHealthResearch.org Application Context
 
-This repository contains functional, architectural, governance, data-model,
-support, and analytics documentation for YourHealthResearch.org.
+This repository contains functional, architectural, governance, data-model, support, and analytics
+documentation for YourHealthResearch.org.
 
 ## Project model
 
@@ -66,8 +66,7 @@ The project environment is stored in:
 .venv/
 ```
 
-Developers normally do not need to activate it. Make targets use `uv run`
-automatically.
+Developers normally do not need to activate it. Make targets use `uv run` automatically.
 
 ## Install uv
 
@@ -106,12 +105,11 @@ make setup
 `make setup`:
 
 1. Creates `uv.lock` if it does not exist.
-2. Creates or updates `.venv`.
-3. Installs locked dependencies.
-4. Installs pre-commit and pre-push hooks.
+1. Creates or updates `.venv`.
+1. Installs locked dependencies.
+1. Installs pre-commit and pre-push hooks.
 
-Run `make setup` again after `make distclean` or when Git hooks need to be
-reinstalled.
+Run `make setup` again after `make distclean` or when Git hooks need to be reinstalled.
 
 ## Daily workflow
 
@@ -152,23 +150,23 @@ GitHub Actions runs the same validation before deployment.
 
 ## Common commands
 
-| Command | Purpose |
-|---|---|
-| `make help` | List available tasks |
-| `make setup` | Create the environment and install Git hooks |
-| `make sync` | Synchronize `.venv` from `uv.lock` |
-| `make serve` | Run the local MkDocs server |
-| `make generate` | Generate `docs/llms.txt` |
-| `make validate` | Validate context routing and generated LLM links |
-| `make build` | Validate and build the strict MkDocs site |
-| `make check` | Run the complete validation workflow |
-| `make audit` | Audit Python dependencies for known vulnerabilities |
-| `make outdated` | Show outdated Python dependencies |
-| `make upgrade` | Upgrade Python dependencies within declared constraints |
-| `make hooks` | Install pre-commit and pre-push Git hooks |
+| Command              | Purpose                                                    |
+| -------------------- | ---------------------------------------------------------- |
+| `make help`          | List available tasks                                       |
+| `make setup`         | Create the environment and install Git hooks               |
+| `make sync`          | Synchronize `.venv` from `uv.lock`                         |
+| `make serve`         | Run the local MkDocs server                                |
+| `make generate`      | Generate `docs/llms.txt`                                   |
+| `make validate`      | Validate context routing and generated LLM links           |
+| `make build`         | Validate and build the strict MkDocs site                  |
+| `make check`         | Run the complete validation workflow                       |
+| `make audit`         | Audit Python dependencies for known vulnerabilities        |
+| `make outdated`      | Show outdated Python dependencies                          |
+| `make upgrade`       | Upgrade Python dependencies within declared constraints    |
+| `make hooks`         | Install pre-commit and pre-push Git hooks                  |
 | `make upgrade-hooks` | Upgrade remote pre-commit hook revisions and validate them |
-| `make clean` | Remove generated files and caches |
-| `make distclean` | Also remove `.venv` |
+| `make clean`         | Remove generated files and caches                          |
+| `make distclean`     | Also remove `.venv`                                        |
 
 ## Dependency management
 
@@ -198,8 +196,7 @@ make outdated
 
 This reports packages for which newer releases are available.
 
-An available version may still be excluded by the compatibility constraints in
-`pyproject.toml`.
+An available version may still be excluded by the compatibility constraints in `pyproject.toml`.
 
 ### Upgrade dependencies
 
@@ -212,9 +209,9 @@ make upgrade
 This:
 
 1. Resolves the latest versions permitted by `pyproject.toml`.
-2. Updates `uv.lock`.
-3. Synchronizes `.venv`.
-4. Runs the complete project checks.
+1. Updates `uv.lock`.
+1. Synchronizes `.venv`.
+1. Runs the complete project checks.
 
 `make upgrade` does not automatically cross declared major-version boundaries.
 
@@ -256,8 +253,7 @@ make check
 
 Review release notes and compatibility before committing the change.
 
-Do not remove the MkDocs `<2.0` constraint unless the documentation stack is
-intentionally migrated.
+Do not remove the MkDocs `<2.0` constraint unless the documentation stack is intentionally migrated.
 
 ## Pre-commit hook maintenance
 
@@ -267,8 +263,7 @@ The hook configuration is:
 .pre-commit-config.yaml
 ```
 
-It is not GitHub-specific. The pre-commit tool installs local hook launchers
-under:
+It is not GitHub-specific. The pre-commit tool installs local hook launchers under:
 
 ```text
 .git/hooks/
@@ -299,9 +294,9 @@ make upgrade-hooks
 This:
 
 1. Synchronizes the uv environment.
-2. Updates remote hook revisions in `.pre-commit-config.yaml`.
-3. Runs all configured hooks against applicable files.
-4. Runs the complete documentation checks when configured by the Make target.
+1. Updates remote hook revisions in `.pre-commit-config.yaml`.
+1. Runs all configured hooks against applicable files.
+1. Runs the complete documentation checks when configured by the Make target.
 
 It updates remote hook repositories such as:
 
@@ -309,8 +304,7 @@ It updates remote hook repositories such as:
 repo: https://github.com/pre-commit/pre-commit-hooks
 ```
 
-It does not update local repository hooks implemented by scripts under
-`scripts/`.
+It does not update local repository hooks implemented by scripts under `scripts/`.
 
 Review the result:
 
@@ -339,10 +333,10 @@ make audit
 When a vulnerability is reported:
 
 1. Review the advisory and affected versions.
-2. Upgrade or pin an unaffected compatible release.
-3. Update `uv.lock`.
-4. Run `make check`.
-5. Document accepted risk when required by institutional policy.
+1. Upgrade or pin an unaffected compatible release.
+1. Update `uv.lock`.
+1. Run `make check`.
+1. Document accepted risk when required by institutional policy.
 
 Do not suppress an advisory solely because the documentation site still builds.
 
@@ -357,12 +351,12 @@ make check
 It runs the configured sequence, including:
 
 1. Synchronizing the uv environment.
-2. Validating `docs/context-map.yaml`.
-3. Generating `docs/llms.txt`.
-4. Validating generated LLM links.
-5. Building the site with `mkdocs build --strict`.
-6. Auditing Python dependencies when configured as a blocking check.
-7. Checking Git whitespace errors.
+1. Validating `docs/context-map.yaml`.
+1. Generating `docs/llms.txt`.
+1. Validating generated LLM links.
+1. Building the site with `mkdocs build --strict`.
+1. Auditing Python dependencies when configured as a blocking check.
+1. Checking Git whitespace errors.
 
 Developers and CI use the same Make target.
 
@@ -452,35 +446,34 @@ Use **Python: Select Interpreter** from the VS Code command palette.
 Repository-aware assistants should:
 
 1. Read `docs/context-map.yaml`.
-2. Select the canonical primary page for the topic.
-3. Load related pages only when needed.
-4. Consult `docs/09-decisions/` before inferring undocumented behavior.
-5. Use `docs/01-overview/business-rules.md` for cross-cutting rules or conflict
-   resolution.
+1. Select the canonical primary page for the topic.
+1. Load related pages only when needed.
+1. Consult `docs/09-decisions/` before inferring undocumented behavior.
+1. Use `docs/01-overview/business-rules.md` for cross-cutting rules or conflict resolution.
 
 Documentation statuses are:
 
-| Status | Meaning |
-|---|---|
-| `authoritative` | Confirmed current behavior |
-| `recommended` | Proposed controls or improvements |
-| `mixed` | Confirmed context plus clearly identified proposals |
-| `open` | Unresolved behavior |
+| Status          | Meaning                                             |
+| --------------- | --------------------------------------------------- |
+| `authoritative` | Confirmed current behavior                          |
+| `recommended`   | Proposed controls or improvements                   |
+| `mixed`         | Confirmed context plus clearly identified proposals |
+| `open`          | Unresolved behavior                                 |
 
-Recommended, proposed, mixed-page proposals, and open content must not be
-presented as implemented behavior.
+Recommended, proposed, mixed-page proposals, and open content must not be presented as implemented
+behavior.
 
 ## Documentation editing conventions
 
 When changing application documentation:
 
 1. Update the canonical topic page.
-2. Update `docs/01-overview/business-rules.md` for cross-cutting changes.
-3. Update `docs/context-map.yaml` when routing changes.
-4. Update `docs/09-decisions/` when an open question is added or resolved.
-5. Update diagrams and data-model pages when relationships change.
-6. Prefer concise summaries and links over duplicated explanations.
-7. Run `make check` before committing or pushing.
+1. Update `docs/01-overview/business-rules.md` for cross-cutting changes.
+1. Update `docs/context-map.yaml` when routing changes.
+1. Update `docs/09-decisions/` when an open question is added or resolved.
+1. Update diagrams and data-model pages when relationships change.
+1. Prefer concise summaries and links over duplicated explanations.
+1. Run `make check` before committing or pushing.
 
 ## Publishing
 
@@ -493,8 +486,8 @@ The GitHub Actions workflow is:
 On pushes to `main`, it:
 
 1. Installs uv.
-2. Restores the locked project environment.
-3. Runs the canonical CI validation.
-4. Builds `site/`.
-5. Uploads the GitHub Pages artifact.
-6. Deploys the documentation site.
+1. Restores the locked project environment.
+1. Runs the canonical CI validation.
+1. Builds `site/`.
+1. Uploads the GitHub Pages artifact.
+1. Deploys the documentation site.

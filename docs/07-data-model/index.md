@@ -6,7 +6,8 @@ status: mixed
 
 # Data-Model Overview
 
-The application's data is divided into relational, nonrelational, generated, and external-data areas.
+The application's data is divided into relational, nonrelational, generated, and external-data
+areas.
 
 ## Imported governance data
 
@@ -99,7 +100,8 @@ See:
 
 ## Redis recommendations and exclusions
 
-Current participant-study recommendations and directional exclusions are stored in Redis sorted sets.
+Current participant-study recommendations and directional exclusions are stored in Redis sorted
+sets.
 
 See:
 

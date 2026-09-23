@@ -44,7 +44,8 @@ means matched.
 
 A list-view audit record may identify multiple participant IDs in one viewed-target value.
 
-For example, opening a page containing several matched or interested participant snippets may create one event identifying the participant IDs visible on that page.
+For example, opening a page containing several matched or interested participant snippets may create
+one event identifying the participant IDs visible on that page.
 
 ## Profile-view events
 
@@ -67,7 +68,8 @@ The following actions are not separately recorded as dedicated audit events:
 
 Messages retain sender, recipient, and timestamp as business data.
 
-Export investigations may correlate list/profile-view events with application request logs, but that does not create a definitive export audit event.
+Export investigations may correlate list/profile-view events with application request logs, but that
+does not create a definitive export audit event.
 
 ## Related pages
 

@@ -11,12 +11,11 @@ relevant_when:
 
 # Publishability
 
-`PUBLISHABLE` indicates whether an institution currently permits a study to
-recruit through its branded YourHealthResearch.org platform instance.
+`PUBLISHABLE` indicates whether an institution currently permits a study to recruit through its
+branded YourHealthResearch.org platform instance.
 
-Publishability is study-specific. The existence of a study in an institutional
-IRB system does not necessarily mean that the study may use the application as a
-recruitment method.
+Publishability is study-specific. The existence of a study in an institutional IRB system does not
+necessarily mean that the study may use the application as a recruitment method.
 
 ## Valid values
 
@@ -27,26 +26,24 @@ recruitment method.
 1 = Publishable
 ```
 
-A null, missing, or otherwise invalid publishability value is an application
-error.
+A null, missing, or otherwise invalid publishability value is an application error.
 
 ## Authority
 
 Publishability is determined from institutionally governed information.
 
-At the University of Michigan, the application team works with the eResearch
-team to identify which source data points determine whether a study may recruit
-through UMHealthResearch.org.
+At the University of Michigan, the application team works with the eResearch team to identify which
+source data points determine whether a study may recruit through UMHealthResearch.org.
 
-Other institutions provide equivalent publishability information through their
-incremental CSV imports.
+Other institutions provide equivalent publishability information through their incremental CSV
+imports.
 
 Study team members cannot directly edit the imported publishability value.
 
 ## Relationship to active status
 
-A study's active status depends on both its local recruitment dates and its
-institutionally controlled publishability.
+A study's active status depends on both its local recruitment dates and its institutionally
+controlled publishability.
 
 Conceptually:
 
@@ -77,23 +74,21 @@ When `PUBLISHABLE` changes from `1` to `0`:
 - The study's configured deactivation date is not changed.
 - Delayed lifecycle-notification handling is initiated.
 
-The current implementation uses the imported flag when calculating active
-status. It does not persist a separate local governance-deactivation state.
+The current implementation uses the imported flag when calculating active status. It does not
+persist a separate local governance-deactivation state.
 
 ## Transition to publishable
 
 When `PUBLISHABLE` changes from `0` to `1`:
 
 1. The application recalculates the study's active status.
-2. If the current date remains within the existing activation and deactivation
-   boundaries, the study becomes active automatically.
-3. The study is restored to the active in-memory study collection.
-4. Applicable matching recomputation is initiated.
-5. No separate manual reactivation is required under the current
-   implementation.
+1. If the current date remains within the existing activation and deactivation boundaries, the study
+   becomes active automatically.
+1. The study is restored to the active in-memory study collection.
+1. Applicable matching recomputation is initiated.
+1. No separate manual reactivation is required under the current implementation.
 
-If the deactivation boundary has passed, publishability alone cannot reactivate
-the study.
+If the deactivation boundary has passed, publishability alone cannot reactivate the study.
 
 ## Known governance concern
 
@@ -101,16 +96,15 @@ Automatic reactivation may not satisfy every institutional governance workflow.
 
 Example:
 
-1. The institution requires a study to stop recruitment unless it changes its
-   participant-facing title.
-2. The institution sets `PUBLISHABLE = 0`.
-3. The study becomes inactive.
-4. The study acknowledges the requirement in the institutional system.
-5. The acknowledgment causes `PUBLISHABLE` to return to `1`.
-6. The study team has not yet updated the title in the application.
-7. The original activation and deactivation dates still include the current
-   date.
-8. The study becomes active automatically.
+1. The institution requires a study to stop recruitment unless it changes its participant-facing
+   title.
+1. The institution sets `PUBLISHABLE = 0`.
+1. The study becomes inactive.
+1. The study acknowledges the requirement in the institutional system.
+1. The acknowledgment causes `PUBLISHABLE` to return to `1`.
+1. The study team has not yet updated the title in the application.
+1. The original activation and deactivation dates still include the current date.
+1. The study becomes active automatically.
 
 Possible future approaches include:
 
@@ -137,22 +131,20 @@ Row 3: Study A PUBLISHABLE = 1 and PI changed
 
 Each successfully processed row may update operational application data.
 
-The later successful row overwrites an earlier value when both modify the same
-field. Therefore, after all three rows succeed:
+The later successful row overwrites an earlier value when both modify the same field. Therefore,
+after all three rows succeed:
 
 - Final publishability is `1`.
 - The PI supplied by row 3 is current.
 - Intermediate inactive and active transitions may have occurred.
 
-The application does not first collapse these rows into one final row before
-processing them.
+The application does not first collapse these rows into one final row before processing them.
 
 ## Status-change notifications
 
 Active-status changes participate in delayed notification handling.
 
-A daily scheduled process evaluates lifecycle changes and configured Other
-Announcements recipients.
+A daily scheduled process evaluates lifecycle changes and configured Other Announcements recipients.
 
 The current PI also receives lifecycle-related notifications when applicable.
 
@@ -165,12 +157,11 @@ ACTIVE → INACTIVE → ACTIVE within the stabilization period
     No stable-state PI notification
 ```
 
-If a changed state remains in effect beyond the stabilization period, the PI is
-notified.
+If a changed state remains in effect beyond the stabilization period, the PI is notified.
 
-Because CSV rows are processed sequentially, intermediate transitions may occur
-within one import. Stabilization reduces misleading email about short-lived
-states but does not mean the intermediate operational transitions were skipped.
+Because CSV rows are processed sequentially, intermediate transitions may occur within one import.
+Stabilization reduces misleading email about short-lived states but does not mean the intermediate
+operational transitions were skipped.
 
 ## Incremental-import implications
 
@@ -183,12 +174,10 @@ If a study is absent from a later incremental import:
 
 ## Participant-facing inactive-study behavior
 
-If a participant follows a direct or bookmarked URL for an inactive study
-posting, the application displays a message that the study is no longer
-recruiting.
+If a participant follows a direct or bookmarked URL for an inactive study posting, the application
+displays a message that the study is no longer recruiting.
 
-The study number remains part of the participant-facing URL even when the study
-is inactive.
+The study number remains part of the participant-facing URL even when the study is inactive.
 
 ## Access implications
 
@@ -199,8 +188,7 @@ When the study becomes non-publishable:
 - Study teams cannot access participant information for recruitment.
 - Study teams cannot generate new participant-data exports.
 - Historical interest relationships remain stored.
-- Previously downloaded CSV files cannot be recalled or invalidated by the
-  application.
+- Previously downloaded CSV files cannot be recalled or invalidated by the application.
 
 ## Related pages
 

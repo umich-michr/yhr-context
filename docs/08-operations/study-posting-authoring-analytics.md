@@ -17,7 +17,8 @@ Use this page only as a routing entry point.
 
 ## Data capture and schema
 
-Read [Study-Posting Authoring Audit Model](../07-data-model/study-posting-authoring-audit-model.md) for:
+Read [Study-Posting Authoring Audit Model](../07-data-model/study-posting-authoring-audit-model.md)
+for:
 
 - Posting-attempt audit fields
 - AI-generation audit fields
@@ -70,7 +71,9 @@ Read [Eligibility-Criteria Authoring Complexity](eligibility-criteria-authoring-
 
 ## AI effectiveness
 
-Read [AI-Assisted Study Posting Authoring Effectiveness](ai-assisted-study-posting-authoring-effectiveness.md) for:
+Read
+[AI-Assisted Study Posting Authoring Effectiveness](ai-assisted-study-posting-authoring-effectiveness.md)
+for:
 
 - Adoption
 - Reliability
@@ -83,8 +86,11 @@ Read [AI-Assisted Study Posting Authoring Effectiveness](ai-assisted-study-posti
 
 ## Current feature behavior
 
-Read [AI-Assisted Study Posting Authoring](../05-study-management/ai-assisted-posting-authoring.md) for the implemented UI and API workflow.
+Read [AI-Assisted Study Posting Authoring](../05-study-management/ai-assisted-posting-authoring.md)
+for the implemented UI and API workflow.
 
 ## Open decisions
 
-Read [Study Posting Authoring and Analytics Open Questions](../09-decisions/study-posting-authoring-analytics-open-questions.md) before assuming unresolved measurement or implementation details.
+Read
+[Study Posting Authoring and Analytics Open Questions](../09-decisions/study-posting-authoring-analytics-open-questions.md)
+before assuming unresolved measurement or implementation details.

@@ -16,7 +16,8 @@ relevant_when:
 
 # Redis Match and Exclusion Model
 
-Current participant-study recommendations and directional exclusions are stored in Redis sorted sets.
+Current participant-study recommendations and directional exclusions are stored in Redis sorted
+sets.
 
 ## Naming conventions
 
@@ -38,12 +39,12 @@ Sorted-set scores are timestamps represented as Java long millisecond values.
 
 ## Key summary
 
-| Direction | Key pattern | Member | Score |
-|---|---|---|---|
-| Studies recommended to participant | `vol.rec:<APP_USER.ID>:<MATCH_SOURCE>` | `STUDY.ID` | Match or promotion timestamp |
-| Participants recommended to study | `std.rec:<STUDY.ID>:<MATCH_RESULT>` | `APP_USER.ID` | Match-computation timestamp |
-| Participants excluded from study-side recommendations | `std.exc:<STUDY.ID>` | `<APP_USER.ID>:<REASON>` | Exclusion timestamp |
-| Studies excluded from participant-facing recommendations | `vol.exc:<APP_USER.ID>` | `<STUDY.ID>:<REASON>` | Exclusion timestamp |
+| Direction                                                | Key pattern                            | Member                   | Score                        |
+| -------------------------------------------------------- | -------------------------------------- | ------------------------ | ---------------------------- |
+| Studies recommended to participant                       | `vol.rec:<APP_USER.ID>:<MATCH_SOURCE>` | `STUDY.ID`               | Match or promotion timestamp |
+| Participants recommended to study                        | `std.rec:<STUDY.ID>:<MATCH_RESULT>`    | `APP_USER.ID`            | Match-computation timestamp  |
+| Participants excluded from study-side recommendations    | `std.exc:<STUDY.ID>`                   | `<APP_USER.ID>:<REASON>` | Exclusion timestamp          |
+| Studies excluded from participant-facing recommendations | `vol.exc:<APP_USER.ID>`                | `<STUDY.ID>:<REASON>`    | Exclusion timestamp          |
 
 ## Participant-facing recommendations
 
@@ -69,7 +70,8 @@ A system-generated participant-facing recommendation is stored when:
 - The participant has an exact (`TRUE`) eligibility match.
 - No participant-side exclusion suppresses the pair.
 
-Partial (`MAYBE`) matches are not shown in participant-facing matched-study lists and are not ordinary system-generated participant recommendations.
+Partial (`MAYBE`) matches are not shown in participant-facing matched-study lists and are not
+ordinary system-generated participant recommendations.
 
 The known source token for a system-generated recommendation is:
 
@@ -92,15 +94,18 @@ Result shape:
 
 ### Study-team-promoted recommendations
 
-Ask if interested places the study in a participant-facing recommendation set whose `<MATCH_SOURCE>` distinguishes the promotion from `SYSTEM`.
+Ask if interested places the study in a participant-facing recommendation set whose `<MATCH_SOURCE>`
+distinguishes the promotion from `SYSTEM`.
 
-The exact serialized promotion-source token remains an implementation constant that must be documented from source code.
+The exact serialized promotion-source token remains an implementation constant that must be
+documented from source code.
 
 Ask if interested:
 
 - Does not create participant interest.
 - Presents the study in the study-team-promoted participant bucket.
-- Creates the study-side exclusion reason `ASKED_IF_INTERESTED` to remove the participant from the ordinary study-side recommendation flow.
+- Creates the study-side exclusion reason `ASKED_IF_INTERESTED` to remove the participant from the
+  ordinary study-side recommendation flow.
 
 ## Study-facing participant recommendations
 
@@ -127,7 +132,8 @@ An observed partial-match suffix is:
 0
 ```
 
-The exact serialized suffix for each result category must be documented from implementation constants before assigning semantic names to all possible suffixes.
+The exact serialized suffix for each result category must be documented from implementation
+constants before assigning semantic names to all possible suffixes.
 
 A participant is stored when:
 
@@ -181,11 +187,11 @@ ASKED_IF_INTERESTED
 DISMISSED
 ```
 
-| Reason | Effect |
-|---|---|
+| Reason                   | Effect                                                                                                      |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------- |
 | `ALREADY_SHOWN_INTEREST` | The participant already expressed interest and should not remain in the ordinary study recommendation flow. |
-| `ASKED_IF_INTERESTED` | The study team promoted the study to the participant. |
-| `DISMISSED` | The study team dismissed the participant from its recommendation flow. |
+| `ASKED_IF_INTERESTED`    | The study team promoted the study to the participant.                                                       |
+| `DISMISSED`              | The study team dismissed the participant from its recommendation flow.                                      |
 
 ### Participant-side exclusions
 
@@ -209,11 +215,11 @@ ENROLLED_IN_STUDY
 NOT_INTERESTED
 ```
 
-| Reason | Effect |
-|---|---|
-| `ALREADY_SHOWN_INTEREST` | The participant already expressed interest. |
-| `ENROLLED_IN_STUDY` | The participant is enrolled and the study should not be recommended again. |
-| `NOT_INTERESTED` | The participant indicated that they are not interested. |
+| Reason                   | Effect                                                                     |
+| ------------------------ | -------------------------------------------------------------------------- |
+| `ALREADY_SHOWN_INTEREST` | The participant already expressed interest.                                |
+| `ENROLLED_IN_STUDY`      | The participant is enrolled and the study should not be recommended again. |
+| `NOT_INTERESTED`         | The participant indicated that they are not interested.                    |
 
 ## Multiple exclusion reasons
 
@@ -263,10 +269,13 @@ flowchart TD
 Direction-specific behavior:
 
 - Exact and partial eligibility can produce study-facing recommendations.
-- Exact eligibility plus participant-interest matching can produce a system-generated participant-facing recommendation.
-- Ask if interested can produce a participant-facing promoted recommendation independently of the ordinary system-interest match.
+- Exact eligibility plus participant-interest matching can produce a system-generated
+  participant-facing recommendation.
+- Ask if interested can produce a participant-facing promoted recommendation independently of the
+  ordinary system-interest match.
 - Directional exclusions suppress future recommendation computation in the applicable direction.
-- Participant visibility affects display and authorization rather than all underlying study-facing storage.
+- Participant visibility affects display and authorization rather than all underlying study-facing
+  storage.
 
 ## Match freshness
 

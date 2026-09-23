@@ -11,7 +11,8 @@ relevant_when:
 
 # Study-Team Invitations
 
-Any study team member associated with a study may invite another person who has a valid institutional SAML account.
+Any study team member associated with a study may invite another person who has a valid
+institutional SAML account.
 
 After accepting the invitation, the user receives the study role:
 
@@ -22,15 +23,15 @@ STUDY_TEAM_MEMBER
 ## Invitation workflow
 
 1. An associated study team member creates an invitation.
-2. The application generates a cryptographically secure UUID v4 token.
-3. The application associates the invitation with the study.
-4. The application stores the token and its expiration information.
-5. The application emails a unique invitation link.
-6. The recipient opens the link.
-7. The recipient authenticates through institutional SAML.
-8. The application validates the token and expiration.
-9. The application creates the `STUDY_TEAM_MEMBER` membership.
-10. The application deletes the invitation record after successful membership creation.
+1. The application generates a cryptographically secure UUID v4 token.
+1. The application associates the invitation with the study.
+1. The application stores the token and its expiration information.
+1. The application emails a unique invitation link.
+1. The recipient opens the link.
+1. The recipient authenticates through institutional SAML.
+1. The application validates the token and expiration.
+1. The application creates the `STUDY_TEAM_MEMBER` membership.
+1. The application deletes the invitation record after successful membership creation.
 
 ```mermaid
 sequenceDiagram
@@ -68,18 +69,15 @@ The application should validate expiration after SAML authentication and before 
 
 ## Revocation
 
-An unused invitation is revoked by deleting its invitation record from the
-database.
+An unused invitation is revoked by deleting its invitation record from the database.
 
-After invitation-record deletion, the invitation link can no longer create
-study access.
+After invitation-record deletion, the invitation link can no longer create study access.
 
 ## One-time use
 
 The invitation record is deleted after successful membership creation.
 
-The same invitation cannot be reused after its invitation record has been
-deleted.
+The same invitation cannot be reused after its invitation record has been deleted.
 
 ## Link opening versus invitation acceptance
 
@@ -91,12 +89,12 @@ The invitation should be consumed only after:
 - Successful token validation
 - Successful membership creation
 
-This avoids accidental consumption by automated email-security systems that inspect links before the recipient opens them.
+This avoids accidental consumption by automated email-security systems that inspect links before the
+recipient opens them.
 
 ## Atomic redemption
 
-Membership creation and invitation-record deletion occur as one atomic
-operation.
+Membership creation and invitation-record deletion occur as one atomic operation.
 
 Conceptually:
 
@@ -113,16 +111,15 @@ This prevents simultaneous requests from using the same invitation more than onc
 
 ## Invitation recipient policy
 
-Any SAML-authenticated institutional user who possesses a valid invitation link
-may accept it. The authenticated identity does not need to match the invitation
-email recipient.
+Any SAML-authenticated institutional user who possesses a valid invitation link may accept it. The
+authenticated identity does not need to match the invitation email recipient.
 
 Invitation links are therefore transferable.
 
 ## Resending
 
-An inviter may resend an unused invitation. Resending uses the existing token;
-it does not create a new invitation or invalidate the original link.
+An inviter may resend an unused invitation. Resending uses the existing token; it does not create a
+new invitation or invalidate the original link.
 
 ## Removal after acceptance
 
@@ -142,8 +139,8 @@ The confirmed invitation controls are:
 - Revocation by invitation-record deletion
 - Invitation-record deletion after successful membership creation
 
-The application does not separately audit invitation creation or acceptance.
-Possible optional controls include:
+The application does not separately audit invitation creation or acceptance. Possible optional
+controls include:
 
 - Storing a token hash instead of the raw token
 - Retaining consumed or revoked invitation history

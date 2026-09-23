@@ -15,8 +15,7 @@ relevant_when:
 
 # Study Membership
 
-A study membership associates an institutional `APP_USER` with an operational
-study.
+A study membership associates an institutional `APP_USER` with an operational study.
 
 A valid institutional SAML login does not grant access to every study.
 
@@ -35,17 +34,17 @@ These roles are separate from application-wide roles.
 
 ## Membership sources
 
-| Source | Study role |
-|---|---|
-| Current imported PI assignment | `PRINCIPAL_INVESTIGATOR` |
-| Posting creator who is not the imported PI | `STUDY_TEAM_MEMBER` |
-| Accepted invitation | `STUDY_TEAM_MEMBER` |
-| Authorized backend intervention | Depends on the intervention |
+| Source                                     | Study role                  |
+| ------------------------------------------ | --------------------------- |
+| Current imported PI assignment             | `PRINCIPAL_INVESTIGATOR`    |
+| Posting creator who is not the imported PI | `STUDY_TEAM_MEMBER`         |
+| Accepted invitation                        | `STUDY_TEAM_MEMBER`         |
+| Authorized backend intervention            | Depends on the intervention |
 
 ## Equivalent study permissions
 
-Under the current implementation, `PRINCIPAL_INVESTIGATOR` and
-`STUDY_TEAM_MEMBER` have equivalent study-data permissions.
+Under the current implementation, `PRINCIPAL_INVESTIGATOR` and `STUDY_TEAM_MEMBER` have equivalent
+study-data permissions.
 
 An associated study member may:
 
@@ -90,24 +89,23 @@ The current PI membership:
 When the imported PI changes:
 
 1. The former PI's operational `PRINCIPAL_INVESTIGATOR` membership is removed.
-2. The new PI receives a `PRINCIPAL_INVESTIGATOR` membership.
-3. The new PI becomes the current non-removable PI in ordinary application
-   workflows.
+1. The new PI receives a `PRINCIPAL_INVESTIGATOR` membership.
+1. The new PI becomes the current non-removable PI in ordinary application workflows.
 
 The former PI does not retain access solely because they were previously PI.
 
-If the former PI has a distinct `STUDY_TEAM_MEMBER` relationship established
-through another supported workflow, that separate membership is not the former
-PI relationship and must be evaluated independently.
+If the former PI has a distinct `STUDY_TEAM_MEMBER` relationship established through another
+supported workflow, that separate membership is not the former PI relationship and must be evaluated
+independently.
 
 ## Removability
 
-| Membership | Removable through ordinary UI? |
-|---|---:|
-| Current imported PI | No |
-| Non-PI posting creator | Yes |
-| Invited study team member | Yes |
-| Former PI membership after imported PI change | Removed by reconciliation |
+| Membership                                    | Removable through ordinary UI? |
+| --------------------------------------------- | -----------------------------: |
+| Current imported PI                           |                             No |
+| Non-PI posting creator                        |                            Yes |
+| Invited study team member                     |                            Yes |
+| Former PI membership after imported PI change |      Removed by reconciliation |
 
 ## Removing ordinary members
 
@@ -133,22 +131,20 @@ Can access study =
 
 Current matched-participant access additionally requires an active study.
 
-Historical interested-participant access may remain available when the study is
-inactive by date, provided:
+Historical interested-participant access may remain available when the study is inactive by date,
+provided:
 
 - `PUBLISHABLE = 1`
 - The participant account is active
 - The requested operation remains permitted
 
-When `PUBLISHABLE = 0`, study members cannot access participant information or
-conversations.
+When `PUBLISHABLE = 0`, study members cannot access participant information or conversations.
 
 ## Administrators
 
 Administrators have application-wide access without ordinary study membership.
 
-Administrators cannot create study memberships through ordinary application
-UIs.
+Administrators cannot create study memberships through ordinary application UIs.
 
 ## Related pages
 

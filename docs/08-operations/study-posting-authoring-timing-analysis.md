@@ -17,7 +17,7 @@ relevant_when:
 Study-posting authoring time is available from two sources:
 
 1. Application audit tables
-2. Historical access logs reconstructed through Splunk
+1. Historical access logs reconstructed through Splunk
 
 ## Why both sources are needed
 
@@ -71,7 +71,8 @@ STUDY_POSTING_GENERATION_AUDIT.LATENCY_MS
 
 This measures LLM response time.
 
-It is part of the user experience but should not be assumed to equal all waiting time visible in the browser.
+It is part of the user experience but should not be assumed to equal all waiting time visible in the
+browser.
 
 ## Splunk event markers
 
@@ -181,7 +182,8 @@ Recommended methods include:
 - Stratification by duration
 - Outlier review
 
-Correlation alone is insufficient because two methods may correlate while disagreeing systematically.
+Correlation alone is insufficient because two methods may correlate while disagreeing
+systematically.
 
 ## Choosing a tolerance
 
@@ -322,7 +324,8 @@ source="/app/log/tomcat/localhost_access_log.txt"
 | sort -_time
 ```
 
-Infrastructure identifiers and real usernames should be parameterized or removed before publishing the query externally.
+Infrastructure identifiers and real usernames should be parameterized or removed before publishing
+the query externally.
 
 ## Related pages
 

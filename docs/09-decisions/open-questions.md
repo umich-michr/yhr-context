@@ -14,8 +14,7 @@ relevant_when:
 
 # Open Questions and Known Concerns
 
-This page is the guided completion backlog for the YourHealthResearch.org
-context repository.
+This page is the guided completion backlog for the YourHealthResearch.org context repository.
 
 An LLM must not present unresolved items on this page as confirmed behavior.
 
@@ -24,13 +23,11 @@ An LLM must not present unresolved items on this page as confirmed behavior.
 When helping a subject-matter expert complete this repository:
 
 1. Work through one numbered phase at a time.
-2. Ask related questions in small groups rather than presenting the complete
-   backlog at once.
-3. Do not ask again for information already recorded under
+1. Ask related questions in small groups rather than presenting the complete backlog at once.
+1. Do not ask again for information already recorded under
    [Resolved clarifications](#resolved-clarifications).
-4. Begin with questions that affect several modules or currently contradict
-   authoritative pages.
-5. For each answer, identify:
+1. Begin with questions that affect several modules or currently contradict authoritative pages.
+1. For each answer, identify:
    - Confirmed current behavior
    - Deployment scope
    - Application version or time period
@@ -40,19 +37,15 @@ When helping a subject-matter expert complete this repository:
    - Scheduled-job behavior
    - Exceptions
    - Evidence source
-6. Distinguish:
+1. Distinguish:
    - Current behavior
    - Historical behavior
    - Proposed behavior
    - Unknown behavior
-7. Do not convert an answer into an authoritative rule if the answer is
-   tentative.
-8. If an answer applies only to one branded instance, do not generalize it to
-   every deployment.
-9. After resolving a question, identify every canonical, support, schema, and
-   routing page affected.
-10. Return complete replacement files when requested rather than patches or
-    partial excerpts.
+1. Do not convert an answer into an authoritative rule if the answer is tentative.
+1. If an answer applies only to one branded instance, do not generalize it to every deployment.
+1. After resolving a question, identify every canonical, support, schema, and routing page affected.
+1. Return complete replacement files when requested rather than patches or partial excerpts.
 
 ## Suggested answer-capture format
 
@@ -91,17 +84,17 @@ Evidence may include:
 Use this order unless the subject-matter expert requests a different topic:
 
 1. Participant agreement attribution and account lifecycle
-2. Memory synchronization and multi-server behavior
-3. Scheduled-job administration
-4. Notification generation and delivery
-5. CSV import transactions and failure handling
-6. PI reconciliation edge cases
-7. Loved-one age-out
-8. Redis reconstruction and freshness
-9. Physical recruitment schema
-10. Audit, export, and security controls
-11. Product concerns and future enhancements
-12. Study-posting authoring analytics
+1. Memory synchronization and multi-server behavior
+1. Scheduled-job administration
+1. Notification generation and delivery
+1. CSV import transactions and failure handling
+1. PI reconciliation edge cases
+1. Loved-one age-out
+1. Redis reconstruction and freshness
+1. Physical recruitment schema
+1. Audit, export, and security controls
+1. Product concerns and future enhancements
+1. Study-posting authoring analytics
 
 ## Resolved clarifications
 
@@ -110,12 +103,11 @@ The following items are confirmed and are no longer open.
 ### Product and deployment identity
 
 1. YourHealthResearch.org is the platform and product name.
-2. `YourHealthResearch.org` is also the marketing website for prospective
-   adopting organizations.
-3. Adopting organizations operate separately branded instances.
-4. Each branded instance has its own servers, database, supporting
-   infrastructure, configuration, and institutional integrations.
-5. Confirmed examples include:
+1. `YourHealthResearch.org` is also the marketing website for prospective adopting organizations.
+1. Adopting organizations operate separately branded instances.
+1. Each branded instance has its own servers, database, supporting infrastructure, configuration,
+   and institutional integrations.
+1. Confirmed examples include:
    - `UMHealthResearch.org`
    - `UMiamiHealthResearch.org`
    - `BeTheNewNormalMatch.org`
@@ -124,104 +116,91 @@ The following items are confirmed and are no longer open.
 ### Participant and loved-one accounts
 
 1. Participant visibility is selected during signup.
-2. Signup for a loved one creates:
+1. Signup for a loved one creates:
    - A minimal owning account
    - A complete loved-one account
-3. The minimal owning account is not a special account type.
-4. The minimal owning account defaults to hidden from study teams.
-5. The owning account collects:
+1. The minimal owning account is not a special account type.
+1. The minimal owning account defaults to hidden from study teams.
+1. The owning account collects:
    - Communication email and username
    - First name
    - Last name
-6. Country and ZIP entered for the loved one are copied to the owning account
-   during signup.
-7. The loved-one account receives a GUID-based email-like username.
-8. The owner's real email is used for communication with both accounts.
-9. A loved-one account can also be created later through Add Loved One.
-10. Deactivating an owning self account cascades to its loved-one accounts.
+1. Country and ZIP entered for the loved one are copied to the owning account during signup.
+1. The loved-one account receives a GUID-based email-like username.
+1. The owner's real email is used for communication with both accounts.
+1. A loved-one account can also be created later through Add Loved One.
+1. Deactivating an owning self account cascades to its loved-one accounts.
 
 ### Participant and study-team agreements
 
 1. Current agreement types and versions are stored in `USER_AGREEMENT`.
-2. Agreement acceptance is stored in `USER_AGREEMENT_AUDIT`.
-3. Known agreement types include:
+1. Agreement acceptance is stored in `USER_AGREEMENT_AUDIT`.
+1. Known agreement types include:
    - `VOL` for participants or volunteers
    - `STM` for study team members
-4. Self and loved-one participant workflows use the same participant agreement
-   type and version for audit storage.
-5. The participant agreement body is shared between self and loved-one use.
-6. Loved-one presentation adds clauses appropriate to agreement on behalf of a
-   represented loved one.
-7. The additional loved-one clauses do not create a separate
-   `USER_AGREEMENT.TYPE`.
-8. The audit type does not distinguish self, child loved-one, and adult
-   loved-one presentation.
-9. A user without an audit record for the current agreement type and version
-   must review the agreement at login.
-10. A participant who confirms decline is deactivated.
-11. A study team member who declines cannot continue into application features.
+1. Self and loved-one participant workflows use the same participant agreement type and version for
+   audit storage.
+1. The participant agreement body is shared between self and loved-one use.
+1. Loved-one presentation adds clauses appropriate to agreement on behalf of a represented loved
+   one.
+1. The additional loved-one clauses do not create a separate `USER_AGREEMENT.TYPE`.
+1. The audit type does not distinguish self, child loved-one, and adult loved-one presentation.
+1. A user without an audit record for the current agreement type and version must review the
+   agreement at login.
+1. A participant who confirms decline is deactivated.
+1. A study team member who declines cannot continue into application features.
 
 ### PI reconciliation
 
 1. The current PI is governed by imported institutional data.
-2. When the imported PI changes:
+1. When the imported PI changes:
    - The former PI membership is removed.
    - The new PI receives the operational `PRINCIPAL_INVESTIGATOR` membership.
-3. Former PI membership is not normally retained merely because the person was
-   previously PI.
+1. Former PI membership is not normally retained merely because the person was previously PI.
 
 ### Criteria authoring
 
-1. The criteria data model supports multiple clauses beneath one criterion
-   root.
-2. The current eligibility-authoring UI creates one clause per eligibility
-   group.
-3. Multi-clause examples describe data-model capability or historical data, not
-   current UI authoring behavior.
+1. The criteria data model supports multiple clauses beneath one criterion root.
+1. The current eligibility-authoring UI creates one clause per eligibility group.
+1. Multi-clause examples describe data-model capability or historical data, not current UI authoring
+   behavior.
 
 ### CSV row processing
 
 1. CSV rows are processed independently.
-2. Rows are processed in file order.
-3. A later successful row overwrites an earlier value when both update the same
-   study field.
-4. The file is not first reduced to one final row per study.
-5. Intermediate operational transitions may occur while a multi-row CSV is
-   processed.
+1. Rows are processed in file order.
+1. A later successful row overwrites an earlier value when both update the same study field.
+1. The file is not first reduced to one final row per study.
+1. Intermediate operational transitions may occur while a multi-row CSV is processed.
 
 ### Notifications
 
 1. Study lifecycle notifications are processed asynchronously.
-2. A daily job processes applicable lifecycle announcements.
-3. Other Announcements configuration controls applicable recipients.
-4. Stable PI status notifications use a one-day stabilization concept.
-5. The PI receives a warning approximately one week before the scheduled
-   deactivation date.
-6. Ask if interested updates the promoted-match timestamp.
-7. Ask if interested moves or emphasizes the match in the study-team-promoted
-   participant grouping.
-8. A scheduled job evaluates promoted matches newer than the participant's last
-   login.
+1. A daily job processes applicable lifecycle announcements.
+1. Other Announcements configuration controls applicable recipients.
+1. Stable PI status notifications use a one-day stabilization concept.
+1. The PI receives a warning approximately one week before the scheduled deactivation date.
+1. Ask if interested updates the promoted-match timestamp.
+1. Ask if interested moves or emphasizes the match in the study-team-promoted participant grouping.
+1. A scheduled job evaluates promoted matches newer than the participant's last login.
 
 ### Matching memory
 
 1. Active studies and active participants are maintained in application memory.
-2. Matching reads candidate entities from memory to reduce database-read
-   latency.
-3. The database remains the authoritative persistent source.
-4. Relevant entity updates update the database and the in-memory
-   representation.
-5. Temporal participant-property changes must be reflected in memory.
-6. Deactivated participants and inactive studies must be removed from active
-   in-memory matching data.
-7. Scheduled processing handles time-based transitions and synchronization.
+1. Matching reads candidate entities from memory to reduce database-read latency.
+1. The database remains the authoritative persistent source.
+1. Relevant entity updates update the database and the in-memory representation.
+1. Temporal participant-property changes must be reflected in memory.
+1. Deactivated participants and inactive studies must be removed from active in-memory matching
+   data.
+1. Scheduled processing handles time-based transitions and synchronization.
 
----
+______________________________________________________________________
 
 # Phase 1: Participant Agreement Attribution and Lifecycle
 
-These questions should be resolved before agreement analytics or detailed
-deactivation behavior is described as complete.
+These questions should be resolved before agreement analytics or detailed deactivation behavior is
+described as complete.
 
 ## AGREEMENT-001: Loved-one signup audit username
 
@@ -256,8 +235,8 @@ If so, identify:
 - Loved-one relationship type
 - Timestamp
 
-If not, document that `USER_AGREEMENT_AUDIT` alone cannot prove whether the self
-or loved-one presentation was displayed.
+If not, document that `USER_AGREEMENT_AUDIT` alone cannot prove whether the self or loved-one
+presentation was displayed.
 
 ## AGREEMENT-003: Child versus adult loved-one clauses
 
@@ -275,8 +254,8 @@ If the wording differs, determine whether:
 
 ## AGREEMENT-004: Decline in loved-one context
 
-If an owner declines an updated participant agreement while operating in a
-loved-one context, which accounts are deactivated?
+If an owner declines an updated participant agreement while operating in a loved-one context, which
+accounts are deactivated?
 
 Possible outcomes to verify:
 
@@ -299,8 +278,8 @@ Check for:
 
 ## AGREEMENT-006: Reactivation after agreement decline
 
-When support or an administrator reactivates an account that was deactivated
-because of agreement decline:
+When support or an administrator reactivates an account that was deactivated because of agreement
+decline:
 
 - Must the current agreement be accepted before reactivation?
 - Is the account reactivated first and blocked at login?
@@ -328,14 +307,14 @@ Determine:
 - Whether hard deletion removes participant agreement audit rows
 - Whether institutional policy requires longer retention
 
----
+______________________________________________________________________
 
 # Phase 2: Minimal Owning Profiles
 
 ## PROFILE-001: Exact incomplete fields
 
-Which required participant-profile fields remain missing on an owning account
-created through signup for a loved one?
+Which required participant-profile fields remain missing on an owning account created through signup
+for a loved one?
 
 Identify:
 
@@ -347,8 +326,7 @@ Identify:
 
 ## PROFILE-002: Completing the owner profile
 
-What workflow allows an owner created through loved-one signup to become a
-participant for self?
+What workflow allows an owner created through loved-one signup to become a participant for self?
 
 Determine whether the owner must:
 
@@ -393,14 +371,14 @@ Determine whether completeness is:
 - Different by institution
 - Used by matching or only by UI validation
 
----
+______________________________________________________________________
 
 # Phase 3: Memory Synchronization
 
 ## MEMORY-001: Component ownership
 
-Which application class, service, or subsystem owns the in-memory collections
-of active participants and active studies?
+Which application class, service, or subsystem owns the in-memory collections of active participants
+and active studies?
 
 Record implementation references when available.
 
@@ -413,13 +391,11 @@ Are in-memory entities:
 - Replicated through events
 - Rebuilt independently on each server
 
-This question is critical because branded instances may run more than one
-application server.
+This question is critical because branded instances may run more than one application server.
 
 ## MEMORY-003: Cross-server propagation
 
-When one application server updates an entity, how do other servers receive the
-change?
+When one application server updates an entity, how do other servers receive the change?
 
 Possible mechanisms include:
 
@@ -459,8 +435,7 @@ Determine what happens if:
 - Match recomputation fails
 - Redis update fails
 
-Do not claim transactional atomicity across database, memory, and Redis unless
-confirmed.
+Do not claim transactional atomicity across database, memory, and Redis unless confirmed.
 
 ## MEMORY-006: Full synchronization schedule
 
@@ -474,8 +449,7 @@ Determine:
 
 ## MEMORY-007: Temporal transitions
 
-List every time-based transition handled by synchronization or scheduled jobs,
-including:
+List every time-based transition handled by synchronization or scheduled jobs, including:
 
 - Study activation
 - Study expiration
@@ -509,12 +483,11 @@ How is memory repaired after:
 - Data inconsistency
 - Multi-server divergence
 
----
+______________________________________________________________________
 
 # Phase 4: Administrative Scheduled-Job Controls
 
-Detailed administrator job control is confirmed to exist but remains to be
-documented.
+Detailed administrator job control is confirmed to exist but remains to be documented.
 
 ## ADMINJOB-001: Exposed jobs
 
@@ -603,7 +576,7 @@ Which roles can:
 
 Determine whether every `ADMIN` has equal job-control permissions.
 
----
+______________________________________________________________________
 
 # Phase 5: Notification Generation and Delivery
 
@@ -662,8 +635,7 @@ Determine whether delivery can be:
 
 ## NOTIFY-006: Last-login definition
 
-Which timestamp is used when comparing a promotion with the participant's last
-login?
+Which timestamp is used when comparing a promotion with the participant's last login?
 
 Possible sources include:
 
@@ -673,13 +645,12 @@ Possible sources include:
 - Owning-account login
 - Represented-participant context switch
 
-For loved-one accounts, determine whether the owner's login or a context switch
-counts as the represented participant's last login.
+For loved-one accounts, determine whether the owner's login or a context switch counts as the
+represented participant's last login.
 
 ## NOTIFY-007: Repeated promotion
 
-Can a study team use Ask if interested more than once for the same
-participant-study pair?
+Can a study team use Ask if interested more than once for the same participant-study pair?
 
 If yes:
 
@@ -713,10 +684,9 @@ Email bounced
 Email retried
 ```
 
-Identify which stages are available in `EMAIL_LOG` or external email-service
-records.
+Identify which stages are available in `EMAIL_LOG` or external email-service records.
 
----
+______________________________________________________________________
 
 # Phase 6: CSV Import Transactions and Failure Handling
 
@@ -803,14 +773,14 @@ Determine:
 - Issuance audit
 - Use audit
 
----
+______________________________________________________________________
 
 # Phase 7: PI Reconciliation Edge Cases
 
 ## PI-001: Separate ordinary membership
 
-If a former PI also has a separately established `STUDY_TEAM_MEMBER`
-membership, does reconciliation preserve that ordinary membership?
+If a former PI also has a separately established `STUDY_TEAM_MEMBER` membership, does reconciliation
+preserve that ordinary membership?
 
 ## PI-002: Atomic replacement
 
@@ -869,7 +839,7 @@ Determine whether:
 - Memberships are transferred
 - Manual intervention is required
 
----
+______________________________________________________________________
 
 # Phase 8: Loved-One Age-Out
 
@@ -922,7 +892,7 @@ If the age-out job fails:
 - Is an administrator alerted?
 - Is the account removed during the next full synchronization?
 
----
+______________________________________________________________________
 
 # Phase 9: Redis Reconstruction and Freshness
 
@@ -989,12 +959,12 @@ Determine whether operators can compare:
 - Last recomputation timestamp
 - Expected and actual key counts
 
----
+______________________________________________________________________
 
 # Phase 10: Physical Recruitment Schema
 
-Detailed physical documentation may be completed later. Until then, do not
-infer columns or foreign keys solely from table names.
+Detailed physical documentation may be completed later. Until then, do not infer columns or foreign
+keys solely from table names.
 
 ## SCHEMA-001: Interested participants
 
@@ -1116,7 +1086,7 @@ including:
 - Cascading deactivation
 - Age-out notice state
 
----
+______________________________________________________________________
 
 # Phase 11: Audit, Export, and Security Controls
 
@@ -1130,8 +1100,8 @@ Determine whether request logs provide sufficient operational evidence.
 
 ## AUDIT-002: CSV formula injection
 
-Determine whether participant-data exports protect spreadsheet users from
-formula injection in values beginning with characters such as:
+Determine whether participant-data exports protect spreadsheet users from formula injection in
+values beginning with characters such as:
 
 ```text
 =
@@ -1144,18 +1114,16 @@ If not, determine whether the risk is accepted or remediation is required.
 
 ## AUDIT-003: Job auditing
 
-Determine whether administrative job changes and manual executions require
-dedicated audit events.
+Determine whether administrative job changes and manual executions require dedicated audit events.
 
 ## AUDIT-004: Invitation auditing
 
-Determine whether invitation creation, resend, revocation, and acceptance
-should be retained as historical security events.
+Determine whether invitation creation, resend, revocation, and acceptance should be retained as
+historical security events.
 
 ## AUDIT-005: Membership auditing
 
-Determine how PI replacement, ordinary member removal, and backend membership
-overrides are audited.
+Determine how PI replacement, ordinary member removal, and backend membership overrides are audited.
 
 ## AUDIT-006: Attachment security
 
@@ -1178,12 +1146,11 @@ Identify the approval and audit process for backend changes to:
 - Participant state
 - Job schedules
 
----
+______________________________________________________________________
 
 # Phase 12: Product Concerns and Future Enhancements
 
-The following are observations or proposed directions, not implemented
-requirements.
+The following are observations or proposed directions, not implemented requirements.
 
 ## PRODUCT-001: Ask if interested comprehension
 
@@ -1239,7 +1206,7 @@ Before documenting fraud controls, define:
 - Study-team review workflow
 - Privacy and governance approval
 
----
+______________________________________________________________________
 
 # Phase 13: Study-Posting Authoring Analytics
 
@@ -1259,42 +1226,39 @@ When those questions are resolved, update as applicable:
 - Eligibility-complexity analysis
 - Publication and privacy guidance
 
----
+______________________________________________________________________
 
 # Completion Criteria
 
 The general context documentation may be considered functionally complete when:
 
 1. Every cross-cutting behavior is represented on a canonical page.
-2. Every known contradiction is resolved or explicitly marked open.
-3. Deployment-specific rules identify their scope.
-4. Database, in-memory, and Redis responsibilities are distinguished.
-5. Scheduled jobs have documented triggers, schedules, effects, failures, and
-   recovery behavior.
-6. Participant and study-team agreement flows identify their audit behavior.
-7. Loved-one ownership, visibility, deactivation, and age-out are documented.
-8. PI replacement and access removal are documented.
-9. Notification event creation and email delivery are distinguished.
-10. CSV row ordering, transaction boundaries, and error continuation are
-    documented.
-11. Physical table names are not used with inferred columns or relationships.
-12. Support and troubleshooting pages route to the canonical rules.
-13. Open questions are not repeated as authoritative behavior.
-14. `docs/context-map.yaml` routes every canonical topic.
-15. `make check` succeeds.
+1. Every known contradiction is resolved or explicitly marked open.
+1. Deployment-specific rules identify their scope.
+1. Database, in-memory, and Redis responsibilities are distinguished.
+1. Scheduled jobs have documented triggers, schedules, effects, failures, and recovery behavior.
+1. Participant and study-team agreement flows identify their audit behavior.
+1. Loved-one ownership, visibility, deactivation, and age-out are documented.
+1. PI replacement and access removal are documented.
+1. Notification event creation and email delivery are distinguished.
+1. CSV row ordering, transaction boundaries, and error continuation are documented.
+1. Physical table names are not used with inferred columns or relationships.
+1. Support and troubleshooting pages route to the canonical rules.
+1. Open questions are not repeated as authoritative behavior.
+1. `docs/context-map.yaml` routes every canonical topic.
+1. `make check` succeeds.
 
 ## Documentation maintenance
 
 When resolving an item:
 
 1. Record the answer, scope, and evidence.
-2. Update the canonical topic page.
-3. Update [Business Rules](../01-overview/business-rules.md) when the answer is
-   cross-cutting.
-4. Update [Terminology](../01-overview/terminology.md) when a definition changes.
-5. Update architecture and data-model pages when storage or processing changes.
-6. Update support and troubleshooting pages when operational behavior changes.
-7. Remove the item from the unresolved phase or mark it resolved.
-8. Update `context-map.yaml` when routing changes.
-9. Update diagrams when relationships or boundaries change.
-10. Run `make check`.
+1. Update the canonical topic page.
+1. Update [Business Rules](../01-overview/business-rules.md) when the answer is cross-cutting.
+1. Update [Terminology](../01-overview/terminology.md) when a definition changes.
+1. Update architecture and data-model pages when storage or processing changes.
+1. Update support and troubleshooting pages when operational behavior changes.
+1. Remove the item from the unresolved phase or mark it resolved.
+1. Update `context-map.yaml` when routing changes.
+1. Update diagrams when relationships or boundaries change.
+1. Run `make check`.

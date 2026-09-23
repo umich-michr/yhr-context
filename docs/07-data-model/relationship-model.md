@@ -77,12 +77,13 @@ LOGIN_AUDIT.USER_ID = 0
 When a first-time institutional author successfully creates a study posting:
 
 1. The application creates the author's `APP_USER`.
-2. The application creates the operational study.
-3. The application creates the creator's study membership.
-4. A non-PI creator receives `STUDY_TEAM_MEMBER`.
-5. A creator who is the current imported PI receives `PRINCIPAL_INVESTIGATOR`.
+1. The application creates the operational study.
+1. The application creates the creator's study membership.
+1. A non-PI creator receives `STUDY_TEAM_MEMBER`.
+1. A creator who is the current imported PI receives `PRINCIPAL_INVESTIGATOR`.
 
-Current existence in `APP_USER` must not be interpreted as proof that the application user existed when an earlier posting attempt began.
+Current existence in `APP_USER` must not be interpreted as proof that the application user existed
+when an earlier posting attempt began.
 
 See:
 
@@ -194,7 +195,8 @@ and with participant identities through:
 USER_NAME
 ```
 
-The documentation does not assert an undeclared physical foreign key between `USER_AGREEMENT` and `USER_AGREEMENT_AUDIT`.
+The documentation does not assert an undeclared physical foreign key between `USER_AGREEMENT` and
+`USER_AGREEMENT_AUDIT`.
 
 See [Participant Account and Consent Model](participant-account-consent-model.md).
 
@@ -222,7 +224,8 @@ erDiagram
     }
 ```
 
-A successful show-interest transaction creates one `STUDY_VOLUNTEER` relationship for the participant-study pair.
+A successful show-interest transaction creates one `STUDY_VOLUNTEER` relationship for the
+participant-study pair.
 
 The relationship supports:
 
@@ -233,11 +236,13 @@ The relationship supports:
 - Messaging
 - Export
 
-The exact additional physical columns on `STUDY_VOLUNTEER` must be documented from the implemented schema.
+The exact additional physical columns on `STUDY_VOLUNTEER` must be documented from the implemented
+schema.
 
 ## Questionnaire relationships
 
-The following model is conceptual until the exact physical questionnaire table names and columns are documented.
+The following model is conceptual until the exact physical questionnaire table names and columns are
+documented.
 
 ```mermaid
 erDiagram
@@ -340,7 +345,8 @@ Recipients may include:
 - Accepted study members
 - External email addresses
 
-The exact physical representation of event frequency, recipients, and external addresses remains to be documented.
+The exact physical representation of event frequency, recipients, and external addresses remains to
+be documented.
 
 ## Study-posting authoring audit
 
@@ -421,7 +427,9 @@ STUDY_POSTING_GENERATION_AUDIT.LLM_SUGGESTIONS
 
 The operational study is created only after successful final eligibility submission.
 
-A current join from a posting attempt to an operational study with the same `study_num` does not by itself prove that the attempt created the study. An earlier incomplete attempt may join to a study created by a later successful attempt.
+A current join from a posting attempt to an operational study with the same `study_num` does not by
+itself prove that the attempt created the study. An earlier incomplete attempt may join to a study
+created by a later successful attempt.
 
 See:
 
@@ -452,7 +460,8 @@ See [PHI Audit](../08-operations/phi-audit.md).
 
 ## Redis recommendation data
 
-Current recommendations and directional exclusions are stored in Redis rather than in the relational model.
+Current recommendations and directional exclusions are stored in Redis rather than in the relational
+model.
 
 Key families are:
 

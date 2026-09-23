@@ -6,7 +6,8 @@ status: authoritative
 
 # Study Management
 
-An operational study posting is the participant-facing recruiting representation of an imported institutional study.
+An operational study posting is the participant-facing recruiting representation of an imported
+institutional study.
 
 ## Posting workflow
 

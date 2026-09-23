@@ -6,9 +6,11 @@ status: authoritative
 
 # Institutional Governance
 
-The institutional source of truth governs whether each study may use YourHealthResearch.org as a recruitment tool.
+The institutional source of truth governs whether each study may use YourHealthResearch.org as a
+recruitment tool.
 
-A study being institutionally recognized or generally IRB-approved does not necessarily mean it may recruit through this particular application.
+A study being institutionally recognized or generally IRB-approved does not necessarily mean it may
+recruit through this particular application.
 
 The governance process supplies:
 
@@ -23,7 +25,8 @@ The governance process supplies:
 
 At the University of Michigan, eResearch stores IRB applications and related status information.
 
-The application team works with the eResearch team to determine how exposed data points should be processed to derive the publishable flag.
+The application team works with the eResearch team to determine how exposed data points should be
+processed to derive the publishable flag.
 
 ## Other institutions
 

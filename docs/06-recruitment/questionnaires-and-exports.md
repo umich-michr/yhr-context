@@ -28,13 +28,13 @@ Questionnaire answers:
 
 Supported question types are:
 
-| Type | Participant response |
-|---|---|
-| Single-line text | Short free text |
-| Paragraph text | Longer free text |
-| Checkboxes | One or more selected options |
-| Multiple choice | One selected option |
-| Dropdown | One selected option |
+| Type             | Participant response         |
+| ---------------- | ---------------------------- |
+| Single-line text | Short free text              |
+| Paragraph text   | Longer free text             |
+| Checkboxes       | One or more selected options |
+| Multiple choice  | One selected option          |
+| Dropdown         | One selected option          |
 
 Each question may include:
 
@@ -84,9 +84,9 @@ Questionnaires and answers are not versioned.
 When multiple study members edit the questionnaire concurrently:
 
 1. The first valid submission succeeds.
-2. A later stale submission is rejected.
-3. The later editor must refresh.
-4. Unsaved changes from the rejected edit are not preserved.
+1. A later stale submission is rejected.
+1. The later editor must refresh.
+1. Unsaved changes from the rejected edit are not preserved.
 
 ## Participant submission
 
@@ -115,7 +115,8 @@ Authorized study team members may export:
 
 ## Export availability
 
-Historical interested-participant data may be exported while `PUBLISHABLE = 1`, including when the study is inactive by date.
+Historical interested-participant data may be exported while `PUBLISHABLE = 1`, including when the
+study is inactive by date.
 
 Participant deactivation hides that participant's information from new exports.
 

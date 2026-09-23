@@ -16,9 +16,11 @@ relevant_when:
 
 # Study Posting Authoring Telemetry
 
-Study-posting authoring telemetry combines application, log, institutional, eligibility, and HR data.
+Study-posting authoring telemetry combines application, log, institutional, eligibility, and HR
+data.
 
-This page separates confirmed source behavior from recommended analytical variables and classifications.
+This page separates confirmed source behavior from recommended analytical variables and
+classifications.
 
 ## Analytical goals
 
@@ -87,7 +89,8 @@ The application does not add another generation row to the original posting atte
 
 Analytical queries should join the generation and error tables directly.
 
-They should not use row-ranking logic to select one generation or error row. Duplicate rows would represent a violated data invariant that should be investigated separately.
+They should not use row-ranking logic to select one generation or error row. Duplicate rows would
+represent a violated data invariant that should be investigated separately.
 
 ## Posting-attempt audit
 
@@ -105,7 +108,8 @@ A posting-attempt row exists before the operational study is created.
 
 A posting attempt may remain incomplete.
 
-An incomplete attempt may share its `study_num` with a later attempt that successfully creates the operational study.
+An incomplete attempt may share its `study_num` with a later attempt that successfully creates the
+operational study.
 
 ## AI-generation audit
 
@@ -122,7 +126,8 @@ An incomplete attempt may share its `study_num` with a later attempt that succes
 - Optional user feedback
 - AI response metadata
 
-The generation row is created during the AI suggestion request before the Study Information page is displayed.
+The generation row is created during the AI suggestion request before the Study Information page is
+displayed.
 
 Current production source-input values include:
 
@@ -158,7 +163,8 @@ Selected suggestion count
 Final retained value
 ```
 
-Observed suggestion counts must be calculated from the stored JSON rather than assumed from the prompt.
+Observed suggestion counts must be calculated from the stored JSON rather than assumed from the
+prompt.
 
 Prompt version should be included in analysis when it can be reconstructed.
 
@@ -167,13 +173,14 @@ Prompt version should be included in analysis when it can be reconstructed.
 For an AI-assisted attempt:
 
 1. Generation stores `LLM_SUGGESTIONS`.
-2. The Study Information page displays suggestions when generation succeeds.
-3. The user may select, ignore, or edit suggestions.
-4. Study Information submission stores:
+1. The Study Information page displays suggestions when generation succeeds.
+1. The user may select, ignore, or edit suggestions.
+1. Study Information submission stores:
    - `SELECTED_SUGGESTIONS`
    - Optional `USER_FEEDBACK_COMMENTS`
-5. The posting attempt stores the client-reported Study Information page duration.
-6. Successful final eligibility submission stores final Study Information values in `FINAL_SUBMISSION`.
+1. The posting attempt stores the client-reported Study Information page duration.
+1. Successful final eligibility submission stores final Study Information values in
+   `FINAL_SUBMISSION`.
 
 The analytical value chain is:
 
@@ -183,7 +190,8 @@ LLM_SUGGESTIONS
 → FINAL_SUBMISSION
 ```
 
-Selected suggestions and final values may differ because a user may edit a field after selecting a suggestion.
+Selected suggestions and final values may differ because a user may edit a field after selecting a
+suggestion.
 
 ## AI-generation error telemetry
 
@@ -273,7 +281,8 @@ AI_ERROR_THEN_DROPPED =
     AND END_TIME is null
 ```
 
-Analyses of AI adoption should state whether an attempt with an AI-generation error counts as AI exposure.
+Analyses of AI adoption should state whether an attempt with an AI-generation error counts as AI
+exposure.
 
 ## Cardinality validation
 
@@ -316,7 +325,8 @@ Study and property data supply:
 - Eligibility criteria
 - Eligibility-complexity features
 
-A direct join from a posting attempt to `STUDY` by `study_num` establishes only whether an operational study currently exists for that number.
+A direct join from a posting attempt to `STUDY` by `study_num` establishes only whether an
+operational study currently exists for that number.
 
 It does not prove that the attempt created the study.
 
@@ -375,7 +385,8 @@ When a first-time institutional author successfully creates a study posting:
 
 Current existence in `APP_USER` is therefore only an extract-time sanity check.
 
-After a user later receives an `APP_USER`, a current-state join will find that user for earlier attempts as well.
+After a user later receives an `APP_USER`, a current-state join will find that user for earlier
+attempts as well.
 
 A field based on current `APP_USER` existence must not be interpreted as:
 
@@ -393,7 +404,8 @@ The eResearch-derived study-team view may identify:
 
 Application study role and institutional study role must remain separate variables.
 
-Unless effective-dated history is available, current institutional and application roles must not be labeled as role at attempt time.
+Unless effective-dated history is available, current institutional and application roles must not be
+labeled as role at attempt time.
 
 Former PI operational memberships must not be used to identify the current institutional PI.
 
@@ -429,7 +441,8 @@ Recommended handling includes:
 - An appointment-level child dataset, or
 - An ordered structured aggregation
 
-Concatenated appointment strings may be useful for inspection but are difficult to use reliably in statistical models.
+Concatenated appointment strings may be useful for inspection but are difficult to use reliably in
+statistical models.
 
 ## Login history
 
@@ -441,11 +454,13 @@ Login-audit data may support experience measures such as:
 - Tenure in the application before the attempt
 - Presence of an earlier login with `USER_ID = 0`
 
-Login days are a proxy for application familiarity rather than a direct measure of recruitment or research expertise.
+Login days are a proxy for application familiarity rather than a direct measure of recruitment or
+research expertise.
 
 Current and backup login tables should first be filtered by a distinct author list.
 
-Do not join every login row directly to every posting attempt before aggregation because doing so multiplies login rows for users with multiple attempts.
+Do not join every login row directly to every posting attempt before aggregation because doing so
+multiplies login rows for users with multiple attempts.
 
 Attempt-time experience should use only events before:
 
@@ -517,7 +532,8 @@ This avoids collapsing:
 - User abandonment followed by later completion
 - Multiple users attempting the same study
 
-A separate study-level or sequence-level dataset may be derived for questions about eventual study creation.
+A separate study-level or sequence-level dataset may be derived for questions about eventual study
+creation.
 
 ## Timing values
 
@@ -532,7 +548,8 @@ Splunk study_creation_time_mins
 STUDY_POSTING_GENERATION_AUDIT.LATENCY_MS
 ```
 
-These values measure different intervals and must not be treated as interchangeable without validation.
+These values measure different intervals and must not be treated as interchangeable without
+validation.
 
 Open timing questions include whether frontend Study Information timing includes:
 
@@ -566,7 +583,8 @@ other_text_units
 structured_expression_fraction
 ```
 
-A composite complexity score is a proposed analytical method rather than implemented application behavior.
+A composite complexity score is a proposed analytical method rather than implemented application
+behavior.
 
 Any composite score should include:
 
@@ -593,7 +611,8 @@ Eligibility complexity is not an output of the current AI feature.
 
 Final eligibility criteria ordinarily exist only after successful operational study creation.
 
-Do not assign criteria from a later successful study to an earlier incomplete attempt as though the earlier attempt authored them.
+Do not assign criteria from a later successful study to an earlier incomplete attempt as though the
+earlier attempt authored them.
 
 Recommended provenance fields include:
 
@@ -605,7 +624,8 @@ complexity_source_attempt_id
 later_successful_study_complexity_flag
 ```
 
-Using the eventual study's complexity for an earlier incomplete attempt may be useful in a separately labeled sensitivity analysis.
+Using the eventual study's complexity for an earlier incomplete attempt may be useful in a
+separately labeled sensitivity analysis.
 
 It is not a direct attempt-time observation.
 
@@ -650,7 +670,8 @@ Potential issues include:
 - Personally identifiable information
 - Raw stack traces containing restricted infrastructure details
 
-More than one generation row per posting attempt or more than one error row per generation is a violated invariant rather than an expected multiplicity condition.
+More than one generation row per posting attempt or more than one error row per generation is a
+violated invariant rather than an expected multiplicity condition.
 
 ## Privacy
 
@@ -666,7 +687,8 @@ Use:
 - Removal or protection of nonpublic study text
 - Publication-level aggregation
 
-Raw usernames, email addresses, phone numbers, contact information, and stack traces should not appear in publication datasets.
+Raw usernames, email addresses, phone numbers, contact information, and stack traces should not
+appear in publication datasets.
 
 ## Related pages
 

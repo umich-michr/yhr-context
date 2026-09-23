@@ -15,8 +15,8 @@ relevant_when:
 
 Ask if interested promotes a study to a visible matching participant.
 
-It emphasizes an existing match by moving the participant-facing study from the
-ordinary system-matched presentation into the study-team-promoted presentation.
+It emphasizes an existing match by moving the participant-facing study from the ordinary
+system-matched presentation into the study-team-promoted presentation.
 
 It is distinct from:
 
@@ -40,25 +40,21 @@ Ask if interested requires:
 When the study team selects Ask if interested:
 
 1. The study team enters promotional text.
-2. The application records the promotion.
-3. The participant-study pair is removed from the ordinary study-side matched
-   presentation.
-4. The study is added to or emphasized in the participant's
-   study-team-promoted studies area.
-5. The Redis promotion timestamp is updated.
-6. The study-side exclusion reason `ASKED_IF_INTERESTED` is created so the
-   participant does not remain in the ordinary study-side match bucket.
+1. The application records the promotion.
+1. The participant-study pair is removed from the ordinary study-side matched presentation.
+1. The study is added to or emphasized in the participant's study-team-promoted studies area.
+1. The Redis promotion timestamp is updated.
+1. The study-side exclusion reason `ASKED_IF_INTERESTED` is created so the participant does not
+   remain in the ordinary study-side match bucket.
 
-The promotional text is displayed with the study card. It is not delivered as a
-private message.
+The promotional text is displayed with the study card. It is not delivered as a private message.
 
 ## Participant-facing effect
 
-The participant sees the study in the area labeled for studies suggested by
-study teams.
+The participant sees the study in the area labeled for studies suggested by study teams.
 
-The study-team-authored promotion appears with or above the study card,
-depending on the current interface presentation.
+The study-team-authored promotion appears with or above the study card, depending on the current
+interface presentation.
 
 The action does not guarantee that the participant will:
 
@@ -71,12 +67,10 @@ The action does not guarantee that the participant will:
 
 A scheduled job evaluates study-team-promoted matches.
 
-The job compares the promotion or match timestamp with the participant's last
-login.
+The job compares the promotion or match timestamp with the participant's last login.
 
-When an eligible promoted match is newer than the participant's last login, the
-participant may receive a system-generated email prompting them to sign in and
-review newly suggested studies.
+When an eligible promoted match is newer than the participant's last login, the participant may
+receive a system-generated email prompting them to sign in and review newly suggested studies.
 
 This email:
 
@@ -106,8 +100,8 @@ The participant may:
 - Dismiss the study as Not Interested
 - Take no action
 
-If the participant expresses interest, the ordinary interest transaction and
-Redis exclusions are applied.
+If the participant expresses interest, the ordinary interest transaction and Redis exclusions are
+applied.
 
 ## Common misunderstanding
 
@@ -125,8 +119,8 @@ not:
 Send a private message to the participant
 ```
 
-Direct messaging remains unavailable until the participant has successfully
-expressed interest and a study team member initiates the conversation.
+Direct messaging remains unavailable until the participant has successfully expressed interest and a
+study team member initiates the conversation.
 
 ## Related pages
 

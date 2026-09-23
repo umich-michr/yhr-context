@@ -83,20 +83,21 @@ It does not create another generation row for the original posting attempt.
 
 Analytical queries should join these tables directly.
 
-They should not use row ranking to select one generation or error row because duplicate rows would represent a violated data invariant rather than normal workflow behavior.
+They should not use row ranking to select one generation or error row because duplicate rows would
+represent a violated data invariant rather than normal workflow behavior.
 
 ## `APPLICATION_SETTING`
 
 `APPLICATION_SETTING` contains configurable application behavior, including the AI prompt.
 
-| Column | Type | Meaning |
-|---|---|---|
-| `ID` | `NUMBER` | Setting identifier |
-| `NAME` | `VARCHAR2` | Unique setting name |
-| `GROUP_NAME` | `VARCHAR2` | UI grouping |
+| Column        | Type       | Meaning              |
+| ------------- | ---------- | -------------------- |
+| `ID`          | `NUMBER`   | Setting identifier   |
+| `NAME`        | `VARCHAR2` | Unique setting name  |
+| `GROUP_NAME`  | `VARCHAR2` | UI grouping          |
 | `DESCRIPTION` | `VARCHAR2` | Behavior description |
-| `VALUE_TYPE` | `VARCHAR2` | Validation type |
-| `VALUE` | `CLOB` | Setting value |
+| `VALUE_TYPE`  | `VARCHAR2` | Validation type      |
+| `VALUE`       | `CLOB`     | Setting value        |
 
 The prompt used for Study Information generation is stored in this table.
 
@@ -111,7 +112,8 @@ Prompt changes can affect:
 - Compensation behavior
 - Semantic-source inference
 
-If the prompt version is not copied to each generation row, an analysis may need application-setting history, deployment history, or another timestamped source to identify the prompt in effect.
+If the prompt version is not copied to each generation row, an analysis may need application-setting
+history, deployment history, or another timestamped source to identify the prompt in effect.
 
 ## Prompt-requested versus observed output
 
@@ -134,7 +136,8 @@ Analytical code must count the actual JSON arrays stored in `LLM_SUGGESTIONS`.
 
 It must not assume that every generation row contains exactly the number requested by the prompt.
 
-A difference between requested and stored cardinality does not by itself establish whether the cause was:
+A difference between requested and stored cardinality does not by itself establish whether the cause
+was:
 
 - AI-service behavior
 - Prompt changes
@@ -147,45 +150,48 @@ A difference between requested and stored cardinality does not by itself establi
 
 One row represents one attempt to create a study posting.
 
-| Column | Type | Meaning |
-|---|---|---|
-| `ID` | `NUMBER` | Attempt identifier |
-| `STUDY_NUM` | `VARCHAR2` | Institutional study number |
-| `USER_NAME` | `VARCHAR2` | Authenticated posting author |
-| `START_TIME` | `TIMESTAMP(6)` | Attempt start |
-| `END_TIME` | `TIMESTAMP(6)` | Successful final submission time |
-| `TIME_SPENT_ON_STUDY_INFO_PAGE_MS` | `NUMBER` | Client-reported Study Information duration |
-| `FINAL_SUBMISSION` | `CLOB` | Final submitted Study Information JSON |
+| Column                             | Type           | Meaning                                    |
+| ---------------------------------- | -------------- | ------------------------------------------ |
+| `ID`                               | `NUMBER`       | Attempt identifier                         |
+| `STUDY_NUM`                        | `VARCHAR2`     | Institutional study number                 |
+| `USER_NAME`                        | `VARCHAR2`     | Authenticated posting author               |
+| `START_TIME`                       | `TIMESTAMP(6)` | Attempt start                              |
+| `END_TIME`                         | `TIMESTAMP(6)` | Successful final submission time           |
+| `TIME_SPENT_ON_STUDY_INFO_PAGE_MS` | `NUMBER`       | Client-reported Study Information duration |
+| `FINAL_SUBMISSION`                 | `CLOB`         | Final submitted Study Information JSON     |
 
 A posting attempt may exist even when the posting is never completed.
 
 `END_TIME IS NULL` identifies an incomplete attempt unless another confirmed rule explains the row.
 
-The posting-attempt username may exist before an `APP_USER` exists because an institutional user can authenticate through SAML before receiving an application user.
+The posting-attempt username may exist before an `APP_USER` exists because an institutional user can
+authenticate through SAML before receiving an application user.
 
-A successful posting creation by a first-time institutional author creates or reuses the creator's `APP_USER` and creates the creator's study membership.
+A successful posting creation by a first-time institutional author creates or reuses the creator's
+`APP_USER` and creates the creator's study membership.
 
 ## `STUDY_POSTING_GENERATION_AUDIT`
 
 One row records optional AI generation associated with a posting attempt.
 
-| Column | Type | Meaning |
-|---|---|---|
-| `ID` | `NUMBER` | Generation identifier |
-| `STUDY_POSTING_AUDIT_ID` | `NUMBER` | Parent posting attempt |
-| `STUDY_CONTENT_SOURCE_LV_ID` | `NUMBER` | User-selected semantic source lookup |
-| `STUDY_CONTENT_SOURCE_OTHER_VALUE` | `VARCHAR2` | User-entered Other source |
-| `LLM_SUGGESTED_STUDY_CONTENT_SOURCE_LV_ID` | `NUMBER` | AI-inferred semantic source lookup |
-| `LLM_SUGGESTED_STUDY_CONTENT_SOURCE_OTHER_VALUE` | `VARCHAR2` | AI-inferred Other source text |
-| `SOURCE_TYPE` | `VARCHAR2` | Input method |
-| `SOURCE_SIZE_CHARS` | `NUMBER` | Prompt-context character count |
-| `USER_FEEDBACK_COMMENTS` | `VARCHAR2` | Optional user feedback |
-| `LATENCY_MS` | `NUMBER` | AI request latency |
-| `LLM_METADATA` | `CLOB` | Raw response metadata excluding suggestions |
-| `LLM_SUGGESTIONS` | `CLOB` | Generated suggestions JSON |
-| `SELECTED_SUGGESTIONS` | `CLOB` | Suggestions selected by the user |
+| Column                                           | Type       | Meaning                                     |
+| ------------------------------------------------ | ---------- | ------------------------------------------- |
+| `ID`                                             | `NUMBER`   | Generation identifier                       |
+| `STUDY_POSTING_AUDIT_ID`                         | `NUMBER`   | Parent posting attempt                      |
+| `STUDY_CONTENT_SOURCE_LV_ID`                     | `NUMBER`   | User-selected semantic source lookup        |
+| `STUDY_CONTENT_SOURCE_OTHER_VALUE`               | `VARCHAR2` | User-entered Other source                   |
+| `LLM_SUGGESTED_STUDY_CONTENT_SOURCE_LV_ID`       | `NUMBER`   | AI-inferred semantic source lookup          |
+| `LLM_SUGGESTED_STUDY_CONTENT_SOURCE_OTHER_VALUE` | `VARCHAR2` | AI-inferred Other source text               |
+| `SOURCE_TYPE`                                    | `VARCHAR2` | Input method                                |
+| `SOURCE_SIZE_CHARS`                              | `NUMBER`   | Prompt-context character count              |
+| `USER_FEEDBACK_COMMENTS`                         | `VARCHAR2` | Optional user feedback                      |
+| `LATENCY_MS`                                     | `NUMBER`   | AI request latency                          |
+| `LLM_METADATA`                                   | `CLOB`     | Raw response metadata excluding suggestions |
+| `LLM_SUGGESTIONS`                                | `CLOB`     | Generated suggestions JSON                  |
+| `SELECTED_SUGGESTIONS`                           | `CLOB`     | Suggestions selected by the user            |
 
-The generation row is created during the AI suggestion request before the Study Information page is displayed.
+The generation row is created during the AI suggestion request before the Study Information page is
+displayed.
 
 When generation succeeds, it stores the returned suggestions and response metadata.
 
@@ -201,11 +207,11 @@ DOCX_FILE
 RAW_TXT
 ```
 
-| Value | Meaning |
-|---|---|
-| `PDF_FILE` | Source content originated from a PDF upload |
+| Value       | Meaning                                               |
+| ----------- | ----------------------------------------------------- |
+| `PDF_FILE`  | Source content originated from a PDF upload           |
 | `DOCX_FILE` | Source content originated from a Word document upload |
-| `RAW_TXT` | Source content was supplied to generation as raw text |
+| `RAW_TXT`   | Source content was supplied to generation as raw text |
 
 The source-input type describes how content was supplied to generation.
 
@@ -260,12 +266,13 @@ LLM_SUGGESTIONS
 The lifecycle is:
 
 1. Generation stores `LLM_SUGGESTIONS`.
-2. The Study Information page displays suggestions.
-3. The user selects, ignores, or edits suggested values.
-4. Study Information submission stores:
+1. The Study Information page displays suggestions.
+1. The user selects, ignores, or edits suggested values.
+1. Study Information submission stores:
    - `SELECTED_SUGGESTIONS`
    - Optional `USER_FEEDBACK_COMMENTS`
-5. Final eligibility submission stores the authoritative final Study Information values in `STUDY_POSTING_AUDIT.FINAL_SUBMISSION`.
+1. Final eligibility submission stores the authoritative final Study Information values in
+   `STUDY_POSTING_AUDIT.FINAL_SUBMISSION`.
 
 Possible analytical outcomes include:
 
@@ -310,12 +317,12 @@ STUDY_POSTING_AUDIT.FINAL_SUBMISSION
 
 This table records AI-generation errors.
 
-| Column | Type | Meaning |
-|---|---|---|
-| `ID` | `NUMBER` | Error identifier |
-| `STUDY_POSTING_GENERATION_AUDIT_ID` | `NUMBER` | Generation attempt |
-| `ERROR_TIME` | `TIMESTAMP(6)` | Error time |
-| `STACK_TRACE` | `CLOB` | Captured stack trace |
+| Column                              | Type           | Meaning              |
+| ----------------------------------- | -------------- | -------------------- |
+| `ID`                                | `NUMBER`       | Error identifier     |
+| `STUDY_POSTING_GENERATION_AUDIT_ID` | `NUMBER`       | Generation attempt   |
+| `ERROR_TIME`                        | `TIMESTAMP(6)` | Error time           |
+| `STACK_TRACE`                       | `CLOB`         | Captured stack trace |
 
 When generation fails:
 
@@ -359,13 +366,15 @@ attempt_completed_flag = 1
 
 means that AI generation failed but the user later completed the posting attempt manually.
 
-`LATENCY_MS = 0` must not be treated as definitive proof of an AI error unless that rule is separately validated.
+`LATENCY_MS = 0` must not be treated as definitive proof of an AI error unless that rule is
+separately validated.
 
 ## First-time institutional-user implication
 
 A current join from historical posting attempts to `APP_USER` is not a historical existence test.
 
-Once a user successfully creates a posting or otherwise receives an `APP_USER`, later extracts find that user for earlier attempts.
+Once a user successfully creates a posting or otherwise receives an `APP_USER`, later extracts find
+that user for earlier attempts.
 
 A current-state field may be labeled:
 
@@ -426,7 +435,8 @@ Audit and analytical extracts may contain:
 
 Publication datasets should be deidentified or aggregated.
 
-Raw stack traces, contact information, user identifiers, and nonpublic study text should not appear in publications.
+Raw stack traces, contact information, user identifiers, and nonpublic study text should not appear
+in publications.
 
 ## Related pages
 

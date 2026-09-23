@@ -34,12 +34,12 @@ Institutional authentication does not grant access to every study.
 
 ## Application-wide roles
 
-| Role | General purpose |
-|---|---|
-| `VOLUNTEER` | Participant access |
-| `STAFF` | Institutional study-team access |
-| `STUDY_IMPORTER` | Institutional CSV-import access |
-| `ADMIN` | Application-wide administrative access |
+| Role             | General purpose                        |
+| ---------------- | -------------------------------------- |
+| `VOLUNTEER`      | Participant access                     |
+| `STAFF`          | Institutional study-team access        |
+| `STUDY_IMPORTER` | Institutional CSV-import access        |
+| `ADMIN`          | Application-wide administrative access |
 
 ## Study-association roles
 

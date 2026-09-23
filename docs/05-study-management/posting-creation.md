@@ -19,19 +19,21 @@ relevant_when:
 
 Study-posting creation is a multi-step workflow.
 
-Beginning Add Study creates a posting-attempt audit record. It does not immediately create the final operational study posting.
+Beginning Add Study creates a posting-attempt audit record. It does not immediately create the final
+operational study posting.
 
 ## Preconditions
 
 A posting may be started only when:
 
 1. The user is authenticated through institutional SAML.
-2. The user has access to the study-team interface.
-3. The entered `study_num` exists in `IMPORTED_STUDY.ID`.
-4. No operational posting already exists for that `study_num`.
-5. The imported study has a valid current PI identity.
+1. The user has access to the study-team interface.
+1. The entered `study_num` exists in `IMPORTED_STUDY.ID`.
+1. No operational posting already exists for that `study_num`.
+1. The imported study has a valid current PI identity.
 
-The authenticated institutional user does not necessarily need an existing `APP_USER` before beginning the posting attempt.
+The authenticated institutional user does not necessarily need an existing `APP_USER` before
+beginning the posting attempt.
 
 ## First-time institutional posting author
 
@@ -53,15 +55,16 @@ USER_ID = 0
 
 `USER_ID = 0` does not identify an `APP_USER` row.
 
-If the person abandons the posting workflow or final submission fails, the posting attempt does not by itself prove that an `APP_USER` or study membership was created.
+If the person abandons the posting workflow or final submission fails, the posting attempt does not
+by itself prove that an `APP_USER` or study membership was created.
 
 When a first-time institutional author successfully completes posting creation:
 
 1. The application creates the author's `APP_USER`.
-2. The application creates the operational study.
-3. The application creates the author's study membership.
-4. A non-PI creator receives `STUDY_TEAM_MEMBER`.
-5. A creator who is the current imported PI receives `PRINCIPAL_INVESTIGATOR`.
+1. The application creates the operational study.
+1. The application creates the author's study membership.
+1. A non-PI creator receives `STUDY_TEAM_MEMBER`.
+1. A creator who is the current imported PI receives `PRINCIPAL_INVESTIGATOR`.
 
 ## Study verification
 
@@ -80,7 +83,7 @@ If an operational posting already exists for the study number, a duplicate canno
 A valid study number allows the user to continue to:
 
 1. Study Information
-2. Inclusion/Exclusion Criteria
+1. Inclusion/Exclusion Criteria
 
 ## Posting-attempt audit
 
@@ -103,34 +106,34 @@ A posting-attempt row does not prove that:
 When AI assistance is not enabled:
 
 1. Add Study submission creates `STUDY_POSTING_AUDIT`.
-2. No `STUDY_POSTING_GENERATION_AUDIT` row is created.
-3. The application displays a blank Study Information form.
-4. The user submits Study Information.
-5. The application records time spent on the Study Information page.
-6. The user proceeds to eligibility authoring.
-7. Successful final eligibility submission creates the operational posting.
+1. No `STUDY_POSTING_GENERATION_AUDIT` row is created.
+1. The application displays a blank Study Information form.
+1. The user submits Study Information.
+1. The application records time spent on the Study Information page.
+1. The user proceeds to eligibility authoring.
+1. Successful final eligibility submission creates the operational posting.
 
 ## AI-assisted authoring path
 
 When AI assistance is enabled:
 
 1. Add Study submission creates `STUDY_POSTING_AUDIT`.
-2. The application sends the source content and configured prompt to the AI service.
-3. The application creates one `STUDY_POSTING_GENERATION_AUDIT` associated with the posting attempt.
-4. If generation succeeds:
+1. The application sends the source content and configured prompt to the AI service.
+1. The application creates one `STUDY_POSTING_GENERATION_AUDIT` associated with the posting attempt.
+1. If generation succeeds:
    - Generated suggestions are stored.
    - The Study Information page displays the suggestions.
-5. If generation fails:
+1. If generation fails:
    - One `STUDY_POSTING_GENERATION_AUDIT_ERROR` is associated with the generation row.
    - The Study Information page is displayed without suggestions.
    - The user sees an AI-generation error message.
    - The user may continue entering Study Information manually within the same posting attempt.
-6. When the user submits Study Information:
+1. When the user submits Study Information:
    - Selected suggestions are captured for an AI-assisted attempt.
    - Optional feedback is captured.
    - Time spent on the Study Information page is captured.
-7. The user proceeds to eligibility authoring.
-8. Successful final eligibility submission creates the operational posting.
+1. The user proceeds to eligibility authoring.
+1. Successful final eligibility submission creates the operational posting.
 
 Returning to Add Study and trying again creates a new `STUDY_POSTING_AUDIT` attempt.
 
@@ -213,7 +216,8 @@ An AI-assisted posting attempt has one generation row.
 
 A failed generation has one error row associated with that generation row.
 
-A retry begun by returning to Add Study creates a new posting-attempt row rather than another generation row for the original attempt.
+A retry begun by returning to Add Study creates a new posting-attempt row rather than another
+generation row for the original attempt.
 
 ## Study Information submission
 
@@ -265,17 +269,19 @@ When the posting is successfully created:
 
 ## Current-state analytical implication
 
-A report that joins historical posting attempts to the current `APP_USER` table cannot determine whether the application user existed at the time of each attempt.
+A report that joins historical posting attempts to the current `APP_USER` table cannot determine
+whether the application user existed at the time of each attempt.
 
 Example:
 
 1. A new user makes two unsuccessful attempts.
-2. No `APP_USER` exists.
-3. The user later creates a study successfully.
-4. The application creates the `APP_USER`.
-5. A later current-state join reports the user as existing for all three attempts.
+1. No `APP_USER` exists.
+1. The user later creates a study successfully.
+1. The application creates the `APP_USER`.
+1. A later current-state join reports the user as existing for all three attempts.
 
-Current `APP_USER` existence is therefore an extract-time sanity check, not a historical first-time-user field.
+Current `APP_USER` existence is therefore an extract-time sanity check, not a historical
+first-time-user field.
 
 ## PI identity requirements
 
@@ -291,7 +297,7 @@ If either is missing, posting creation fails.
 If no matching PI `APP_USER` exists:
 
 1. Create the application user from imported identity data.
-2. Associate the user with the study as `PRINCIPAL_INVESTIGATOR`.
+1. Associate the user with the study as `PRINCIPAL_INVESTIGATOR`.
 
 If the PI user already exists:
 
@@ -301,7 +307,8 @@ If the PI user already exists:
 
 ## PI notification
 
-When the posting creator differs from the current PI, the PI is notified that a posting was created for the study.
+When the posting creator differs from the current PI, the PI is notified that a posting was created
+for the study.
 
 Whether a PI receives the same notification when creating their own posting remains unresolved.
 
@@ -309,7 +316,8 @@ Whether a PI receives the same notification when creating their own posting rema
 
 A newly created posting is inactive.
 
-The study team must explicitly activate it after completing the desired posting, questionnaire, membership, template, attachment, and notification configuration.
+The study team must explicitly activate it after completing the desired posting, questionnaire,
+membership, template, attachment, and notification configuration.
 
 ## Posting persistence
 

@@ -8,8 +8,8 @@ status: authoritative
 
 YourHealthResearch.org is the platform and product name.
 
-`YourHealthResearch.org` is also a public marketing website containing static
-content directed toward organizations that may adopt the platform.
+`YourHealthResearch.org` is also a public marketing website containing static content directed
+toward organizations that may adopt the platform.
 
 Each adopting organization operates a separately branded application instance.
 
@@ -29,17 +29,17 @@ Each branded instance has its own:
 - Email configuration
 - Job configuration
 
-The instances use the same platform design and application lineage, but they do
-not operate as tenants within one shared application database.
+The instances use the same platform design and application lineage, but they do not operate as
+tenants within one shared application database.
 
 ## Current examples
 
-| Adopting organization | Branded instance |
-|---|---|
-| Michigan Institute for Clinical and Health Research at the University of Michigan | `UMHealthResearch.org` |
-| Clinical and Translational Science Institute at the University of Miami | `UMiamiHealthResearch.org` |
-| Institute for Translational Medicine | `BeTheNewNormalMatch.org` |
-| University of Illinois Chicago | `healthresearch.ccts.uic.edu` |
+| Adopting organization                                                             | Branded instance              |
+| --------------------------------------------------------------------------------- | ----------------------------- |
+| Michigan Institute for Clinical and Health Research at the University of Michigan | `UMHealthResearch.org`        |
+| Clinical and Translational Science Institute at the University of Miami           | `UMiamiHealthResearch.org`    |
+| Institute for Translational Medicine                                              | `BeTheNewNormalMatch.org`     |
+| University of Illinois Chicago                                                    | `healthresearch.ccts.uic.edu` |
 
 The Institute for Translational Medicine is a consortium involving:
 
@@ -108,11 +108,11 @@ flowchart TB
 
 ## Data isolation
 
-Institutional data must not cross instance databases unless an explicitly
-approved integration exists.
+Institutional data must not cross instance databases unless an explicitly approved integration
+exists.
 
-A matching `study_num`, username, participant email, or internal identifier in
-two instances does not:
+A matching `study_num`, username, participant email, or internal identifier in two instances does
+not:
 
 - Establish that the records represent the same application entity
 - Grant cross-instance access
@@ -122,8 +122,8 @@ two instances does not:
 
 ## Structural compatibility
 
-The database schemas and application capabilities are intended to remain
-structurally compatible across branded instances.
+The database schemas and application capabilities are intended to remain structurally compatible
+across branded instances.
 
 The following may differ:
 
@@ -137,23 +137,22 @@ The following may differ:
 - Email templates
 - Participant and study data
 
-Technical documentation must identify deployment-specific behavior rather than
-assuming that one institution's configuration applies to every instance.
+Technical documentation must identify deployment-specific behavior rather than assuming that one
+institution's configuration applies to every instance.
 
 ## Ingestion differences
 
 ### University of Michigan
 
-The University of Michigan instance receives eResearch-derived institutional
-study data.
+The University of Michigan instance receives eResearch-derived institutional study data.
 
 ### Other institutions
 
-Other institutions may upload institutionally governed study data using an
-authenticated incremental CSV process.
+Other institutions may upload institutionally governed study data using an authenticated incremental
+CSV process.
 
-Both approaches populate equivalent imported-governance structures, but their
-transport, scheduling, and reconciliation implementations differ.
+Both approaches populate equivalent imported-governance structures, but their transport, scheduling,
+and reconciliation implementations differ.
 
 ## Related pages
 

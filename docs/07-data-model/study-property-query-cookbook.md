@@ -24,7 +24,8 @@ One logical property may be represented as:
 
 A direct relational join can therefore produce multiple rows for one logical property value.
 
-Queries used for analysis should aggregate at the `STUDY_PROPERTY_VALUE` level before counting studies or properties.
+Queries used for analysis should aggregate at the `STUDY_PROPERTY_VALUE` level before counting
+studies or properties.
 
 See [Study Property Model](study-property-model.md) for the canonical model description.
 
@@ -198,14 +199,15 @@ lookup_value_ids
 
 The query derives:
 
-| Value | Meaning |
-|---|---|
-| `SCALAR` | `SAVED_VALUE` is populated and no lookup values exist |
-| `LOOKUP` | One or more lookup values exist and `SAVED_VALUE` is null |
-| `EMPTY` | Neither scalar nor lookup storage is populated |
-| `INVALID_SCALAR_AND_LOOKUP` | Both scalar and lookup storage are populated |
+| Value                       | Meaning                                                   |
+| --------------------------- | --------------------------------------------------------- |
+| `SCALAR`                    | `SAVED_VALUE` is populated and no lookup values exist     |
+| `LOOKUP`                    | One or more lookup values exist and `SAVED_VALUE` is null |
+| `EMPTY`                     | Neither scalar nor lookup storage is populated            |
+| `INVALID_SCALAR_AND_LOOKUP` | Both scalar and lookup storage are populated              |
 
-The property model expects scalar and lookup storage to be mutually exclusive for one property-value record.
+The property model expects scalar and lookup storage to be mutually exclusive for one property-value
+record.
 
 ## Data-quality query
 
@@ -301,19 +303,21 @@ FROM entity_property
 ORDER BY name;
 ```
 
-This query provides the authoritative property vocabulary for the Study Information property-value model.
+This query provides the authoritative property vocabulary for the Study Information property-value
+model.
 
 ## AI-suggestion analysis
 
 For comparison with AI-generated study-information suggestions:
 
 1. Retrieve one logical property row per `STUDY_PROPERTY_VALUE`.
-2. Preserve scalar values separately from lookup values.
-3. Compare lookup values using stable lookup IDs where possible.
-4. Compare scalar values only after applying the chosen normalization rules.
-5. Retain the original final value for auditability.
+1. Preserve scalar values separately from lookup values.
+1. Compare lookup values using stable lookup IDs where possible.
+1. Compare scalar values only after applying the chosen normalization rules.
+1. Retain the original final value for auditability.
 
-Do not compare lookup-backed values solely by concatenated display text when stable lookup identifiers are available.
+Do not compare lookup-backed values solely by concatenated display text when stable lookup
+identifiers are available.
 
 ## Oracle compatibility notes
 
@@ -323,7 +327,8 @@ The queries use:
 LISTAGG
 ```
 
-The maximum returned string size and supported overflow behavior depend on the Oracle version and database configuration.
+The maximum returned string size and supported overflow behavior depend on the Oracle version and
+database configuration.
 
 For properties with very large lookup sets, the analysis may need:
 

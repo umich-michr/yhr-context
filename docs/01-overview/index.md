@@ -33,7 +33,8 @@ The application supports:
 
 ### Participants
 
-Participants use local accounts to manage profiles, discover studies, express interest, complete screening questionnaires, and respond to study-team messages.
+Participants use local accounts to manage profiles, discover studies, express interest, complete
+screening questionnaires, and respond to study-team messages.
 
 One participant login may manage multiple loved-one participant accounts.
 
@@ -41,11 +42,13 @@ One participant login may manage multiple loved-one participant accounts.
 
 Institutional users authenticate through SAML.
 
-A study member may manage posting content, criteria, questionnaires, interested participants, messages, labels, notifications, and study lifecycle actions for authorized studies.
+A study member may manage posting content, criteria, questionnaires, interested participants,
+messages, labels, notifications, and study lifecycle actions for authorized studies.
 
 ### Principal investigators
 
-The current PI is identified by imported institutional data and receives an irremovable current-PI membership through reconciliation.
+The current PI is identified by imported institutional data and receives an irremovable current-PI
+membership through reconciliation.
 
 ### Administrators
 
@@ -53,7 +56,8 @@ Administrators have application-wide access and participant-account administrati
 
 ### Study importers
 
-Study importers use authenticated institutional data imports to maintain study governance information.
+Study importers use authenticated institutional data imports to maintain study governance
+information.
 
 ## Important boundaries
 

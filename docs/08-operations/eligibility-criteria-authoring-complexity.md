@@ -75,7 +75,8 @@ partial_match_capable_expression_count
 
 The criteria database contains expressions created through legacy and current authoring interfaces.
 
-Historically observed operator combinations must not automatically be interpreted as controls exposed by the current UI.
+Historically observed operator combinations must not automatically be interpreted as controls
+exposed by the current UI.
 
 When possible, classify records as:
 
@@ -98,7 +99,8 @@ invalid_range_format
 unknown_authoring_era
 ```
 
-Current UI mappings are documented in [Criterion Operator and Value Reference](../07-data-model/criterion-operator-reference.md).
+Current UI mappings are documented in
+[Criterion Operator and Value Reference](../07-data-model/criterion-operator-reference.md).
 
 ## Counting guidance
 
@@ -114,14 +116,14 @@ Current UI mappings are documented in [Criterion Operator and Value Reference](.
 
 ## Numeric endpoint rules
 
-| Operator | Endpoint count |
-|---|---:|
-| `GREATER_THAN_OR_EQUAL` | 1 |
-| `LESS_THAN_OR_EQUAL` | 1 |
-| `NOT_GREATER_THAN_OR_EQUAL` | 1 |
-| `NOT_LESS_THAN_OR_EQUAL` | 1 |
-| `BETWEEN` | 2 |
-| `NOT_BETWEEN` | 2 |
+| Operator                    | Endpoint count |
+| --------------------------- | -------------: |
+| `GREATER_THAN_OR_EQUAL`     |              1 |
+| `LESS_THAN_OR_EQUAL`        |              1 |
+| `NOT_GREATER_THAN_OR_EQUAL` |              1 |
+| `NOT_LESS_THAN_OR_EQUAL`    |              1 |
+| `BETWEEN`                   |              2 |
+| `NOT_BETWEEN`               |              2 |
 
 ## Expression-level SQL base
 

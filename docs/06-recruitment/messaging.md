@@ -52,7 +52,8 @@ Each message identifies:
 - Message content
 - Attachments, when present
 
-The participant-side recipient is represented through `STUDY_VOLUNTEER`, which associates the participant account with the study.
+The participant-side recipient is represented through `STUDY_VOLUNTEER`, which associates the
+participant account with the study.
 
 ## Templates
 
@@ -64,7 +65,8 @@ A study team member may:
 - Insert a study-specific template
 - Modify the composed message before sending
 
-Template substitution uses the represented participant's name, including when the account is a loved-one account.
+Template substitution uses the represented participant's name, including when the account is a
+loved-one account.
 
 ## Attachments
 
@@ -78,12 +80,12 @@ Rules:
 
 ## Conversation visibility
 
-| Condition | Conversation visibility |
-|---|---|
-| Study inactive by date and `PUBLISHABLE = 1` | Existing conversations remain visible |
-| `PUBLISHABLE = 0` | Conversations are hidden |
-| Participant deactivated | Historical conversations are hidden from study team |
-| Participant active and study publishable | Authorized study team and participant may view |
+| Condition                                    | Conversation visibility                             |
+| -------------------------------------------- | --------------------------------------------------- |
+| Study inactive by date and `PUBLISHABLE = 1` | Existing conversations remain visible               |
+| `PUBLISHABLE = 0`                            | Conversations are hidden                            |
+| Participant deactivated                      | Historical conversations are hidden from study team |
+| Participant active and study publishable     | Authorized study team and participant may view      |
 
 ## Notifications
 

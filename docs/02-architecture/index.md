@@ -37,9 +37,11 @@ Operational application tables hold:
 
 ## Nonrelational match layer
 
-Current participant-study recommendations and directional exclusions are stored in Redis sorted sets.
+Current participant-study recommendations and directional exclusions are stored in Redis sorted
+sets.
 
-Redis match data is derived from operational application data and is asynchronously recomputed after relevant changes.
+Redis match data is derived from operational application data and is asynchronously recomputed after
+relevant changes.
 
 See [Redis Match and Exclusion Model](../07-data-model/redis-match-model.md).
 
@@ -51,7 +53,8 @@ The application does not retain them as relational export records or server-side
 
 ## Reconciliation
 
-A reconciliation process applies imported governance information to the operational relational layer.
+A reconciliation process applies imported governance information to the operational relational
+layer.
 
 The implementation differs by ingestion path:
 

@@ -11,7 +11,8 @@ canonical_for:
 
 # Recruitment Operations Model
 
-This page records confirmed functional relationships. Exact physical table and column names are shown only when known.
+This page records confirmed functional relationships. Exact physical table and column names are
+shown only when known.
 
 ## Interested participant
 
@@ -25,7 +26,8 @@ STUDY_VOLUNTEER
 → APP_USER participant
 ```
 
-The row also provides the interested-participant relationship used by messaging and workflow management.
+The row also provides the interested-participant relationship used by messaging and workflow
+management.
 
 ## Workflow list
 
@@ -99,11 +101,11 @@ Exact table names must be verified.
 
 Conceptually:
 
-| Value | Meaning |
-|---|---|
-| Study reference | Study whose active period is recorded |
-| Start | Time the derived status became active |
-| End | Time the derived status became inactive |
+| Value           | Meaning                                 |
+| --------------- | --------------------------------------- |
+| Study reference | Study whose active period is recorded   |
+| Start           | Time the derived status became active   |
+| End             | Time the derived status became inactive |
 
 Exact physical columns must be verified.
 

@@ -19,7 +19,7 @@ The application uses a hierarchical relational model for matching criteria.
 The same clause, expression, variable, and value structures support:
 
 1. Study eligibility criteria
-2. Participant study-interest criteria
+1. Participant study-interest criteria
 
 The criterion-root table differs between these use cases.
 
@@ -51,17 +51,17 @@ Criterion root
 
 ### Core tables
 
-| Table | Purpose |
-|---|---|
-| `STUDY` | Root operational study |
-| `STUDY_ELIGIBILITY_CRITERION` | Study criteria group or arm |
-| `FIND_STUDIES_CRITERION` | Participant study-interest criterion root |
-| `CRITERION_CLAUSE` | Logical clause under either criterion-root type |
-| `CRITERION_CLAUSE_EXPRESSION` | One variable/operator/value expression |
-| `CRITERION_VARIABLE` | Allowed generic criterion variable |
-| `CRIT_CLAUSE_EXPRESSION_VALUE` | Scalar, range, date, or free-text value |
-| `EXPRESSION_VALUE_LOOKUP_VALUE` | Join from an expression value to lookup values |
-| `LOOKUP_VALUE` | Controlled vocabulary value |
+| Table                           | Purpose                                         |
+| ------------------------------- | ----------------------------------------------- |
+| `STUDY`                         | Root operational study                          |
+| `STUDY_ELIGIBILITY_CRITERION`   | Study criteria group or arm                     |
+| `FIND_STUDIES_CRITERION`        | Participant study-interest criterion root       |
+| `CRITERION_CLAUSE`              | Logical clause under either criterion-root type |
+| `CRITERION_CLAUSE_EXPRESSION`   | One variable/operator/value expression          |
+| `CRITERION_VARIABLE`            | Allowed generic criterion variable              |
+| `CRIT_CLAUSE_EXPRESSION_VALUE`  | Scalar, range, date, or free-text value         |
+| `EXPRESSION_VALUE_LOOKUP_VALUE` | Join from an expression value to lookup values  |
+| `LOOKUP_VALUE`                  | Controlled vocabulary value                     |
 
 ## UI-to-relational mapping
 
@@ -225,9 +225,11 @@ The vocabulary supports:
 - Participant study-interest criteria
 - Study-information-related criteria
 
-The complete IDs and names are documented in [Criterion Variable Reference](criterion-variable-reference.md).
+The complete IDs and names are documented in
+[Criterion Variable Reference](criterion-variable-reference.md).
 
-A variable's presence in `CRITERION_VARIABLE` does not mean that it is exposed by the current eligibility-authoring UI.
+A variable's presence in `CRITERION_VARIABLE` does not mean that it is exposed by the current
+eligibility-authoring UI.
 
 ## `CRIT_CLAUSE_EXPRESSION_VALUE`
 
@@ -272,7 +274,8 @@ It is used for values such as:
 
 ## Operator and value encoding
 
-`CRITERION_CLAUSE_EXPRESSION.RELATIONAL_OPERATOR` identifies the comparison applied by a structured expression.
+`CRITERION_CLAUSE_EXPRESSION.RELATIONAL_OPERATOR` identifies the comparison applied by a structured
+expression.
 
 Expression values are stored as:
 
@@ -281,9 +284,11 @@ Expression values are stored as:
 
 Structured exclusions use negated operators.
 
-OTHER expressions have a null relational operator and use an internal prefix to distinguish exclusion text from inclusion text.
+OTHER expressions have a null relational operator and use an internal prefix to distinguish
+exclusion text from inclusion text.
 
-The authoritative current-UI mappings and serialization rules are documented in [Criterion Operator and Value Reference](criterion-operator-reference.md).
+The authoritative current-UI mappings and serialization rules are documented in
+[Criterion Operator and Value Reference](criterion-operator-reference.md).
 
 ## OTHER expressions
 
@@ -374,7 +379,8 @@ The dotted lines represent the application-managed polymorphic parent relationsh
 
 ## Analytical query examples
 
-Tested and proposed SQL patterns are maintained separately to avoid loading query details when only the schema is needed.
+Tested and proposed SQL patterns are maintained separately to avoid loading query details when only
+the schema is needed.
 
 See [Criteria Query Cookbook](criteria-query-cookbook.md) for:
 

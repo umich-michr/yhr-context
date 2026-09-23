@@ -19,14 +19,14 @@ These tables are not modifiable by ordinary study team members.
 Imported data is used to:
 
 1. Validate that a study exists before a posting is created.
-2. Prevent posting creation for an unknown `study_num`.
-3. Identify the study's current institutional PI.
-4. Create an application user for a PI when needed.
-5. Create and maintain the current PI study association.
-6. Remove the former PI association when the imported PI changes.
-7. Determine whether a study may recruit.
-8. Update publishability for existing study postings.
-9. Make studies inactive when publishability becomes `0`.
+1. Prevent posting creation for an unknown `study_num`.
+1. Identify the study's current institutional PI.
+1. Create an application user for a PI when needed.
+1. Create and maintain the current PI study association.
+1. Remove the former PI association when the imported PI changes.
+1. Determine whether a study may recruit.
+1. Update publishability for existing study postings.
+1. Make studies inactive when publishability becomes `0`.
 
 ## Incremental update semantics
 
@@ -46,11 +46,10 @@ For CSV-based instances:
 
 - Rows are processed in file order.
 - Each row is handled independently.
-- A successfully processed row may immediately update imported data and
-  reconcile operational data.
+- A successfully processed row may immediately update imported data and reconcile operational data.
 - A later row for the same study may overwrite an earlier value.
-- The last successfully processed row affecting a particular field determines
-  that field's final value after the file is processed.
+- The last successfully processed row affecting a particular field determines that field's final
+  value after the file is processed.
 
 Example:
 
@@ -66,8 +65,7 @@ Each row is processed in order. After all three rows succeed:
 
 - Final publishability is `1`.
 - The PI from row 3 is the current PI.
-- Intermediate operational transitions caused by rows 1 and 2 may have
-  occurred.
+- Intermediate operational transitions caused by rows 1 and 2 may have occurred.
 
 ## Institutional roles
 
@@ -79,18 +77,18 @@ Each row is processed in order. After all three rows succeed:
 
 Each valid imported study has one current institutional PI.
 
-Only the current PI relationship automatically creates application study
-access. Other imported roles are retained for non-application or future use.
+Only the current PI relationship automatically creates application study access. Other imported
+roles are retained for non-application or future use.
 
 ## Role mapping
 
-| Imported condition | Application result |
-|---|---|
-| Current imported PI | Associate user as `PRINCIPAL_INVESTIGATOR` |
-| Former imported PI after a PI change | Remove former operational PI membership |
-| Imported non-PI role | No automatic application study association |
-| Posting creator who is not PI | Associate as `STUDY_TEAM_MEMBER` |
-| User accepts invitation | Associate as `STUDY_TEAM_MEMBER` |
+| Imported condition                   | Application result                         |
+| ------------------------------------ | ------------------------------------------ |
+| Current imported PI                  | Associate user as `PRINCIPAL_INVESTIGATOR` |
+| Former imported PI after a PI change | Remove former operational PI membership    |
+| Imported non-PI role                 | No automatic application study association |
+| Posting creator who is not PI        | Associate as `STUDY_TEAM_MEMBER`           |
+| User accepts invitation              | Associate as `STUDY_TEAM_MEMBER`           |
 
 ## Imported PI requirements
 

@@ -6,8 +6,7 @@ status: authoritative
 
 # Import Pipeline
 
-Import processing differs between the University of Michigan and other
-institutional deployments.
+Import processing differs between the University of Michigan and other institutional deployments.
 
 ## Common behavior
 
@@ -26,25 +25,23 @@ Imports are incremental. Missing rows remain unchanged.
 At U-M:
 
 1. eResearch contains the institutional study data.
-2. Data is placed in an eResearch staging area.
-3. A scheduled database job moves data into the `IMPORTED_*` tables.
-4. The scheduled job invokes an Oracle package.
-5. The Oracle package reconciles imported data with operational application
-   tables.
+1. Data is placed in an eResearch staging area.
+1. A scheduled database job moves data into the `IMPORTED_*` tables.
+1. The scheduled job invokes an Oracle package.
+1. The Oracle package reconciles imported data with operational application tables.
 
 ## Other-institution CSV path
 
 For CSV-based institutions:
 
 1. An institution prepares a CSV containing incremental study updates.
-2. The institution authenticates using a JSON Web Token.
-3. The Java web application validates the token and CSV structure.
-4. Rows are processed in file order.
-5. Each row is handled independently of other rows.
-6. A successfully processed row inserts or updates applicable imported data.
-7. Java application code reconciles the row's imported state with operational
-   application data.
-8. The U-M Oracle synchronization package is not used for this path.
+1. The institution authenticates using a JSON Web Token.
+1. The Java web application validates the token and CSV structure.
+1. Rows are processed in file order.
+1. Each row is handled independently of other rows.
+1. A successfully processed row inserts or updates applicable imported data.
+1. Java application code reconciles the row's imported state with operational application data.
+1. The U-M Oracle synchronization package is not used for this path.
 
 ```mermaid
 flowchart TD
@@ -87,15 +84,15 @@ Token timing is governed by:
 STUDY_IMPORT_TOKEN_GRACE_PERIOD
 ```
 
-The token is provisioned for a study importer or importing process and expires
-according to application configuration.
+The token is provisioned for a study importer or importing process and expires according to
+application configuration.
 
 ## Row independence and ordering
 
 Each CSV row is processed independently and in file order.
 
-If multiple rows affect the same study, each successfully processed row may
-modify imported and operational data before the next row is processed.
+If multiple rows affect the same study, each successfully processed row may modify imported and
+operational data before the next row is processed.
 
 For example:
 
@@ -110,8 +107,7 @@ After both rows succeed, the final publishability value is:
 1
 ```
 
-The later successful modification overwrites the earlier value for the same
-property.
+The later successful modification overwrites the earlier value for the same property.
 
 The same last-successful-update behavior applies to values such as:
 
@@ -119,9 +115,8 @@ The same last-successful-update behavior applies to values such as:
 - Current PI
 - Other imported fields updated by reconciliation
 
-This is not a preprocessing step that reduces the file to one row per study.
-Intermediate rows are processed and may cause intermediate operational
-transitions.
+This is not a preprocessing step that reduces the file to one row per study. Intermediate rows are
+processed and may cause intermediate operational transitions.
 
 ## Validation and anomaly reporting
 
@@ -129,20 +124,18 @@ If a CSV row contains an anomaly:
 
 - Application code detects the anomaly.
 - Details are recorded in application logs.
-- An email is sent to the responsible study importer, normally the person or
-  process owner for whom the JWT was provisioned.
+- An email is sent to the responsible study importer, normally the person or process owner for whom
+  the JWT was provisioned.
 
-Because rows are handled independently, one invalid row does not redefine the
-meaning of later rows. The exact transaction boundary and continuation behavior
-for every validation or infrastructure failure must be documented separately
-from the normal row-order rule.
+Because rows are handled independently, one invalid row does not redefine the meaning of later rows.
+The exact transaction boundary and continuation behavior for every validation or infrastructure
+failure must be documented separately from the normal row-order rule.
 
 ## Multiple rows for one study
 
 A CSV may contain several updates for the same `study_num`.
 
-The effective final state is determined by successful row processing in file
-order:
+The effective final state is determined by successful row processing in file order:
 
 ```text
 Earlier successful value
@@ -158,11 +151,9 @@ ACTIVE
 → ACTIVE
 ```
 
-can occur during one file when sequential rows change publishability or another
-state-driving field.
+can occur during one file when sequential rows change publishability or another state-driving field.
 
-Documentation and monitoring must not assume that only a precomputed final row
-was reconciled.
+Documentation and monitoring must not assume that only a precomputed final row was reconciled.
 
 ## Rollback
 

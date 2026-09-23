@@ -8,9 +8,8 @@ status: authoritative
 
 YourHealthResearch.org is the platform and product name.
 
-Each adopting organization operates a separately branded application instance
-with its own servers, database, supporting infrastructure, configuration, and
-institutional integrations.
+Each adopting organization operates a separately branded application instance with its own servers,
+database, supporting infrastructure, configuration, and institutional integrations.
 
 ```mermaid
 flowchart LR
@@ -90,8 +89,7 @@ Supplies:
 - Current PI identity
 - Publishability
 
-The implementation may use an eResearch-derived feed or an authenticated
-incremental CSV import.
+The implementation may use an eResearch-derived feed or an authenticated incremental CSV import.
 
 ### Email service
 
@@ -109,8 +107,8 @@ Supports:
 
 ### External search engines
 
-Public active-study pages may be indexed by external search engines. Indexing
-strength and timing are not guaranteed.
+Public active-study pages may be indexed by external search engines. Indexing strength and timing
+are not guaranteed.
 
 ## Operational database
 
@@ -130,28 +128,26 @@ The relational database is the authoritative persistent source for:
 
 ## In-memory matching entities
 
-To reduce matching latency, the application keeps active studies and active
-participants in memory.
+To reduce matching latency, the application keeps active studies and active participants in memory.
 
-When matching is triggered, the application evaluates the relevant in-memory
-entities rather than loading all candidate entities from the database for each
-calculation.
+When matching is triggered, the application evaluates the relevant in-memory entities rather than
+loading all candidate entities from the database for each calculation.
 
 When a study or participant changes:
 
 1. The database record is updated.
-2. The corresponding in-memory representation is updated.
-3. Applicable match recomputation is initiated.
-4. Redis recommendations and exclusions are updated asynchronously as needed.
+1. The corresponding in-memory representation is updated.
+1. Applicable match recomputation is initiated.
+1. Redis recommendations and exclusions are updated asynchronously as needed.
 
-Temporal participant-profile updates must update both the persistent profile and
-the corresponding in-memory representation.
+Temporal participant-profile updates must update both the persistent profile and the corresponding
+in-memory representation.
 
-Inactive studies and deactivated participants must not remain in active
-in-memory matching collections.
+Inactive studies and deactivated participants must not remain in active in-memory matching
+collections.
 
-Scheduled synchronization processing reconciles in-memory state with database
-state and handles time-driven transitions such as:
+Scheduled synchronization processing reconciles in-memory state with database state and handles
+time-driven transitions such as:
 
 - Study activation or deactivation boundaries
 - Child loved-one age-out
@@ -169,21 +165,18 @@ Redis stores derived directional data, including:
 - Study-side exclusions
 - Match, promotion, and exclusion timestamps
 
-Redis is not the authoritative source for participant profiles, study
-properties, or eligibility definitions.
+Redis is not the authoritative source for participant profiles, study properties, or eligibility
+definitions.
 
 ## Generated exports
 
-Participant-data CSV exports are generated for authorized requests and streamed
-to the browser.
+Participant-data CSV exports are generated for authorized requests and streamed to the browser.
 
-The application does not retain them as relational export records or
-server-side export files.
+The application does not retain them as relational export records or server-side export files.
 
 ## Explicit non-integration
 
-YourHealthResearch.org does not integrate with an electronic health record
-system.
+YourHealthResearch.org does not integrate with an electronic health record system.
 
 It does not retrieve participant profile or clinical data from an EHR.
 

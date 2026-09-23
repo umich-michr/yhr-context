@@ -18,13 +18,13 @@ Study-level values use a flexible property-value model.
 
 ## Core entities
 
-| Entity | Purpose |
-|---|---|
-| `STUDY` | Root operational study posting |
-| `ENTITY_PROPERTY` | Defines a supported study property |
-| `STUDY_PROPERTY_VALUE` | Stores one study's value for one property |
+| Entity                      | Purpose                                             |
+| --------------------------- | --------------------------------------------------- |
+| `STUDY`                     | Root operational study posting                      |
+| `ENTITY_PROPERTY`           | Defines a supported study property                  |
+| `STUDY_PROPERTY_VALUE`      | Stores one study's value for one property           |
 | `STUDY_PROP_VAL_LOOKUP_VAL` | Connects a property value to selected lookup values |
-| `LOOKUP_VALUE` | Defines controlled vocabulary values |
+| `LOOKUP_VALUE`              | Defines controlled vocabulary values                |
 
 ## Storage hierarchy
 
@@ -187,7 +187,8 @@ STUDY_POSTING_GENERATION_AUDIT.SELECTED_SUGGESTIONS
 STUDY_POSTING_AUDIT.FINAL_SUBMISSION
 ```
 
-The authoritative final-submission comparison is documented in [Study-Posting Authoring Audit Model](study-posting-authoring-audit-model.md).
+The authoritative final-submission comparison is documented in
+[Study-Posting Authoring Audit Model](study-posting-authoring-audit-model.md).
 
 ## Query examples
 

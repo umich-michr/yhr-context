@@ -1,25 +1,22 @@
 # UMHealthResearch / YourHealthResearch.org Context Repository Instructions
 
-This repository contains the functional and technical context for the
-UMHealthResearch platform and its institution-specific branded application
-instances, including YourHealthResearch.org.
+This repository contains the functional and technical context for the UMHealthResearch platform and
+its institution-specific branded application instances, including YourHealthResearch.org.
 
 ## Context routing
 
 1. Start with `docs/context-map.yaml`.
-2. Identify the topic that best matches the question.
-3. Read the topic's `primary` page.
-4. Read `related` pages only when the question crosses module boundaries.
-5. Use `docs/01-overview/business-rules.md` only for cross-cutting invariants or
-   conflict resolution.
-6. Consult `docs/09-decisions/` before inferring behavior that is not explicitly
-   documented.
-7. When a page contains deployment-specific behavior, confirm that the behavior
-   applies to the institution or branded instance in question.
+1. Identify the topic that best matches the question.
+1. Read the topic's `primary` page.
+1. Read `related` pages only when the question crosses module boundaries.
+1. Use `docs/01-overview/business-rules.md` only for cross-cutting invariants or conflict
+   resolution.
+1. Consult `docs/09-decisions/` before inferring behavior that is not explicitly documented.
+1. When a page contains deployment-specific behavior, confirm that the behavior applies to the
+   institution or branded instance in question.
 
-`docs/llms.txt` is generated during local and CI builds and may not exist in a
-fresh repository checkout. Do not depend on it as the repository source of
-truth.
+`docs/llms.txt` is generated during local and CI builds and may not exist in a fresh repository
+checkout. Do not depend on it as the repository source of truth.
 
 ## Documentation status
 
@@ -28,38 +25,35 @@ truth.
 - `mixed`: confirmed context combined with clearly identified proposals
 - `open`: unresolved behavior
 
-Do not present recommended, proposed, mixed-page proposals, or open content as
-implemented behavior.
+Do not present recommended, proposed, mixed-page proposals, or open content as implemented behavior.
 
-A page-level `authoritative` status does not resolve a known contradiction
-recorded in `docs/09-decisions/`. When an authoritative page conflicts with an
-open reconciliation item, describe the behavior as unresolved until the
-conflict is formally resolved.
+A page-level `authoritative` status does not resolve a known contradiction recorded in
+`docs/09-decisions/`. When an authoritative page conflicts with an open reconciliation item,
+describe the behavior as unresolved until the conflict is formally resolved.
 
 ## Source precedence and conflict handling
 
 Use the following order when interpreting documentation:
 
-1. A current canonical page with implementation evidence and a recorded
-   verification date
-2. A resolved decision record
-3. Cross-cutting business rules
-4. Other authoritative topic pages
-5. Historical summary documents
-6. Mixed, recommended, and open pages
+1. A current canonical page with implementation evidence and a recorded verification date
+1. A resolved decision record
+1. Cross-cutting business rules
+1. Other authoritative topic pages
+1. Historical summary documents
+1. Mixed, recommended, and open pages
 
-A historical or summary context document may identify missing behavior, but it
-must not silently overwrite newer implementation findings.
+A historical or summary context document may identify missing behavior, but it must not silently
+overwrite newer implementation findings.
 
 When two sources conflict:
 
 1. Do not choose one solely because it is more detailed.
-2. Check the applicable deployment, application version, and authoring era.
-3. Check implementation evidence such as source code, schema definitions,
-   configuration, tests, job definitions, or verified production behavior.
-4. Record the conflict in `docs/09-decisions/open-questions.md`.
-5. Treat the behavior as unresolved until a decision is recorded.
-6. After resolution, update every canonical page that states the old behavior.
+1. Check the applicable deployment, application version, and authoring era.
+1. Check implementation evidence such as source code, schema definitions, configuration, tests, job
+   definitions, or verified production behavior.
+1. Record the conflict in `docs/09-decisions/open-questions.md`.
+1. Treat the behavior as unresolved until a decision is recorded.
+1. After resolution, update every canonical page that states the old behavior.
 
 ## Required distinctions
 
@@ -116,12 +110,11 @@ For nontechnical questions:
 For technical questions:
 
 - Identify the authoritative source of data.
-- Distinguish relational storage, Redis storage, in-memory state, and generated
-  output.
+- Distinguish relational storage, Redis storage, in-memory state, and generated output.
 - Name physical tables only when verified.
 - Do not use conceptual entity names as production table names.
-- Identify asynchronous jobs, delayed processing, and recomputation where they
-  affect observed behavior.
+- Identify asynchronous jobs, delayed processing, and recomputation where they affect observed
+  behavior.
 - State whether behavior applies to all deployments or only one ingestion path.
 
 ## Editing rules
@@ -129,17 +122,17 @@ For technical questions:
 When changing application behavior documentation:
 
 1. Update the canonical topic page.
-2. Update `docs/01-overview/business-rules.md` if the change is cross-cutting.
-3. Update `docs/01-overview/terminology.md` if a term or distinction changes.
-4. Update `docs/context-map.yaml` if routing changes.
-5. Update open-question pages when a question is resolved or newly discovered.
-6. Update technical schema and relationship pages when physical storage changes.
-7. Update support and troubleshooting pages when operational behavior changes.
-8. Avoid duplicating full explanations across several pages; prefer concise
-   summaries and links to canonical pages.
-9. Preserve newer, independently verified functionality that is absent from an
-   older summary document.
-10. Run `make check` before proposing or committing changes.
+1. Update `docs/01-overview/business-rules.md` if the change is cross-cutting.
+1. Update `docs/01-overview/terminology.md` if a term or distinction changes.
+1. Update `docs/context-map.yaml` if routing changes.
+1. Update open-question pages when a question is resolved or newly discovered.
+1. Update technical schema and relationship pages when physical storage changes.
+1. Update support and troubleshooting pages when operational behavior changes.
+1. Avoid duplicating full explanations across several pages; prefer concise summaries and links to
+   canonical pages.
+1. Preserve newer, independently verified functionality that is absent from an older summary
+   document.
+1. Run `make check` before proposing or committing changes.
 
 ## Evidence expectations
 
@@ -153,8 +146,7 @@ An authoritative technical assertion should be supported by one or more of:
 - Verified production behavior
 - A recorded product, legal, privacy, security, or institutional decision
 
-Examples and inferred behavior are not sufficient by themselves to establish an
-authoritative rule.
+Examples and inferred behavior are not sufficient by themselves to establish an authoritative rule.
 
 When possible, page front matter should identify:
 

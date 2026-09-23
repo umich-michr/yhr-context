@@ -14,7 +14,8 @@ relevant_when:
 
 # Expressions of Interest
 
-An expression of interest is a finalized participant action that creates a `STUDY_VOLUNTEER` relationship.
+An expression of interest is a finalized participant action that creates a `STUDY_VOLUNTEER`
+relationship.
 
 A participant may express interest in a study only once.
 
@@ -35,7 +36,7 @@ The participant completes one form.
 The form contains:
 
 1. Temporal profile updates at the top
-2. Screening questions at the bottom, when configured
+1. Screening questions at the bottom, when configured
 
 The temporal properties are:
 
@@ -52,15 +53,15 @@ The entire form is submitted in one request and processed in one backend transac
 Processing includes:
 
 1. Validate the active participant account.
-2. Validate that the study remains active.
-3. Validate that interest has not already been expressed.
-4. Apply the submitted temporal profile updates.
-5. Reevaluate eligibility using the updated profile.
-6. Reject the transaction if eligibility is `FALSE`.
-7. Validate required questionnaire answers, when applicable.
-8. Store questionnaire answers.
-9. Create the `STUDY_VOLUNTEER` interested-participant relationship.
-10. Create the applicable Redis exclusions that remove the pair from ordinary recommendation flows.
+1. Validate that the study remains active.
+1. Validate that interest has not already been expressed.
+1. Apply the submitted temporal profile updates.
+1. Reevaluate eligibility using the updated profile.
+1. Reject the transaction if eligibility is `FALSE`.
+1. Validate required questionnaire answers, when applicable.
+1. Store questionnaire answers.
+1. Create the `STUDY_VOLUNTEER` interested-participant relationship.
+1. Create the applicable Redis exclusions that remove the pair from ordinary recommendation flows.
 
 If any step fails:
 
@@ -77,9 +78,11 @@ MAYBE → may proceed
 FALSE → cannot proceed
 ```
 
-The participant UI does not label the participant as exact, partial, eligible, or potentially eligible.
+The participant UI does not label the participant as exact, partial, eligible, or potentially
+eligible.
 
-A `FALSE` result displays an explanatory message that the participant does not meet the study's eligibility criteria.
+A `FALSE` result displays an explanatory message that the participant does not meet the study's
+eligibility criteria.
 
 ## Screening-questionnaire role
 
