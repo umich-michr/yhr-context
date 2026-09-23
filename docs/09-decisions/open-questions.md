@@ -375,77 +375,52 @@ ______________________________________________________________________
 
 # Phase 3: Memory Synchronization
 
-## MEMORY-001: Component ownership
+## MEMORY-003: Cross-server propagation for existing active entities
 
-Which application class, service, or subsystem owns the in-memory collections of active participants
-and active studies?
+Active stores are process-local. Scheduled synchronization adds and removes
+active members but does not refresh entities present in both the database view
+and local store.
 
-Record implementation references when available.
+Determine whether any deployment-specific mechanism propagates an ordinary
+participant-profile or study-property update to other application servers
+while the entity remains active. No message queue, shared active-entity cache,
+or application event broadcast has been confirmed.
 
-## MEMORY-002: Per-server or shared state
+## MEMORY-004: Startup failure and readiness
 
-Are in-memory entities:
-
-- Local to each application server
-- Stored in a shared distributed cache
-- Replicated through events
-- Rebuilt independently on each server
-
-This question is critical because branded instances may run more than one application server.
-
-## MEMORY-003: Cross-server propagation
-
-When one application server updates an entity, how do other servers receive the change?
-
-Possible mechanisms include:
-
-- Database polling
-- Message queue
-- Shared cache
-- Scheduled full synchronization
-- Application-specific event broadcast
-- No immediate propagation
-
-## MEMORY-004: Startup loading
-
-At application startup:
-
-- How are active participants loaded?
-- How are active studies loaded?
-- Is matching blocked until loading completes?
-- How is load completion observed?
-- What happens if loading partially fails?
-
-## MEMORY-005: Incremental update ordering
-
-For one participant or study update, identify the actual sequence:
-
-```text
-Database update
-In-memory update
-Transaction commit
-Match trigger
-Redis update
-```
-
-Determine what happens if:
-
-- Database update succeeds but memory update fails
-- Memory update succeeds before database commit fails
-- Match recomputation fails
-- Redis update fails
-
-Do not claim transactional atomicity across database, memory, and Redis unless confirmed.
-
-## MEMORY-006: Full synchronization schedule
+Process-local active stores are populated from database-backed active views
+during Spring bean initialization.
 
 Determine:
 
-- Which job performs full memory synchronization
-- Its default schedule
-- Whether the schedule is configurable per instance
-- Whether it replaces or merges in-memory objects
-- Whether matching continues during the job
+- Whether a load failure aborts application startup
+- Whether a partially populated store can remain available
+- Whether readiness or health checks block traffic until all stores initialize
+- How operators observe startup-load completion or failure
+
+## MEMORY-005: Transaction boundary for incremental updates
+
+A participant update hook reloads the entity into the local store and then
+triggers asynchronous matching.
+
+Determine the exact Spring advice and transaction ordering:
+
+- Whether the database transaction commits before the local memory reload
+- Whether matching can start before transaction commit
+- What happens when the target transaction rolls back after memory changes
+- What happens when local reload succeeds but Redis recomputation fails
+
+Do not claim transactional atomicity across database, memory, and Redis.
+
+## MEMORY-006: Effective synchronization schedule by deployment
+
+Default persisted schedules are documented. Determine for each deployed
+instance:
+
+- Effective scheduler time zone
+- Whether administrators changed the persisted cron expressions
+- Whether multiple application servers run the same schedules
+- Whether cluster coordination prevents duplicate execution
 
 ## MEMORY-007: Temporal transitions
 
@@ -460,28 +435,30 @@ List every time-based transition handled by synchronization or scheduled jobs, i
 
 For each transition, document the source, job, and memory-removal behavior.
 
-## MEMORY-008: Freshness and monitoring
+## MEMORY-008: Production freshness monitoring
 
-Determine whether the application exposes:
+Process-local task status, logs, application errors, and store counts exist.
+
+Determine whether production operations expose or alert on:
 
 - Last successful synchronization
-- In-memory participant count
-- In-memory study count
-- Database-to-memory count comparison
+- Database-to-memory count differences
+- Database-to-memory-to-Redis consistency
+- Cross-server divergence
 - Synchronization duration
-- Failed entity updates
-- Alerting thresholds
+- Failed-entity thresholds
 
-## MEMORY-009: Recovery
+## MEMORY-009: Recovery procedures
 
-How is memory repaired after:
+Restart reloads local stores, scheduled synchronization repairs active
+membership, and full rematching recalculates ordinary recommendations.
 
-- One failed update
-- Application restart
-- Database outage
-- Job failure
-- Data inconsistency
-- Multi-server divergence
+Document supported operator procedures for:
+
+- Repairing stale data for an entity that remains active
+- Recovering from startup database outage or partial store load
+- Repairing cross-server divergence
+- Recovering Redis exclusions after complete Redis data loss
 
 ______________________________________________________________________
 
@@ -906,57 +883,43 @@ Confirm:
 - Every exclusion reason
 - Any legacy key formats
 
-## REDIS-002: Rebuild process
+## REDIS-002: Cold Redis rebuild procedure
 
-How is Redis rebuilt after:
+Full rematching recalculates ordinary recommendations but does not
+automatically detect empty Redis or reconstruct every Redis-only exclusion.
 
-- Flush
-- Data loss
-- Server replacement
-- Application deployment
-- Schema or key-format change
+Determine the supported procedure after:
 
-## REDIS-003: Source of rebuild
+- Redis flush or data loss
+- Redis server replacement
+- Application deployment requiring rebuild
+- Redis key-format change
 
-Does a rebuild use:
+## REDIS-004: Exclusion retention and recovery
 
-- Database records
-- In-memory entities
-- Both
-- Existing active intervals
-- Historical exclusions
+Exclusions are retained during ordinary rematching and deactivation cleanup
+unless a specific business action removes or replaces them.
 
-## REDIS-004: Exclusion retention
+Determine retention and cleanup rules for:
 
-How and when are obsolete exclusions removed?
-
-Consider:
-
-- Participant reactivation
-- Study reactivation
+- Participant or study reactivation
 - Hard deletion
 - Study archive
 - Expired promotion
-- Changed eligibility
+- Complete Redis loss
+- Obsolete exclusions with no remaining relational business context
 
-## REDIS-005: Recompute retry
+## REDIS-006: Redis consistency monitoring
 
-Are failed recomputations:
-
-- Retried automatically
-- Queued
-- Logged only
-- Visible to administrators
-- Recovered by a full scheduled rematch
-
-## REDIS-006: Freshness monitoring
+Recommendation timestamps and counts are available, but no cluster-wide
+consistency comparison is confirmed.
 
 Determine whether operators can compare:
 
-- Database state
-- In-memory match inputs
-- Redis recommendations
-- Last recomputation timestamp
+- Database source state
+- Per-server in-memory match inputs
+- Redis recommendations and exclusions
+- Last successful full recomputation
 - Expected and actual key counts
 
 ______________________________________________________________________

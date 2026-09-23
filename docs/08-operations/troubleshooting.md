@@ -275,6 +275,37 @@ Use `PHI_AUDIT` to investigate:
 
 Workflow-list movement, label changes, and exports are not separately audited.
 
+## Suspected stale in-memory state
+
+Active stores are process-local. Scheduled synchronization adds newly active
+entities and removes inactive entities, but it does not refresh complete data
+for entities that remain active.
+
+When one server appears stale:
+
+- Confirm which application server processed the update.
+- Confirm that the local entity update hook completed.
+- Compare the database record with that server's in-memory entity.
+- Check matching application errors.
+- Trigger the supported entity rematch or store-repair operation when
+  appropriate.
+- Do not assume another server received an ordinary profile or study-property
+  update immediately.
+
+## Suspected Redis data loss
+
+A full recommendation recomputation can regenerate ordinary recommendations
+from active in-memory entities. It may not reconstruct all directional
+exclusions because exclusions are also stored in Redis.
+
+Before relying on a rematch after Redis loss:
+
+- Determine whether exclusions were lost.
+- Identify which exclusions can be reconstructed from relational business
+  records.
+- Preserve participant-facing study-team promotions separately from ordinary
+  system recommendations.
+
 ## Related pages
 
 - [Support Routing](support-routing.md)

@@ -278,6 +278,35 @@ Direction-specific behavior:
 - Participant visibility affects study-facing recommendation computation and storage. Restricted participants do not retain exact or partial study-facing recommendations in `std.rec`.
 - Restricted visibility does not prevent participant-facing recommendation computation.
 
+## Full recommendation recomputation
+
+The full recommendation job reads active studies and participants from the
+application server's process-local in-memory stores and recomputes both
+recommendation directions.
+
+Recalculation:
+
+- Adds newly qualifying recommendations
+- Removes recommendations that no longer qualify
+- Moves study-facing recommendations between exact and partial sets when the
+  eligibility result changes
+- Honors existing directional exclusions
+- Leaves participant-facing study-team promotions separate from ordinary
+  system recommendations
+
+Full recomputation does not clear Redis before rebuilding.
+
+## Redis-loss recovery limitation
+
+Ordinary recommendations can be recalculated from active in-memory study and
+participant entities. Directional exclusions are themselves stored in Redis
+and are inputs to recomputation.
+
+The application must not assume that full recomputation reconstructs every
+exclusion after complete Redis data loss. The current implementation does not
+detect an empty Redis instance automatically or trigger an automatic cold
+rebuild after a flush, server replacement, deployment, or key-format change.
+
 ## Match freshness
 
 Scores record timestamps associated with:

@@ -43,6 +43,52 @@ collections.
 
 Scheduled synchronization jobs reconcile time-based and other state changes.
 
+### Process-local stores
+
+Each application server maintains its own active-participant and active-study
+stores in process memory. The stores use concurrent maps and are populated
+independently from database-backed active views during application startup.
+
+Redis is not the active-entity store. It contains derived recommendations and
+exclusions shared through the configured Redis service.
+
+### Scheduled active-membership reconciliation
+
+Scheduled synchronization reconciles membership in each server's local active
+stores:
+
+- Newly active entities absent from the local store are loaded and matched.
+- Entities no longer present in the active database view are removed, and
+  their system recommendations are cleared.
+- Entities present in both the database active view and local store are left
+  unchanged.
+
+The scheduled synchronizers therefore reconcile active-set membership; they do
+not refresh the complete state of entities that remain active.
+
+Default seed schedules are:
+
+- Active participants: daily at 5:05 a.m.
+- Active studies: daily at 5:10 a.m.
+- Full recommendation recomputation: Saturdays at 2:00 a.m.
+
+These schedules are persisted application-job settings and may be changed.
+Their effective time zone depends on scheduler configuration.
+
+### Matching execution and failure handling
+
+Entity-triggered matching runs asynchronously and uses fork/join processing.
+Matching status is maintained in process memory for the application server
+running the task.
+
+A failed recomputation is recorded as an application error and triggers an
+error notification. It is not automatically retried. A later entity change or
+full recommendation recomputation may calculate the pair again.
+
+Full recommendation recomputation iterates the active studies and recomputes
+both directions against active participants. A failure for one study is
+recorded and does not prevent later studies from being processed.
+
 ## Interest matching
 
 Interest matching compares participant study interests with study properties.

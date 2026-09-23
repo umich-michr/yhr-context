@@ -80,6 +80,24 @@ Because exports are streamed and not separately audited, investigation may corre
 
 This is indirect evidence and not a definitive export event.
 
+## Matching and memory observability
+
+The application provides process-local matching status for an individual
+participant or study while matching tasks are active. It also records matching
+exceptions as application errors and sends error notifications.
+
+Redis sorted-set scores retain recommendation, promotion, and exclusion
+timestamps. These timestamps support ordering and troubleshooting but do not
+prove that database, in-memory, and Redis state are mutually consistent.
+
+The current implementation does not provide a confirmed cluster-wide view of:
+
+- Last successful memory synchronization
+- Database-to-memory count comparison
+- Database-to-memory-to-Redis consistency
+- Expected versus actual Redis key counts
+- Cross-server in-memory divergence
+
 ## Related pages
 
 - [PHI Audit](phi-audit.md)
