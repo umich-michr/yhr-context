@@ -111,12 +111,28 @@ than treating this page as a complete user manual.
    - Communication email, which is also its username
    - First name
    - Last name
-1. Country and ZIP code entered for the loved one are copied to the owning account.
-1. Required participant-profile fields not collected for the owning account remain incomplete.
-1. The minimal owning profile defaults to hidden from study teams.
+1. Country and ZIP entered during signup for a loved one are stored on the loved-one profile;
+   the current implementation does not copy them to the owning profile.
+1. The minimal owner's missing required fields are:
+   - Country
+   - ZIP
+   - Biological sex assigned at birth
+   - Date of birth
+   - Race and/or ethnicity
+   - Parent/guardian-of-a-child response
+1. First name, last name, and explicit no-current/no-past-condition values already satisfy those
+   required fields for the owner.
+1. The owner completes the self profile through ordinary Profile cards; there is no separate
+   registration-continuation or profile-state transition.
+1. The minimal owning profile defaults to hidden from study teams and remains hidden until the owner
+   explicitly changes Visibility.
 1. The loved one's visibility is selected during signup.
 1. The loved-one account receives an application-generated GUID-based email-like username.
 1. The owner's real email address is used as the communication email for both accounts.
+1. Owner and loved-one contact fields are not kept synchronized. Add Loved One and later contact edits
+   update only the selected represented account.
+1. Preferred language is the confirmed exception: changing the owner's preferred language propagates
+   it to loved-one profiles.
 1. Child-versus-adult relationship selection is validated against date of birth.
 1. Child loved-one accounts are deactivated by a scheduled job at the configured maturity age.
 1. The owning account is notified before the age-based deactivation.

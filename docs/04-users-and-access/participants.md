@@ -98,24 +98,53 @@ study-facing Redis storage, see
 
 ## Minimal owning profile
 
-When a person signs up for a loved one, the application creates a minimal owning account in addition
-to the loved-one account.
+Signup for a loved one creates a minimal owning account in addition to the loved-one account.
 
-The owning account contains:
+The owner initially has:
 
 - Username and communication email
 - First name
 - Last name
-- Country copied from the loved-one signup data
-- ZIP code copied from the loved-one signup data
+- Preferred language
+- Restricted visibility
+- Explicit no-current-condition and no-past-condition responses
 
-Other participant-profile fields remain incomplete because the flow collects the required profile
-data for the loved one rather than the owner.
+The owner does not receive the loved one's country or ZIP. The required-field check initially reports:
 
-The minimal owning profile defaults to hidden from study teams.
+- Country
+- ZIP
+- Biological sex assigned at birth
+- Date of birth
+- Race and/or ethnicity
+- Parent/guardian-of-a-child response
 
-If the owner later wants to participate personally, the owner must complete the applicable self
-profile and choose the desired visibility setting.
+To participate for self, the owner uses the ordinary Profile workflow:
+
+1. Switch to or remain in owner context.
+1. Complete country and ZIP in Contact Information.
+1. Complete the missing fields in Demographics.
+1. Optionally complete other profile cards to increase the displayed percentage.
+1. Optionally define Study Interests.
+1. Explicitly choose Visibility if a different study-team visibility setting is desired.
+
+No dedicated registration continuation or account-state conversion exists.
+
+### Required fields versus percentage completeness
+
+The participant frontend calculates two different values:
+
+- A missing-required-fields list used to identify essential unanswered fields.
+- A broader percentage that includes optional questions and is intended to improve recommendation
+  quality.
+
+The percentage includes optional contact, demographic, gender-identity, health, condition, and
+medication questions. It does not include Study Interests or Visibility.
+
+Neither value is persisted as a profile-complete flag in `VOLUNTEER_PROFILE`.
+
+A profile may satisfy every required field without reaching 100%. A profile may also reach 100% while
+remaining restricted from pre-interest study-team visibility, because visibility is a separate
+choice.
 
 ## Study interests
 

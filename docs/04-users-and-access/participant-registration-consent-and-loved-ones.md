@@ -73,25 +73,42 @@ represented loved one.
 
 The owning account is created so the owner can authenticate and manage the loved-one account.
 
-The signup flow collects the following owner information:
+The signup flow stores the following owner information:
 
-- Communication email
+- Communication email, also used as the username
 - First name
 - Last name
+- Preferred language
+- Restricted visibility (`visibleToStudyTeams = false`)
+- Explicit no-current-condition and no-past-condition values
+- Learned-from information, when supplied
 
-The owner's communication email is also the owning account's username.
+Country and ZIP entered in this workflow are stored on the loved-one profile. The current participant
+frontend, Java creation service, tests, and migrations contain no owner-copy step.
 
-Country and ZIP code entered for the loved-one profile are copied to the owning account during this
-signup flow.
+The minimal owner is missing these fields from the frontend's required-field check:
 
-Other required participant-profile fields are not collected for the owning account during this flow.
-The owning profile is therefore incomplete for ordinary self participation.
+- Country
+- ZIP
+- Biological sex assigned at birth
+- Date of birth
+- Race and/or ethnicity
+- Parent/guardian-of-a-child response
 
-The minimal owning profile defaults to hidden from study teams.
+The owner completes these fields through the ordinary Profile cards while operating in owner context:
 
-The copied country and ZIP values are confirmed signup behavior. They must not be described as
-remaining automatically synchronized with later loved-one profile changes unless that behavior is
-separately verified.
+- Contact Information supplies country and ZIP.
+- Demographics supplies biological sex, date of birth, race/ethnicity, and parent/guardian status.
+
+There is no separate owner-registration continuation, activation state, or “self participant”
+conversion. The owner account already exists and is active after account activation.
+
+The owner may separately edit Study Interests and Visibility. Neither is required by the
+required-field check or the percentage-completeness calculation.
+
+The owner remains restricted from pre-interest study-team visibility until explicitly changing the
+Visibility section. Completing required fields or reaching 100% profile completeness does not change
+visibility automatically.
 
 ### Loved-one account
 
@@ -119,7 +136,24 @@ The new loved-one account receives:
 - The owner's communication email
 - The loved-one visibility selected in the Add Loved One workflow
 
-The existing owning account is not recreated.
+The existing owning account is not recreated or updated with the new loved one's country, ZIP,
+or other profile answers.
+
+## Owner and loved-one profile independence
+
+Each represented account has its own `VOLUNTEER_PROFILE` and `CONTACT_INFO` record.
+
+After creation:
+
+- Editing owner contact information updates only the owner.
+- Editing a loved-one profile updates only that loved one.
+- Add Loved One creates and saves the new loved-one profile without overwriting owner contact data.
+- Country, ZIP, city, state, phone, names, visibility, health answers, and study interests do not
+  propagate among related accounts.
+- Changing the owner's preferred language is the confirmed exception and updates loved-one preferred
+  language.
+
+Account-context switching determines which profile receives an edit.
 
 ## Agreement definitions
 

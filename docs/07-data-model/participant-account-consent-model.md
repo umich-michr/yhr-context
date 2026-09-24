@@ -91,18 +91,29 @@ The owning account uses the owner's real communication email as:
 - Username
 - Communication email address
 
-The signup flow captures:
+The signup flow stores:
 
 - First name
 - Last name
 - Communication email
+- Preferred language
+- Restricted visibility
+- Explicit no-current-condition and no-past-condition profile values
+- Learned-from information, when supplied
 
-Country and ZIP code entered for the loved-one profile are copied to the owning account during
-signup.
+Country and ZIP from signup for a loved one are persisted on the represented loved-one's
+`CONTACT_INFO`, not the owner's. The current creation path does not copy them.
 
-Other profile fields required for ordinary self participation may remain incomplete.
+The owner therefore begins with these required fields missing:
 
-The owning profile defaults to hidden from study teams.
+- `CONTACT_INFO.COUNTRY`
+- `CONTACT_INFO.ZIP`
+- Biological-sex profile property
+- Date-of-birth profile property
+- Race or other-race profile property
+- Parent/guardian-of-a-child profile property
+
+The owner fills them through ordinary account-specific profile updates.
 
 ### Loved-one identity
 
@@ -136,7 +147,8 @@ Add Loved One creates:
 - A new loved-one participant profile
 - A new `LOVED_ONE` relationship
 
-It does not recreate the existing owning account.
+It does not recreate the existing owning account or copy the new loved one's contact/profile
+values into that owner.
 
 ## Visibility ownership
 
@@ -153,6 +165,34 @@ An owning account created through signup for a loved one defaults to hidden beca
 is incomplete and was created primarily to manage the loved-one account.
 
 The loved-one visibility is selected during the loved-one creation workflow.
+
+## Profile completeness representation
+
+The relational model has no persisted profile-complete Boolean, percentage, or missing-fields
+collection.
+
+`VOLUNTEER_PROFILE` stores profile data, including visibility, notification frequencies, language,
+property values, contact information, and an optional study-interest criterion.
+
+The participant frontend derives two separate measures from that data:
+
+1. **Missing required fields**
+
+   - First and last name
+   - Country and ZIP
+   - Biological sex assigned at birth
+   - Date of birth
+   - Race or nonblank other-race value
+   - Current and past conditions, including explicit no-condition values
+   - Parent/guardian-of-a-child response for owning accounts
+
+1. **Percentage completeness**
+
+   - Includes the required data plus optional contact, demographic, gender-identity, health,
+     condition, and medication fields
+   - Excludes visibility and study interests
+
+These calculations are presentation/workflow logic, not persisted account states.
 
 ## Agreement definition
 
@@ -415,7 +455,9 @@ date-of-birth value.
 1. Shared communication email does not mean the owning and loved-one accounts are the same account.
 1. The GUID-based loved-one username is not a real communication address.
 1. `LOVED_ONE.PARENT_ID` identifies the owning account, not necessarily a legal parent.
-1. Country and ZIP copying during signup does not establish ongoing address synchronization.
+1. Current signup-for-a-loved-one code does not copy country or ZIP to the owner.
+1. Related account contact/profile values are not synchronized; preferred language propagation from
+   owner to loved ones is the confirmed exception.
 1. An old agreement acceptance does not satisfy a newer agreement version.
 1. The absence of a current-version audit row indicates that re-agreement is required; it does not
    by itself prove that the user declined.

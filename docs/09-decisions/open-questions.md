@@ -125,7 +125,14 @@ The following items are confirmed and are no longer open.
    - Communication email and username
    - First name
    - Last name
-1. Country and ZIP entered for the loved one are copied to the owning account during signup.
+1. Country and ZIP entered for the loved one are stored on the loved-one profile and are not copied
+   to the minimal owner.
+1. The minimal owner's missing required fields are country, ZIP, biological sex assigned at birth,
+   date of birth, race/ethnicity, and parent/guardian-of-a-child response.
+1. The owner completes the self profile through ordinary Profile cards.
+1. Profile completion does not change the owner's restricted visibility.
+1. Related account contact/profile fields are not synchronized; preferred-language propagation from
+   owner to loved ones is the confirmed exception.
 1. The loved-one account receives a GUID-based email-like username.
 1. The owner's real email is used for communication with both accounts.
 1. A loved-one account can also be created later through Add Loved One.
@@ -341,67 +348,87 @@ ______________________________________________________________________
 
 # Phase 2: Minimal Owning Profiles
 
-## PROFILE-001: Exact incomplete fields
+## PROFILE-001: Exact incomplete fields — resolved
 
-Which required participant-profile fields remain missing on an owning account created through signup
-for a loved one?
+The current signup-for-a-loved-one path gives the minimal owner:
 
-Identify:
+- First name
+- Last name
+- Communication email/username
+- Preferred language
+- Restricted visibility
+- Explicit no-current-condition and no-past-condition responses
+- Learned-from data when supplied
 
-- Database properties
-- UI-required fields
-- Matching-relevant fields
-- Fields copied from the loved one
-- Fields intentionally left null
+Country and ZIP are stored only on the loved-one profile; no current frontend, Java service, test, or
+migration path copies them to the owner.
 
-## PROFILE-002: Completing the owner profile
+The owner's exact missing required fields are:
 
-What workflow allows an owner created through loved-one signup to become a participant for self?
+- Country
+- ZIP
+- Biological sex assigned at birth
+- Date of birth
+- Race and/or ethnicity
+- Parent/guardian-of-a-child response
 
-Determine whether the owner must:
+Optional completeness fields also remain unanswered but do not belong to the required-field gate.
 
-- Use Edit Profile
-- Complete a dedicated registration continuation
-- Accept additional clauses
-- Choose self visibility
-- Define study interests
-- Activate another profile state
+## PROFILE-002: Completing the owner profile — resolved
 
-## PROFILE-003: Visibility after profile completion
+There is no dedicated registration continuation or persisted self-participation state.
 
-When the owner later completes the self profile:
+While operating in owner context, the owner uses ordinary Profile cards:
 
-- Is visibility requested again?
-- Does the profile remain hidden until explicitly changed?
-- Can profile completion automatically make the owner visible?
-- Is visibility independent from completeness?
+- Contact Information for country and ZIP
+- Demographics for biological sex, date of birth, race/ethnicity, and parent/guardian status
+- Other cards for optional percentage completeness
+- Study Interests for optional recommendation filters
+- Visibility for the independent study-team visibility choice
 
-## PROFILE-004: Country and ZIP copying
+The owner account is already activated with the loved-one account. Profile completion does not require
+another activation or a separate agreement type.
 
-The initial copy is confirmed. Determine whether later changes are synchronized.
+## PROFILE-003: Visibility after profile completion — resolved
 
-Check these cases:
+The minimal owner starts with `visibleToStudyTeams = false`.
 
-- Loved-one country or ZIP changes
-- Owner country or ZIP changes
-- Add Loved One with a different country or ZIP
-- Multiple loved ones with different addresses
+Required-field completion and percentage completeness do not include or modify visibility. The owner
+remains restricted until explicitly changing the Visibility profile section.
 
-Do not describe ongoing synchronization unless confirmed.
+Owner and loved-one visibility values belong to separate profiles and do not propagate.
 
-## PROFILE-005: Profile-completeness representation
+## PROFILE-004: Country and ZIP copying — resolved
 
-How does the application determine that a participant profile is complete?
+The current implementation does not copy country or ZIP from the loved one to the minimal owner.
 
-Determine whether completeness is:
+It also does not maintain ongoing address synchronization:
 
-- A persisted flag
-- Computed from required fields
-- Different by registration path
-- Different by institution
-- Used by matching or only by UI validation
+- Add Loved One saves only the new loved-one profile.
+- Later owner contact edits update only the owner.
+- Later loved-one contact edits update only that loved one.
+- No country/ZIP propagation hook or database trigger is present in reviewed source or migrations.
 
-______________________________________________________________________
+Preferred language is the confirmed exception: changing the owner's language updates loved-one
+preferred language.
+
+## PROFILE-005: Profile-completeness representation — resolved
+
+There is no persisted profile-complete flag or percentage.
+
+The participant frontend computes:
+
+1. A missing-required-fields list for essential unanswered data.
+1. A broader profile-completeness percentage that includes optional questions.
+
+Study Interests and Visibility are excluded from both calculations.
+
+A participant can satisfy required fields without reaching 100%, and can reach 100% while retaining
+restricted visibility. These are calculated presentation/workflow measures rather than account
+lifecycle states.
+
+Implementation concern: the required-field module mutates a module-level field array when adding the
+owner-only parent/guardian requirement. This is current code behavior to review, not a business rule.
 
 # Phase 3: Memory Synchronization
 
