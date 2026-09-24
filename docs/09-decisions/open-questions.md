@@ -141,14 +141,26 @@ The following items are confirmed and are no longer open.
 1. Self and loved-one participant workflows use the same participant agreement type and version for
    audit storage.
 1. The participant agreement body is shared between self and loved-one use.
-1. Loved-one presentation adds clauses appropriate to agreement on behalf of a represented loved
-   one.
-1. The additional loved-one clauses do not create a separate `USER_AGREEMENT.TYPE`.
-1. The audit type does not distinguish self, child loved-one, and adult loved-one presentation.
+1. Loved-one workflows add one common represented-loved-one acknowledgment covering adults and
+   children.
+1. The common acknowledgment does not create a separate `USER_AGREEMENT.TYPE`.
+1. The audit type does not distinguish self and represented-loved-one presentation.
+1. The frontend does not select separate child and adult agreement variants.
+1. Loved-one workflows use a common acknowledgment covering both adults and children.
+1. The common acknowledgment is not persisted in the agreement audit.
 1. A user without an audit record for the current agreement type and version must review the
    agreement at login.
 1. A participant who confirms decline is deactivated.
+1. Agreement decline targets the current authenticated account context:
+   - Owner context deactivates the owner and enabled loved-one accounts.
+   - Loved-one context deactivates only the represented loved-one account.
+1. The agreement-decline confirmation does not offer account selection.
 1. A study team member who declines cannot continue into application features.
+1. Agreement-audit username attribution is account-specific:
+   - Self signup writes the self username.
+   - Initial loved-one signup writes one owner row and one loved-one row.
+   - Add Loved One writes the new loved-one username.
+   - Login-time re-agreement writes the authenticated context's username.
 
 ### PI reconciliation
 
@@ -184,6 +196,16 @@ The following items are confirmed and are no longer open.
 1. Ask if interested moves or emphasizes the match in the study-team-promoted participant grouping.
 1. A scheduled job evaluates promoted matches newer than the participant's last login.
 
+### Loved-one age-out
+
+1. Mature age and warning interval are configurable application settings.
+1. The warning is stored in `CHILD_DEACTIVATION_NOTICE`.
+1. Age-out writes `USER_DEACTIVATION` with reason `CHILD_TURNED_ADULT`.
+1. The child is removed immediately from the local active-user store handling the transition.
+1. Redis system-recommendation cleanup is asynchronous.
+1. The owner remains active and receives a deactivation notice when available.
+1. No separate age-out PHI-audit event is confirmed.
+
 ### Matching memory
 
 1. Active studies and active participants are maintained in application memory.
@@ -194,6 +216,11 @@ The following items are confirmed and are no longer open.
 1. Deactivated participants and inactive studies must be removed from active in-memory matching
    data.
 1. Scheduled processing handles time-based transitions and synchronization.
+1. Child age-out uses date of birth and configured age thresholds.
+1. Age-out deactivation immediately removes the child from the handling process's active-user store
+   and initiates asynchronous Redis system-recommendation cleanup.
+1. Active-study synchronization uses `V_ACTIVE_STUDY` as its membership source; additions trigger
+   matching and removals trigger asynchronous study-recommendation cleanup.
 
 ______________________________________________________________________
 
@@ -202,37 +229,78 @@ ______________________________________________________________________
 These questions should be resolved before agreement analytics or detailed deactivation behavior is
 described as complete.
 
-## AGREEMENT-001: Loved-one-context principal username
+## AGREEMENT-001: Loved-one-context principal username — resolved
 
-The authenticated agreement endpoint stores the authenticated principal's
-username.
+The backend behavior is confirmed:
 
-Determine whether loved-one context changes that username during login-time
-re-agreement, initial loved-one signup, or Add Loved One.
+- Initial self signup writes the self account username.
+- Initial signup for a loved one writes two acceptance rows: the owning account username and the
+  generated loved-one username.
+- Add Loved One writes one acceptance row for the newly generated loved-one username.
+- Login-time re-agreement writes the authenticated security principal's username. In loved-one
+  context, this is the loved-one account's generated username.
 
-## AGREEMENT-003: Child-versus-adult displayed clauses
+The audit record does not identify the rendered child/adult wording variant.
 
-The backend distinguishes child and adult relationships, but presentation
-variants are not persisted.
+## AGREEMENT-003: Child-versus-adult displayed clauses — resolved
 
-Determine from the frontend whether wording differs, how the variant is
-selected, and whether it is configuration-driven.
+The frontend does not select separate child and adult agreement variants.
 
-## AGREEMENT-004: Decline target in loved-one context
+All participant workflows use agreement type `VOL` and load one institution- and language-specific
+volunteer agreement body. Relationship, date of birth, age, and child/adult category are not inputs to
+agreement-body selection.
 
-Decline uses account deactivation. Owner deactivation cascades; loved-one
-deactivation does not.
+Loved-one workflows add one common represented-loved-one acknowledgment. Its wording explicitly
+covers both an “adult or child” represented by the owner.
 
-Determine which account ID the frontend submits during decline in loved-one
-context.
+Relationship-specific child/adult wording exists in the signup form and is validated against date of
+birth, but it does not select the agreement body. Neither the rendered body nor the common
+acknowledgment variant is stored in `USER_AGREEMENT_AUDIT`.
 
-## AGREEMENT-005: Decline reason and operational history
+## AGREEMENT-004: Decline target in loved-one context — resolved
 
-No separate declined-agreement record exists; decline is represented through
-`USER_DEACTIVATION`.
+The agreement-version interruption supplies the current authenticated context's `userId` to the
+frontend. After a yes/no confirmation, the decline callback posts that ID to the participant
+deactivation endpoint.
 
-Confirm the submitted reason, decline-specific email behavior, and
-administrator-visible history.
+There is no target-account chooser in the agreement-decline confirmation.
+
+Consequences:
+
+- Decline in owner context targets the owner and cascades to enabled loved-one accounts.
+- Decline in loved-one context targets only the represented loved-one account.
+- The owner and sibling loved-one accounts remain enabled after individual loved-one decline.
+
+The ordinary Account Settings deactivation screen is a separate workflow and may display related
+accounts for selection.
+
+## AGREEMENT-005: Decline reason and operational history — resolved
+
+The unsigned-agreement response supplies the `DECLINED_USER_AGREEMENT` lookup value as its
+`deactivationReason`. The frontend submits that value unchanged to the participant-deactivation
+endpoint.
+
+The common deactivation service persists `USER_DEACTIVATION` with:
+
+- Target user ID
+- Deactivation timestamp
+- Reason lookup reference for `DECLINED_USER_AGREEMENT`
+
+No successful `USER_AGREEMENT_AUDIT` row or distinct agreement-decline record is created. Previous
+agreement-acceptance rows remain historical evidence but do not satisfy a newer current-version
+check.
+
+Agreement decline uses the standard account-deactivation notification:
+
+- Owner decline emails the owner and includes enabled dependent accounts affected by the cascade.
+- Individual loved-one decline emails the owner about that loved-one account.
+- No separate agreement-decline email method or template is used.
+
+There is no agreement-decline-specific PHI-audit function. `ADMIN_DEACTIVATE_USER` applies only when
+an administrator performs the deactivation.
+
+The persistence behavior is confirmed. Whether a particular administration UI exposes this reason
+and timestamp remains a separate user-interface question.
 
 ## AGREEMENT-006: Support reactivation workflow
 
@@ -365,15 +433,31 @@ instance:
 - Whether multiple application servers run the same schedules
 - Whether cluster coordination prevents duplicate execution
 
-## MEMORY-007: Remaining temporal-transition behavior
+## MEMORY-007: Remaining temporal-transition behavior — code behavior resolved
 
-Direct activation changes, active-view synchronization, child age-out, and
-interactive deactivation are documented.
+Confirmed runtime behavior:
 
-Determine the exact `updateActiveIntervalsJob` behavior, imported
-publishability handling, interval updates for date-driven transitions, and
-resolution of the `V_ACTIVE_STUDY` versus `V_STUDY_STATUS` deactivation-date
-inconsistency.
+- `V_ACTIVE_STUDY` determines effective active matching membership using calendar dates, an inclusive
+  activation date, an exclusive deactivation date, and `PUBLISHABLE = 1`.
+- `activeStudiesSynchronizationJob` reconciles that view with process-local active-study stores.
+- Newly active studies trigger matching.
+- Removed studies trigger asynchronous Redis system-recommendation cleanup.
+- Direct date changes invoke `StudyActiveIntervalService.updateInterval(...)`.
+- Imported publishability changes update `STUDY.PUBLISHABLE`, write synchronization history, and may
+  open or close the most recent interval.
+- Pure date-boundary passage does not invoke the interval service.
+- `BatchNotificationJob` queries intervals but does not mutate them.
+- Participant deactivation and child age-out remove users from local memory and initiate asynchronous
+  recommendation cleanup.
+- The seeded `updateActiveIntervalsJob` schedule has no corresponding dynamic-job bean in the
+  reviewed source and is not executable by itself.
+
+The remaining item is a design decision rather than an unanswered code path:
+`V_ACTIVE_STUDY` excludes the deactivation date while `V_STUDY_STATUS` includes it. Matching follows
+`V_ACTIVE_STUDY`; the desired canonical date rule and migration require product and technical
+agreement.
+
+Deployment-specific effective cron schedules and time zones remain covered by `MEMORY-006`.
 
 ## MEMORY-008: Production freshness monitoring
 
@@ -408,12 +492,25 @@ Detailed administrator job control is confirmed to exist but remains to be docum
 
 ## ADMINJOB-004: Cluster-wide and general job concurrency
 
-Full recommendation recomputation has a per-scheduler manual-execution guard
-and a synchronized service method within one application process.
+The reviewed backend does not provide general cluster-wide no-overlap enforcement.
 
-Determine whether Quartz clustering is enabled, whether runs overlap across
-servers, whether other jobs may overlap, and whether duplicate execution is
-acceptable for each job.
+Confirmed protections are limited to full recommendation recomputation:
+
+- Manual execution checks the local Quartz scheduler's currently executing jobs.
+- A visible existing run causes a second manual request to be rejected.
+- The underlying update-all method is synchronized within one application process.
+
+Confirmed limitations:
+
+- Check and trigger are not atomic.
+- The guard is special-cased to `updateAllRecommendationsJob`.
+- The Quartz wrapper lacks `@DisallowConcurrentExecution`.
+- The reviewed configuration does not enable a clustered JDBC Quartz job store.
+- Process-local synchronization does not coordinate multiple application servers.
+- Other jobs may overlap, including manual/scheduled overlap.
+
+Still determine the production deployment topology and whether duplicate execution is operationally
+acceptable or externally prevented for each job.
 
 ## ADMINJOB-006: Durable job-control audit
 
@@ -698,13 +795,27 @@ Mature age and warning interval are application settings. Unit tests use age
 
 Confirm effective setting values for each branded deployment.
 
-## AGEOUT-004: Immediate age-out cleanup and audit
+## AGEOUT-004: Immediate age-out cleanup and audit — resolved
 
-Age-out persists `USER_DEACTIVATION` with reason `CHILD_TURNED_ADULT` and
-records warnings in `CHILD_DEACTIVATION_NOTICE`.
+Age-out uses the common participant-deactivation service with reason `CHILD_TURNED_ADULT`.
 
-Confirm immediate local-memory removal, Redis cleanup timing, and whether
-age-out creates a distinct audit event.
+The service:
+
+1. Sets the child's database account enabled flag to false.
+1. Removes the child immediately from the handling process's `ActiveUsersStore`.
+1. Starts asynchronous Redis recommendation cleanup.
+1. Writes `USER_DEACTIVATION` with user ID, timestamp, and reason.
+1. Sends the owning account a deactivation notification when the parent is available.
+
+Redis cleanup removes the child from each active study's study-facing recommendations and removes the
+child's `SYSTEM` participant-facing recommendation set.
+
+The warning path is separate. It sends a pre-age-out email and writes
+`CHILD_DEACTIVATION_NOTICE`, deduplicated by parent ID, child ID, and the birth-date value recorded at
+notice time.
+
+No distinct age-out PHI-audit event is invoked by the reviewed path. `USER_DEACTIVATION` and
+`CHILD_DEACTIVATION_NOTICE` are the confirmed durable records.
 
 ## AGEOUT-005: Adult self-registration and historical data
 

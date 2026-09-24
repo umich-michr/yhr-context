@@ -20,17 +20,18 @@ relevant_when:
 
 There is no independent persisted active Boolean.
 
-A study is active only when:
+Matching-active membership is defined by `V_ACTIVE_STUDY`:
 
-```text
-PUBLISHABLE = 1
-AND current date/time is on or after POSTING_ACTIVATION_DATE
-AND current date/time is on or before POSTING_DEACTIVATION_DATE
-```
+- `PUBLISHABLE = 1`
+- Current calendar date on or after `POSTING_ACTIVATION_DATE`
+- Current calendar date before `POSTING_DEACTIVATION_DATE`
 
-The boundaries are inclusive at the instant they are stored.
+The view truncates time-of-day. Its activation date is inclusive and its deactivation date is
+exclusive.
 
-If any condition is false, the study is inactive.
+`V_STUDY_STATUS` instead uses inclusive `BETWEEN`, so it may report `ACTIVE` on the deactivation date
+when matching has already excluded the study. Pages must identify the governing view when that
+difference matters.
 
 ## Initial and explicit activation
 
@@ -77,13 +78,22 @@ There is no separate manual-deactivation Boolean.
 
 ## Date-based expiration
 
-The study becomes inactive when the current date/time is later than its deactivation boundary.
+Effective matching membership is derived from `V_ACTIVE_STUDY`. The view uses calendar dates and
+requires:
 
-Scheduled processing detects time-based transitions, updates active intervals, removes expired
-studies from active in-memory matching data, and initiates applicable notifications.
+- Current date on or after the posting activation date
+- Current date before the posting deactivation date
+- `PUBLISHABLE = 1`
+
+When the deactivation date is reached, the study disappears from `V_ACTIVE_STUDY`. The scheduled
+`activeStudiesSynchronizationJob` then removes it from each process-local active-study store and
+starts asynchronous system-recommendation cleanup.
+
+Pure passage of time does not call `StudyActiveIntervalService.updateInterval(...)` in the reviewed
+code. It therefore does not itself create or close a `STUDY_ACTIVE_INTERVAL` row.
 
 After the deactivation boundary has passed, publishability returning to `1` cannot reactivate the
-study unless a study member explicitly sets a new activation range.
+study unless a study member establishes a new activation range.
 
 ## Upcoming-deactivation warning
 
@@ -112,34 +122,42 @@ When `PUBLISHABLE` changes to `0`:
 
 ## Automatic reactivation
 
-When `PUBLISHABLE` changes from `0` to `1`, the application recalculates active status.
+When imported `PUBLISHABLE` changes from `0` to `1`, reconciliation sets the posting activation date
+to the current time and retains the configured posting deactivation date.
 
-Automatic reactivation occurs only if the unchanged activation range still contains the current
-date/time.
-
-When automatically reactivated:
+When the resulting range is matching-active:
 
 - The study returns to active in-memory matching data.
 - Applicable matching recomputation begins.
-- A new active interval is created.
+- A new active interval may be created.
 - Delayed lifecycle-notification handling begins.
 
-If the deactivation boundary has passed, publishability alone cannot reactivate the study.
+If the retained deactivation date has passed, the resulting range cannot remain matching-active.
+A study member must establish a valid future range.
 
-Manual deactivation therefore prevents future automatic reactivation unless the study team
-explicitly establishes a new activation range.
+This imported-publishability behavior differs from merely reevaluating unchanged dates.
 
 ## Active intervals
 
-`STUDY_ACTIVE_INTERVAL` records periods during which the derived study state was active.
+`STUDY_ACTIVE_INTERVAL` stores configured active ranges used for lifecycle queries and notifications.
 
-An interval is created or closed whenever the derived state changes because of:
+The interval service is called by two confirmed production paths:
 
-- Explicit activation
-- Manual deactivation
-- Date-based expiration
-- Publishability change
-- Automatic reactivation
+- Direct study updates that change posting activation or deactivation dates
+- Imported publishability transitions
+
+Its behavior is:
+
+- First activation creates an interval.
+- Reactivation after a prior interval creates another interval.
+- Changing the current interval end updates the most recent interval.
+- Imported transition to active sets activation to the current time and records the resulting range.
+- Imported transition from active to inactive closes the current range at the current time.
+
+No scheduled job mutates intervals merely because time crosses a posting boundary. Interval rows
+therefore represent ranges recorded when application or import code changes lifecycle-driving data;
+they are not a complete event log proving when each application server observed a date-driven
+transition.
 
 ## Lifecycle notifications
 
@@ -161,8 +179,8 @@ Example:
 ACTIVE → INACTIVE → ACTIVE within one day
 ```
 
-The operational transitions and active intervals may still occur, but a stable-state PI notification
-is not sent for the transient change.
+The operational state changes may still occur, and interval rows may be changed by direct or
+import-driven updates, but a stable-state PI notification is not sent for the transient sequence.
 
 If the changed state remains beyond the stabilization period, the applicable PI notification is
 sent.
@@ -242,16 +260,26 @@ Matching uses active entities loaded from `V_ACTIVE_STUDY`.
 
 ## Active-interval updates
 
-Direct activation-boundary changes create or update
-`STUDY_ACTIVE_INTERVAL`.
+The complete production call-site search for
+`StudyActiveIntervalService.updateInterval(...)` finds only:
 
-- First activation creates an interval.
-- Reactivation after a prior interval creates another interval.
-- Changing the current interval end updates its deactivation and update
-  timestamps.
+- `StudyServiceImpl`
+- `StudyImportSynchronizerImpl`
 
-Existing infrastructure does not by itself prove that every date-driven or
-publishability-driven transition creates or closes an interval row.
+The seeded schedule row named `updateActiveIntervalsJob` has no corresponding dynamic-job bean in the
+reviewed Java source. Because application jobs are discovered from Spring beans implementing
+`DynamicallyReschedulableJob`, the schedule row alone is not executable.
+
+`BatchNotificationJob` queries existing interval rows to identify activation and deactivation
+announcements. It does not update interval rows.
+
+### Confirmed date-view inconsistency
+
+`V_ACTIVE_STUDY` excludes the posting deactivation date, while `V_STUDY_STATUS` uses an inclusive
+`BETWEEN` comparison. On the saved deactivation date, the two views may disagree.
+
+Matching membership follows `V_ACTIVE_STUDY`. Choosing which view should be corrected remains a
+product and technical decision.
 
 ## Related pages
 

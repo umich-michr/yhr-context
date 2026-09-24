@@ -98,6 +98,9 @@ than treating this page as a complete user manual.
 1. Visibility, matching, interest, questionnaires, and messages belong to the represented
    participant account.
 1. Agreement acceptance for a loved-one account is performed by the owning account.
+1. Participant agreement content is selected by agreement type, institution, and language.
+1. Loved-one workflows add one common represented-loved-one acknowledgment covering both adults and
+   children; relationship and date of birth do not select separate agreement variants.
 1. A loved-one account may be created:
    - During initial registration using the signup-for-a-loved-one flow
    - Later through Add Loved One
@@ -134,10 +137,15 @@ than treating this page as a complete user manual.
    - `STM`
 1. When a participant accepts the current agreement, a new `USER_AGREEMENT_AUDIT` record is created.
 1. When a participant declines:
-   - The participant is warned that the account will be deactivated.
+   - The participant is warned that the current account context will be deactivated.
    - The participant must confirm the decision.
-   - On confirmation, the participant account is deactivated.
-   - Deactivation of an owning self account cascades to its loved-one accounts.
+   - The confirmation does not offer account-target selection.
+   - On confirmation, the frontend submits the current interrupted account ID with reason
+     `DECLINED_USER_AGREEMENT`.
+   - Decline in owner context deactivates the owner and cascades to enabled loved-one accounts.
+   - Decline in loved-one context deactivates only that loved-one account.
+   - The ordinary account-deactivation email is sent; there is no separate agreement-decline email.
+   - `USER_DEACTIVATION` is the durable decline history; no distinct decline audit row is created.
 1. When a study team member declines:
    - The user is denied access to application features.
    - The user is returned to or removed from the authenticated application workflow.
@@ -211,9 +219,12 @@ See:
 ## Study active status
 
 1. Study active status is derived; there is no independent persisted active Boolean.
-1. A study is active only when:
+1. Matching-active study membership follows `V_ACTIVE_STUDY` and requires:
    - `PUBLISHABLE = 1`
-   - The current date/time falls within the inclusive activation and deactivation boundaries
+   - Current calendar date on or after the activation date
+   - Current calendar date before the deactivation date
+1. `V_STUDY_STATUS` instead treats the deactivation date as inclusive; the two views can disagree on
+   that date.
 1. Initial activation requires explicit study-team action.
 1. A study cannot be activated or assigned new activation dates while `PUBLISHABLE = 0`.
 1. Explicit activation:
@@ -228,12 +239,16 @@ See:
 1. Total enrollment is stored through `STUDY_PROPERTY_VALUE`.
 1. Date-based expiration makes the study inactive.
 1. `PUBLISHABLE = 0` makes the study inactive without changing its dates.
-1. `PUBLISHABLE: 0 → 1` automatically reactivates a study only when its unchanged activation range
-   still contains the current date/time.
-1. After the deactivation boundary has passed, publishability alone cannot reactivate the study.
-1. Every derived active/inactive transition creates or closes a `STUDY_ACTIVE_INTERVAL`.
-1. Lifecycle announcements are handled asynchronously rather than being sent synchronously in the
-   status-changing request.
+1. Imported `PUBLISHABLE: 0 → 1` may reactivate the study by resetting the posting activation date
+   to the current time while retaining the configured deactivation date.
+1. Reactivation requires the resulting range to remain eligible for active membership; if the
+   deactivation date has passed, publishability alone cannot keep the study active.
+1. `STUDY_ACTIVE_INTERVAL` records configured active ranges when direct date changes or imported
+   publishability changes invoke the interval service.
+1. Pure passage across a date boundary changes effective active membership through
+   `V_ACTIVE_STUDY`; it does not itself write or close an interval row in the reviewed code.
+1. Lifecycle announcements query existing interval rows and are handled asynchronously rather than
+   being sent synchronously in the status-changing request.
 1. A PI receives a warning approximately one week before a scheduled deactivation date.
 1. Stable active-status changes participate in delayed PI-notification handling.
 

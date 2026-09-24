@@ -69,12 +69,15 @@ Inspect:
 
 ## Study became active automatically
 
-Automatic reactivation occurs only when:
+Imported automatic reactivation occurs when:
 
-- `PUBLISHABLE` changed from `0` to `1`
-- The unchanged activation-date range still contains today
+- Imported `PUBLISHABLE` changes from `0` to `1`
+- Reconciliation resets the posting activation date to the current time
+- The retained posting deactivation date still permits active membership
 
-If the deactivation boundary has passed, publishability alone cannot reactivate the study.
+If the retained deactivation date has passed, the resulting range cannot remain matching-active.
+Inspect reconciliation logs, the updated activation date, the retained deactivation date, and
+`V_ACTIVE_STUDY` membership.
 
 ## Study cannot be archived
 

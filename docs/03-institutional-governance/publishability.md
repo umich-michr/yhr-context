@@ -42,18 +42,18 @@ Study team members cannot directly edit the imported publishability value.
 
 ## Relationship to active status
 
-A study's active status depends on both its local recruitment dates and its institutionally
-controlled publishability.
+A study's matching-active status depends on publishability and local recruitment dates.
 
-Conceptually:
+`V_ACTIVE_STUDY`, which supplies matching-active studies, requires:
 
-```text
-Study is active =
-    PUBLISHABLE = 1
-    AND current date/time falls within the activation and deactivation boundaries
-```
+- `PUBLISHABLE = 1`
+- Current calendar date on or after `POSTING_ACTIVATION_DATE`
+- Current calendar date before `POSTING_DEACTIVATION_DATE`
 
-The boundaries are inclusive.
+The view truncates time-of-day. Activation is inclusive and deactivation is exclusive.
+
+`V_STUDY_STATUS` uses an inclusive `BETWEEN` comparison instead. On the saved deactivation date, the
+status view and matching-active view can disagree. Matching follows `V_ACTIVE_STUDY`.
 
 ## Transition to non-publishable
 
@@ -79,16 +79,19 @@ persist a separate local governance-deactivation state.
 
 ## Transition to publishable
 
-When `PUBLISHABLE` changes from `0` to `1`:
+When an imported `PUBLISHABLE` value changes from `0` to `1`:
 
-1. The application recalculates the study's active status.
-1. If the current date remains within the existing activation and deactivation boundaries, the study
-   becomes active automatically.
-1. The study is restored to the active in-memory study collection.
-1. Applicable matching recomputation is initiated.
-1. No separate manual reactivation is required under the current implementation.
+1. The application updates `STUDY.PUBLISHABLE`.
+1. It sets `POSTING_ACTIVATION_DATE` to the current time.
+1. It records or updates the applicable `STUDY_ACTIVE_INTERVAL`.
+1. It updates local active-study state.
+1. It initiates applicable matching when effective status changes.
 
-If the deactivation boundary has passed, publishability alone cannot reactivate the study.
+The configured posting deactivation date is not replaced by this path. If that date has passed, the
+resulting range cannot remain matching-active.
+
+This behavior differs from merely reevaluating an unchanged activation range: imported transition to
+publishable explicitly resets the activation boundary.
 
 ## Known governance concern
 
@@ -103,8 +106,8 @@ Example:
 1. The study acknowledges the requirement in the institutional system.
 1. The acknowledgment causes `PUBLISHABLE` to return to `1`.
 1. The study team has not yet updated the title in the application.
-1. The original activation and deactivation dates still include the current date.
-1. The study becomes active automatically.
+1. The imported transition resets the posting activation date to the current time.
+1. If the retained deactivation date is still in the future, the study becomes active automatically.
 
 Possible future approaches include:
 

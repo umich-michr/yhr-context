@@ -97,17 +97,27 @@ Exact table names must be verified.
 
 ## Active intervals
 
-`STUDY_ACTIVE_INTERVAL` records historical active periods.
+`STUDY_ACTIVE_INTERVAL` records configured lifecycle ranges created or updated by direct study
+changes and imported publishability transitions.
 
 Conceptually:
 
-| Value           | Meaning                                 |
-| --------------- | --------------------------------------- |
-| Study reference | Study whose active period is recorded   |
-| Start           | Time the derived status became active   |
-| End             | Time the derived status became inactive |
+| Value               | Meaning                                           |
+| ------------------- | ------------------------------------------------- |
+| `STUDY_ID`          | Operational study                                 |
+| `ACTIVATION_DATE`   | Beginning of the recorded range                   |
+| `DEACTIVATION_DATE` | End of the recorded range                         |
+| `UPDATE_DATE`       | Time the interval row was last created or changed |
 
-Exact physical columns must be verified.
+These rows support lifecycle and notification queries. They are not a complete observation log of
+runtime state:
+
+- Pure passage across a posting date boundary does not itself write an interval row.
+- `BatchNotificationJob` queries interval rows but does not mutate them.
+- Process-local active membership is reconciled separately from `V_ACTIVE_STUDY`.
+
+Analyses must not assume that an interval-row write proves when every application server observed the
+study becoming active or inactive.
 
 ## Total enrollment and archive date
 

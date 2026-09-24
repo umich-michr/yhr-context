@@ -182,38 +182,37 @@ The values may be represented as configured strings or codes in a particular dep
 
 ## Self and loved-one agreement treatment
 
-Self and loved-one participant workflows use the same participant agreement type and version for
-audit storage.
+Self and loved-one participant workflows use the same participant agreement type and version:
 
-The body of the participant agreement is shared, but loved-one workflows present additional clauses
-that address agreement and responsibility on behalf of the represented loved one.
-
-Conceptually:
-
-```text
-USER_AGREEMENT:
-    TYPE = VOL
-    VERSION = current participant version
-
-Self presentation:
-    Shared participant agreement body
-
-Loved-one presentation:
-    Shared participant agreement body
-    + Loved-one or proxy clauses
+```
+TYPE = VOL
+VERSION = current participant version
 ```
 
-The additional loved-one clauses do not create separate agreement types or versions in the confirmed
-audit model.
+The frontend loads one institution- and language-specific volunteer agreement body for `VOL`.
+Agreement-body selection does not use:
 
-The following are presentation contexts, not confirmed `USER_AGREEMENT.TYPE` values:
+- `LOVED_ONE.RELATIONSHIP`
+- Date of birth
+- Derived age
+- Child/adult category
 
-```text
+When the workflow indicates that the account has loved ones, the popup adds a common
+represented-loved-one acknowledgment. That acknowledgment covers adults and children together. It is
+not a distinct agreement definition, version, or audit type.
+
+The following are presentation or account contexts, not confirmed `USER_AGREEMENT.TYPE` values:
+
+```
 SELF
 LOVED_ONE
 CHILD_LOVED_ONE
 ADULT_LOVED_ONE
 ```
+
+Child/adult relationship-specific labels and explanatory text exist in the registration forms. They
+are used to collect and validate the owner-to-loved-one relationship; they do not choose a separate
+agreement body.
 
 ## Agreement audit
 
@@ -281,26 +280,53 @@ The context must instead be determined using other evidence, such as:
 - Registration timing
 - Application logs or request context, when available
 
-The exact rule identifying which username is stored during initial loved-one signup, Add Loved One,
-and later loved-one re-agreement remains to be verified.
+Username attribution is workflow-specific:
+
+| Workflow                                     | `USER_AGREEMENT_AUDIT.USER_NAME`                                   |
+| -------------------------------------------- | ------------------------------------------------------------------ |
+| Self signup                                  | Self account username                                              |
+| Initial signup for a loved one               | Two rows: owning-account username and generated loved-one username |
+| Add Loved One                                | Generated username of the newly created loved-one account          |
+| Login-time re-agreement in owner context     | Authenticated owner's username                                     |
+| Login-time re-agreement in loved-one context | Authenticated loved-one context's generated username               |
+
+Initial creation uses the username on each `User` passed to the agreement-audit service. The
+authenticated re-agreement endpoint instead sets the username from the current security principal and
+does not trust a client-supplied username.
 
 ## Decline behavior
 
-A declined agreement does not create a successful agreement-acceptance row.
+A declined agreement does not create a successful agreement-acceptance row or a distinct
+agreement-decline audit row.
 
-For a participant:
+For a participant, the frontend receives agreement-interruption arguments for the current
+authenticated context. After confirmation it sends:
 
-- The application warns that confirmed decline will deactivate the account.
-- Confirmed decline causes participant-account deactivation.
-- Deactivation of an owning self account cascades to its loved-one accounts.
+```
+userId = current interrupted account ID
+reason = DECLINED_USER_AGREEMENT lookup value supplied by the backend response
+```
 
-For a study team member:
+The confirmation has no account-target chooser.
 
-- Decline prevents continued application use.
-- The institutional SAML identity is not deactivated by the application.
+Backend scope is determined by `userId`:
 
-The physical persistence of a decline event, apart from resulting account deactivation, remains to
-be documented.
+- Owner ID deactivates the owner and all enabled loved-one accounts.
+- Loved-one ID deactivates only that loved-one account.
+
+For a study team member, decline logs the user out or otherwise prevents continued application use.
+It does not deactivate the institutional identity.
+
+Resulting participant deactivation is persisted in `USER_DEACTIVATION` with reason
+`DECLINED_USER_AGREEMENT`. The record retains the target user ID, deactivation timestamp, and
+deactivation-reason lookup reference.
+
+No agreement-decline-specific `PHI_AUDIT` function exists. `ADMIN_DEACTIVATE_USER` is emitted only
+when an administrator performs the deactivation, not when a participant declines their own
+agreement.
+
+The reviewed path sends the ordinary account-deactivation email. It does not use a separate
+agreement-decline notification template.
 
 ## Relationship model
 
@@ -355,9 +381,37 @@ USER_NAME
 This documentation does not assert an undeclared physical foreign key between `USER_AGREEMENT` and
 `USER_AGREEMENT_AUDIT`.
 
+## Participant deactivation persistence
+
+`USER_DEACTIVATION` is the durable participant-deactivation record.
+
+| Column                      | Meaning                          |
+| --------------------------- | -------------------------------- |
+| `ID`                        | Deactivation-record identifier   |
+| `USER_ID`                   | Deactivated participant account  |
+| `DEACTIVATION_DATE`         | Time the record was created      |
+| `DEACTIVATION_REASON_LV_ID` | Deactivation-reason lookup value |
+
+The common deactivation service also:
+
+1. Sets the database authentication record's enabled flag to false.
+1. Removes the participant from the process-local active-participant store.
+1. Starts asynchronous recommendation cleanup.
+1. Saves `USER_DEACTIVATION`.
+
+Reactivation enables the account, adds it back to the local active-participant store, triggers
+rematching, and deletes the account's `USER_DEACTIVATION` record.
+
+Age-out uses this same path with reason `CHILD_TURNED_ADULT`. The prior warning is separately stored
+in `CHILD_DEACTIVATION_NOTICE`; warning deduplication uses parent ID, child ID, and the recorded
+date-of-birth value.
+
 ## Analytical cautions
 
 1. `TYPE = VOL` does not distinguish self from loved-one presentation.
+1. The frontend does not select separate child and adult agreement variants.
+1. The represented-loved-one acknowledgment is shared by child and adult contexts and is not stored
+   in `USER_AGREEMENT_AUDIT`.
 1. Shared communication email does not mean the owning and loved-one accounts are the same account.
 1. The GUID-based loved-one username is not a real communication address.
 1. `LOVED_ONE.PARENT_ID` identifies the owning account, not necessarily a legal parent.

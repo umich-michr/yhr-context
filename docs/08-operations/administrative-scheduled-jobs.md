@@ -43,6 +43,11 @@ Seeded application-job names include:
 A seeded schedule appears in the administrator API only when the deployed
 application also contains a corresponding dynamic-job bean.
 
+`updateActiveIntervalsJob` is present in the schedule seed with a 3:00 a.m. cron expression, but the
+reviewed Java source contains no corresponding dynamic-job class or Spring bean. The seed row alone
+does not execute interval updates and should be treated as stale or orphaned unless a deployment adds
+the missing bean externally.
+
 ## Authorization
 
 All administrator job-controller endpoints require the application-wide
@@ -104,16 +109,40 @@ count, failure count, or last business-error message.
 
 ## Manual execution and concurrency
 
-Administrators may trigger a dynamic job immediately and may supply supported
-parameters.
+Administrators may trigger a dynamic job immediately and may supply supported parameters.
 
-`updateAllRecommendationsJob` has an explicit overlap guard for manual
-execution. A second immediate execution is rejected when an instance is
-already running. The full-recommendation method is also synchronized within one
-application process.
+`updateAllRecommendationsJob` has two confirmed process-local protections:
 
-These controls do not establish cluster-wide single execution, and no generic
-no-overlap guard is confirmed for every dynamic job.
+1. Before a manual trigger, `JobSchedulingService` asks Quartz for currently executing instances with
+   the same job key and rejects the request when at least one is visible.
+1. `MatchingServiceImpl.updateAllRecommendations(...)` is `synchronized`, serializing calls on that
+   Spring service instance within one Java virtual machine.
+
+The manual guard can reject:
+
+- A second administrator-triggered run while an existing run is already visible to that scheduler
+- A manual run while a scheduled run is already visible as executing
+
+The protection is limited:
+
+- The running-instance check and `triggerJob(...)` call are separate operations, not an atomic lock.
+  Two nearly simultaneous requests could both observe zero running instances.
+- The guard is special-cased only for `updateAllRecommendationsJob`.
+- `DynamicallyReschedulableQuartzJob` is not annotated with Quartz
+  `@DisallowConcurrentExecution`.
+- The reviewed Quartz configuration enables interruption on shutdown but does not configure a JDBC
+  job store or Quartz clustering.
+- The scheduler therefore does not establish cluster-wide single execution across independent
+  application servers.
+- The `synchronized` method protects one service object in one process, not another server.
+
+Other dynamic jobs can overlap unless their own implementation, deployment topology, or an
+unreviewed external control prevents it. Scheduled/manual overlap and two-administrator overlap
+should therefore be treated as possible outside the narrow protections above.
+
+Matching task IDs provide a separate stale-work safeguard: an older asynchronous recommendation or
+deactivation task checks whether it remains valid before changing Redis. That limits stale Redis
+writes but is not a scheduler-level duplicate-execution lock.
 
 ## Interruption
 

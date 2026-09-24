@@ -184,17 +184,22 @@ For an existing operational study:
 STUDY.PUBLISHABLE = imported PUBLISHABLE value from the current row
 ```
 
-Active status is then recalculated using:
+Active status is then determined from:
 
 - Publishability
-- Activation date
-- Deactivation date
-- Current date/time
+- Posting activation date
+- Posting deactivation date
+- Current calendar date
 
-When publishability returns from `0` to `1`, the study automatically becomes active if the current
-date/time remains within the configured range.
+When imported publishability changes from `0` to `1`, reconciliation sets the posting activation date
+to the current time and retains the configured posting deactivation date. If the resulting range is
+present in `V_ACTIVE_STUDY`, the study becomes matching-active.
 
-The in-memory active-study collection is updated to reflect the recalculated state.
+When imported publishability changes from `1` to `0`, reconciliation closes the current recorded
+interval at the current time without replacing the study's configured posting deactivation date.
+
+The local active-study store is then updated, and matching or deactivation cleanup is initiated when
+effective status changes.
 
 ## PI reconciliation
 
