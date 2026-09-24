@@ -453,20 +453,39 @@ submit acceptance, submit participant deactivation, and retrieve a CSRF token.
 
 ## Agreement decline and reactivation
 
-The backend does not persist a separate declined-agreement audit record.
-Decline is represented through participant-account deactivation.
+The backend does not persist a separate declined-agreement audit record. Decline is represented
+through participant-account deactivation with reason `DECLINED_USER_AGREEMENT`.
 
-Deactivating an owning account deactivates its enabled loved-one accounts.
-Deactivating one loved-one account does not deactivate the owner or siblings.
+Administrators reactivate participants through the React study-team application's Customer Support
+area:
 
-Reactivation does not itself record agreement acceptance. After reactivation,
-the current-version agreement filter blocks ordinary use until acceptance.
+1. Find the participant by email or by name.
+1. Select the specific owner or loved-one profile.
+1. Review the inactive status and deactivation reason.
+1. Open the Reactivate Account confirmation.
+1. Confirm the account scope shown by the modal.
 
-Reactivating a loved-one account also reactivates an inactive owner.
-Reactivating an owner does not automatically reactivate loved-one accounts.
+Reactivation scope is asymmetric:
 
-A child loved-one account deactivated because the represented person reached
-the configured maturity age cannot be reactivated.
+- Reactivating an owner reactivates only the owner. Inactive loved-one accounts must be opened and
+  reactivated individually.
+- Reactivating a loved-one account also reactivates the owner when the owner is inactive.
+- A loved-one account deactivated for `CHILD_TURNED_ADULT` cannot be reactivated.
+
+Reactivation:
+
+- Enables each affected account.
+- Adds it back to the local active-participant store.
+- Initiates participant rematching.
+- Deletes its `USER_DEACTIVATION` record.
+- Does not itself create agreement acceptance.
+
+After reactivation, an account without acceptance for the current agreement version remains blocked
+from ordinary application use until it accepts. The administrator reactivation UI does not implement
+a confirmed participant-notification or email step explaining this requirement.
+
+The UI disables reactivation for the seeded child-age-out reason ID. The backend independently
+enforces the semantic `CHILD_TURNED_ADULT` rule and remains authoritative.
 
 ## Child loved-one warning and age-out
 

@@ -302,13 +302,32 @@ an administrator performs the deactivation.
 The persistence behavior is confirmed. Whether a particular administration UI exposes this reason
 and timestamp remains a separate user-interface question.
 
-## AGREEMENT-006: Support reactivation workflow
+## AGREEMENT-006: Support reactivation workflow — application behavior resolved
 
-Backend reactivation does not itself accept the agreement. Ordinary use is
-blocked afterward until current acceptance.
+The current administrator workflow is in the React `yhr-study-team` application, not the obsolete
+standalone admin project.
 
-Confirm support procedures for account selection, cascaded loved-one review,
-and communication of the required agreement step.
+Only administrators may use Customer Support → Help Participants. They find a participant by email or
+name, select the specific profile, review the inactive status and reason, and confirm reactivation.
+
+Confirmed scope:
+
+- Owner reactivation restores only the owner.
+- Loved-one accounts must be reactivated from their own profiles.
+- Loved-one reactivation also restores an inactive owner.
+- `CHILD_TURNED_ADULT` loved-one accounts cannot be reactivated.
+- The modal previews the affected accounts before submitting the selected user ID.
+
+Backend reactivation restores the account to active memory, initiates rematching, and deletes the
+deactivation row. It does not accept the current agreement.
+
+No dedicated participant email or in-application reactivation notification is confirmed. Support
+communication about the next login and required agreement acceptance remains an operational
+procedure rather than implemented application behavior.
+
+Implementation caution: the current UI disables child-age-out reactivation using seeded numeric
+reason ID `261001`. The backend independently checks the semantic `CHILD_TURNED_ADULT` lookup and is
+authoritative if deployment IDs differ.
 
 ## AGREEMENT-008: Agreement-definition and policy retention
 

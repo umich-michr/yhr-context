@@ -205,12 +205,30 @@ The deactivation:
 
 ## Reactivation
 
-Participants request reactivation through support.
+Administrators reactivate participant accounts through Customer Support in the React study-team
+application.
 
-Administrators reactivate accounts through participant-administration functions.
+The administrator:
 
-Reactivation of cascaded owner and loved-one accounts must follow the supported administrative
-workflow rather than being inferred from account ownership alone.
+1. Finds the participant by email or name.
+1. Opens the specific participant profile.
+1. Reviews the inactive status and deactivation reason.
+1. Confirms the scope displayed by the Reactivate Account modal.
+
+Scope rules:
+
+- Reactivating an owner does not reactivate loved-one accounts automatically.
+- Each inactive loved-one account must be selected and reactivated separately.
+- Reactivating a loved-one account also reactivates its inactive owner.
+- A loved-one account deactivated because the represented child reached the configured maturity age
+  cannot be reactivated.
+
+Reactivation restores active-account and matching state but does not accept a current agreement.
+When current acceptance is missing, the agreement-version filter blocks ordinary use until the
+participant accepts.
+
+No dedicated reactivation notification to the participant is confirmed in the reviewed
+administrator or backend path.
 
 ## Hard deletion
 

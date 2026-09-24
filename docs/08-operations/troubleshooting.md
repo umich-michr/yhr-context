@@ -309,6 +309,23 @@ Before relying on a rematch after Redis loss:
 - Preserve participant-facing study-team promotions separately from ordinary
   system recommendations.
 
+## Participant cannot use a reactivated account
+
+Check:
+
+- Was the intended owner or loved-one profile reactivated?
+- If an owner was reactivated, do individual loved-one accounts still remain inactive?
+- If a loved one was reactivated, was the owner also restored when needed?
+- Is the deactivation reason `CHILD_TURNED_ADULT`, which prevents reactivation?
+- Has the account accepted the current participant agreement version?
+- Did local active-user restoration and asynchronous rematching complete?
+
+Reactivation does not itself record agreement acceptance. A reactivated participant without current
+acceptance will receive the agreement interruption before ordinary application use.
+
+The reviewed reactivation path does not send a dedicated participant notification, so support may
+need to communicate the next login and agreement steps outside the application.
+
 ## Related pages
 
 - [Support Routing](support-routing.md)
