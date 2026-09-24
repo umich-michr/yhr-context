@@ -55,6 +55,7 @@ sections:
       - application_overview
       - system_context
       - multi_institution_deployment
+      - source_repository_routing
 
   - heading: "Institutional governance and imports"
     topics:
@@ -141,6 +142,10 @@ topics:
   multi_institution_deployment:
     label: "Multi-institution deployment"
     primary: "02-architecture/multi-institution-deployment.md"
+
+  source_repository_routing:
+    label: "Source repository routing"
+    primary: "02-architecture/source-repository-routing.md"
 
   institutional_governance:
     label: "Institutional governance"

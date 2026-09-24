@@ -443,6 +443,10 @@ Use **Python: Select Interpreter** from the VS Code command palette.
 
 ## Documentation routing
 
+Implementation ownership is maintained centrally in
+[Source Repository Routing](docs/02-architecture/source-repository-routing.md). Functional and domain
+pages intentionally avoid depending on repository layout.
+
 Repository-aware assistants should:
 
 1. Read `docs/context-map.yaml`.

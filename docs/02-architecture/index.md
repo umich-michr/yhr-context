@@ -66,5 +66,6 @@ The implementation differs by ingestion path:
 - [System Context](system-context.md)
 - [Multi-Institution Deployment](multi-institution-deployment.md)
 - [Data Ownership](data-ownership.md)
+- [Source Repository Routing](source-repository-routing.md)
 - [Import Pipeline](../03-institutional-governance/import-pipeline.md)
 - [Data-Model Overview](../07-data-model/index.md)

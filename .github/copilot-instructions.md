@@ -18,6 +18,10 @@ its institution-specific branded application instances, including YourHealthRese
 `docs/llms.txt` is generated during local and CI builds and may not exist in a fresh repository
 checkout. Do not depend on it as the repository source of truth.
 
+When source inspection is required, use the canonical
+[Source Repository Routing](../docs/02-architecture/source-repository-routing.md) maintenance
+reference rather than inferring ownership from historical repository names.
+
 ## Documentation status
 
 - `authoritative`: confirmed current behavior

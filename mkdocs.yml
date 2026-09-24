@@ -52,6 +52,7 @@ nav:
       - System Context: 02-architecture/system-context.md
       - Multi-Institution Deployment: 02-architecture/multi-institution-deployment.md
       - Data Ownership: 02-architecture/data-ownership.md
+      - Source Repository Routing: 02-architecture/source-repository-routing.md
 
   - Institutional Governance:
       - Governance Overview: 03-institutional-governance/index.md
