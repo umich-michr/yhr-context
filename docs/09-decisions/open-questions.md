@@ -455,19 +455,39 @@ Determine:
 - Whether readiness or health checks block traffic until all stores initialize
 - How operators observe startup-load completion or failure
 
-## MEMORY-005: Transaction boundary for incremental updates
+## MEMORY-005: Transaction boundary for incremental updates — code behavior resolved
 
-A participant update hook reloads the entity into the local store and then
-triggers asynchronous matching.
+The participant matching-trigger path uses AspectJ `@After` advice on annotated
+controller methods. The advice:
 
-Determine the exact Spring advice and transaction ordering:
+1. Reloads the participant from the database into the handling server's
+   process-local active-user store.
+1. Reads the reloaded local participant.
+1. Submits asynchronous matching through `CompletableFuture.runAsync(...)`.
 
-- Whether the database transaction commits before the local memory reload
-- Whether matching can start before transaction commit
-- What happens when the target transaction rolls back after memory changes
-- What happens when local reload succeeds but Redis recomputation fails
+The advice is not an after-commit listener. No transaction synchronization or
+transactional event listener defers these operations until relational commit.
+The hook can therefore reload memory and submit matching while the request
+transaction is still open.
 
-Do not claim transactional atomicity across database, memory, and Redis.
+Confirmed consequences:
+
+- Matching may start before the relational transaction commits.
+- A later relational rollback does not automatically restore a prior
+  process-local entity.
+- Redis work already performed by the asynchronous task is not transactionally
+  compensated by relational rollback.
+- Matching failures are recorded as application errors and may trigger error
+  notification, but they do not roll back the initiating database operation
+  and are not automatically retried.
+- A later entity update or full recommendation recomputation may repair derived
+  recommendation state.
+
+This resolution covers annotated participant update endpoints. Workflows that
+explicitly use separate transaction helpers or direct memory operations must be
+documented according to their own path.
+
+Database, process-local memory, and Redis do not form one atomic transaction.
 
 ## MEMORY-006: Effective synchronization schedule by deployment
 

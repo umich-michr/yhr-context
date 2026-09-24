@@ -82,8 +82,9 @@ Matching status is maintained in process memory for the application server
 running the task.
 
 A failed recomputation is recorded as an application error and triggers an
-error notification. It is not automatically retried. A later entity change or
-full recommendation recomputation may calculate the pair again.
+error notification. It is not automatically retried. The failure does not roll
+back the database update that submitted the task. A later entity change or full
+recommendation recomputation may calculate the pair again.
 
 Full recommendation recomputation iterates the active studies and recomputes
 both directions against active participants. A failure for one study is
@@ -458,7 +459,17 @@ Dismissed studies may appear in participant history.
 
 ### Participant profile change
 
-If a changed profile property is referenced by eligibility criteria:
+Annotated participant-update endpoints use a matching-trigger aspect after the
+controller method exits. The aspect reloads the participant into the handling
+server's process-local store and then submits asynchronous matching.
+
+This advice is not registered as an after-commit callback. It can reload memory
+and submit matching while the request transaction is still open. Database,
+process-local memory, and Redis are not updated atomically, and a later database
+rollback does not automatically compensate memory or Redis changes.
+
+If a changed profile property is referenced by eligibility criteria, the
+intended processing is:
 
 - Update the database profile
 - Update the in-memory participant representation
@@ -467,10 +478,15 @@ If a changed profile property is referenced by eligibility criteria:
 
 ### Temporal profile change during show interest
 
-- Update the database profile in the transaction
-- Update or prepare the corresponding in-memory participant representation
+- Update the database profile in the request transaction
+- Update the corresponding in-memory participant representation
 - Reevaluate eligibility before interest is finalized
-- Commit the synchronized state only when the transaction succeeds
+- Submit asynchronous matching through the participant matching-trigger hook
+
+The relational transaction controls the persisted profile, questionnaire
+answers, and expression of interest. It does not make the process-local memory
+replacement or asynchronous Redis recomputation part of that same atomic
+commit.
 
 ### Participant study-interest change
 

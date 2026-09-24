@@ -299,6 +299,9 @@ See [Study Lifecycle](../05-study-management/study-lifecycle.md).
 1. Redis stores current directional recommendations and exclusions separately from the in-memory
    source entities.
 1. Matching recomputation is asynchronous.
+1. For participant endpoints using the current matching-trigger annotation, local-memory reload and
+   asynchronous matching submission are not deferred until relational commit. Database, process-local
+   memory, and Redis therefore do not form one atomic transaction.
 
 ## Matching and visibility
 

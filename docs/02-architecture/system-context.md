@@ -140,6 +140,11 @@ When a study or participant changes:
 1. Applicable match recomputation is initiated.
 1. Redis recommendations and exclusions are updated asynchronously as needed.
 
+For participant endpoints using the matching-trigger annotation, the current hook runs as AspectJ
+`@After` advice rather than an after-commit callback. It reloads the handling server's local entity
+and submits matching while the request transaction may still be open. A later relational rollback
+does not automatically restore the process-local map or undo Redis work already performed.
+
 Temporal participant-profile updates must update both the persistent profile and the corresponding
 in-memory representation.
 
