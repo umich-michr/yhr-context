@@ -96,10 +96,23 @@ Default seed schedules are:
 
 - Active participants: daily at 5:05 a.m.
 - Active studies: daily at 5:10 a.m.
+- Lookup values: January 1, 2099 at midnight, effectively disabling routine execution while retaining a valid trigger.
 - Full recommendation recomputation: Saturdays at 2:00 a.m.
 
-These schedules are persisted application-job settings and may be changed.
-Their effective time zone depends on scheduler configuration.
+These values are installation defaults stored in
+`APPLICATION_JOB_SCHEDULE.CRON_EXPRESSION`; they are not proof of a
+deployment's current effective schedules. An administrator can replace a
+persisted cron expression through the administrator job API.
+
+Each application process creates its own in-memory Quartz scheduler at startup,
+deletes and recreates its dynamic jobs from the shared persisted rows, and
+therefore may run the same schedule independently. The reviewed configuration
+does not enable a clustered JDBC Quartz job store or another application-level
+cross-server execution lock.
+
+No explicit time zone is assigned when these cron triggers are constructed.
+Quartz therefore uses the scheduler/JVM effective default time zone. The
+deployed JVM or host time zone must be verified separately for each environment.
 
 ### Matching execution and failure handling
 

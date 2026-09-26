@@ -82,14 +82,24 @@ APPLICATION_JOB_SCHEDULE.CRON_EXPRESSION
 Updating a schedule deletes the existing Quartz job, persists the new cron
 expression, and creates a new Quartz job and trigger.
 
-At application startup, all dynamic jobs are deleted from the local scheduler
-and recreated from persisted schedules.
+At application startup, all dynamic jobs are deleted from that application
+process's local scheduler and recreated from persisted schedules. If multiple
+application servers share the schedule rows, each server can create and run its
+own equivalent triggers. The reviewed scheduler configuration uses the default
+in-memory Quartz job store and does not enable Quartz clustering.
 
 Cron validation uses the Quartz parser. The backend does not impose an
 additional minimum or maximum frequency beyond Quartz validity.
 
-Execution times use the application server's effective default time zone
-unless the deployment configures Quartz otherwise.
+No explicit time zone is assigned when the application constructs these
+cron triggers. Quartz therefore uses the scheduler/JVM effective default time
+zone unless deployment configuration overrides it. Previewed and most-recent
+execution times are also converted through `ZoneId.systemDefault()`.
+
+The source and seed data establish application behavior and installation
+defaults only. A deployment's current persisted cron expressions, JVM or host
+time zone, application-server count, and external duplicate-execution controls
+must be verified from that environment.
 
 ## Job information
 

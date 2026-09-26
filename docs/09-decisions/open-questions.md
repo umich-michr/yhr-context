@@ -552,15 +552,34 @@ documented according to their own path.
 
 Database, process-local memory, and Redis do not form one atomic transaction.
 
-## MEMORY-006: Effective synchronization schedule by deployment
+## MEMORY-006: Effective synchronization schedule by deployment — application behavior resolved
 
-Default persisted schedules are documented. Determine for each deployed
-instance:
+Confirmed application behavior and installation defaults:
 
-- Effective scheduler time zone
-- Whether administrators changed the persisted cron expressions
-- Whether multiple application servers run the same schedules
-- Whether cluster coordination prevents duplicate execution
+- Cron expressions are persisted in
+  `APPLICATION_JOB_SCHEDULE.CRON_EXPRESSION`.
+- Seed defaults schedule active-user synchronization daily at 5:05 a.m.,
+  active-study synchronization daily at 5:10 a.m., lookup synchronization for
+  January 1, 2099 at midnight, and full recommendation recomputation Saturdays
+  at 2:00 a.m.
+- Administrators can replace persisted cron expressions through the
+  administrator job API.
+- Every application process initializes its own in-memory Quartz scheduler and
+  recreates dynamic jobs from the persisted rows at startup.
+- Trigger construction does not assign an explicit time zone, so Quartz uses
+  the scheduler/JVM effective default time zone.
+- The reviewed configuration does not enable a clustered JDBC Quartz job store,
+  general no-overlap annotation, or another application-level cross-server
+  execution lock.
+
+The seed values are defaults, not evidence of current deployment values.
+Determine for each deployed instance:
+
+- Current persisted cron expressions and whether administrators changed them
+- Effective JVM, host, or Quartz time zone
+- Number of application servers and schedulers executing the rows
+- Any deployment-level clustering, leader election, or external
+  duplicate-execution control
 
 ## MEMORY-007: Remaining temporal-transition behavior — code behavior resolved
 
