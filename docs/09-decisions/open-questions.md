@@ -432,16 +432,50 @@ owner-only parent/guardian requirement. This is current code behavior to review,
 
 # Phase 3: Memory Synchronization
 
-## MEMORY-003: Cross-server propagation for existing active entities
+## MEMORY-003: Cross-server propagation for existing active entities — application behavior resolved
 
-Active stores are process-local. Scheduled synchronization adds and removes
-active members but does not refresh entities present in both the database view
-and local store.
+Active participant and study stores are `ConcurrentHashMap` collections owned
+by one application process. Ordinary update hooks invoke the local Spring store
+bean directly:
 
-Determine whether any deployment-specific mechanism propagates an ordinary
-participant-profile or study-property update to other application servers
-while the entity remains active. No message queue, shared active-entity cache,
-or application event broadcast has been confirmed.
+- Participant matching-trigger advice reloads the handling process's
+  active-user entry.
+- Study update and import paths add, update, or remove the handling process's
+  active-study entry.
+- Matching reads the initiating process's local active entities.
+
+The reviewed application does not propagate participant or study source-entity
+changes to other application servers through:
+
+- An entity-change message queue
+- A Spring application-event broadcast
+- Redis pub/sub
+- A distributed active-entity cache
+- A database notification listener
+- Another confirmed cross-process refresh channel
+
+The configured Java Message Service queue is for email delivery. Redis contains
+shared derived recommendations and exclusions; it is not the active source-
+entity store and does not update another process's participant or study object.
+
+Scheduled active-user and active-study synchronization is membership-only. It
+compares database-view IDs with local-store IDs, adds active IDs absent locally,
+and removes local IDs no longer active. An ID present in both sets is left
+unchanged, so the job does not repair stale fields for an entity that remains
+active.
+
+Application-level consequence: an ordinary update refreshes only the handling
+process. Another process that already holds the active entity can remain stale
+until an explicit entity reload, full store refresh, or application restart.
+
+Remaining deployment-specific questions:
+
+- How many application servers each branded instance runs
+- Whether session affinity reduces how often users encounter different local
+  copies
+- Whether external infrastructure not present in the reviewed repositories
+  provides propagation or mitigation
+- Which operator procedure repairs cross-server divergence
 
 ## MEMORY-004: Startup failure and readiness — application behavior resolved
 

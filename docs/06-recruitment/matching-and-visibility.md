@@ -62,6 +62,22 @@ the live store empty or partial.
 Redis is not the active-entity store. It contains derived recommendations and
 exclusions shared through the configured Redis service.
 
+### Cross-server freshness
+
+Ordinary participant and study update paths mutate the active store in the
+application process handling that update. The reviewed application has no
+source-entity propagation mechanism based on an entity-change message queue,
+Spring application-event broadcast, Redis pub/sub, database notification
+listener, or distributed active-entity cache.
+
+Matching initiated by that process reads its local active entities and writes
+derived recommendation state to Redis. Shared Redis output does not update the
+source participant or study objects held by other processes.
+
+If another application server already holds the same active entity, that copy
+can remain stale until that process explicitly reloads the entity, refreshes the
+whole store, or restarts.
+
 ### Scheduled active-membership reconciliation
 
 Scheduled synchronization reconciles membership in each server's local active

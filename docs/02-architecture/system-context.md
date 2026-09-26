@@ -145,6 +145,12 @@ For participant endpoints using the matching-trigger annotation, the current hoo
 and submits matching while the request transaction may still be open. A later relational rollback
 does not automatically restore the process-local map or undo Redis work already performed.
 
+The store mutation targets only the handling application process. The reviewed application does not
+publish participant or study source-entity changes through a cross-server event, message queue,
+Redis pub/sub channel, database notification listener, or distributed active-entity cache. The
+configured Java Message Service queue is for email delivery, and Redis stores derived recommendation
+state rather than the active source entities.
+
 Temporal participant-profile updates must update both the persistent profile and the corresponding
 in-memory representation.
 

@@ -296,6 +296,12 @@ See [Study Lifecycle](../05-study-management/study-lifecycle.md).
    collections.
 1. Scheduled synchronization jobs reconcile memory with database state and handle time-based
    transitions.
+1. Active stores are process-local. Ordinary participant and study update paths refresh only the
+   application process handling the update.
+1. Scheduled active-store synchronization reconciles membership only. It adds locally missing active
+   IDs and removes locally stored inactive IDs, but does not refresh entities present in both sets.
+1. The reviewed application does not broadcast source-entity updates to other servers through a
+   message queue, application event, Redis pub/sub, or distributed active-entity cache.
 1. Redis stores current directional recommendations and exclusions separately from the in-memory
    source entities.
 1. Matching recomputation is asynchronous.
