@@ -159,6 +159,25 @@ time-driven transitions such as:
 - Participant deactivation
 - Other scheduled account or study transitions
 
+### Startup loading and failure behavior
+
+Each in-memory store inherits a synchronous `@PostConstruct` initializer that loads its database
+source before Spring finishes creating the store bean. Store initialization does not catch load
+exceptions. A failure therefore escapes bean initialization and prevents that store from being
+published as a successfully initialized Spring bean.
+
+Store refresh is destructive rather than atomic: it clears the current concurrent map before
+retrieving and inserting replacement values. A fetch failure leaves the map empty. A later failure
+while inserting values or rebuilding a derived index can leave a partially rebuilt map.
+
+During initial application-context creation, such a failure still fails bean initialization. During
+a later administrative or scheduled refresh of an already published store, however, the same
+clear-first behavior can leave the live store empty or partial.
+
+Per-store logs report load start, database-loaded object count and duration, and total load duration.
+The reviewed application source does not expose store initialization through a dedicated health or
+readiness endpoint.
+
 ## Redis match layer
 
 Redis stores derived directional data, including:

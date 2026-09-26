@@ -49,6 +49,16 @@ Each application server maintains its own active-participant and active-study
 stores in process memory. The stores use concurrent maps and are populated
 independently from database-backed active views during application startup.
 
+Startup population runs synchronously through each store's `@PostConstruct`
+method. An uncaught load failure fails that store's Spring bean initialization;
+the application does not intentionally publish the failed store as ready.
+
+Refresh is clear-first rather than an atomic replacement. A database-fetch
+failure leaves the map empty, and a failure during insertion or derived-index
+rebuilding can leave it partial. During initial bean creation the bean still
+fails initialization. A later refresh of an already published store can leave
+the live store empty or partial.
+
 Redis is not the active-entity store. It contains derived recommendations and
 exclusions shared through the configured Redis service.
 

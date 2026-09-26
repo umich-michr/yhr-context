@@ -90,6 +90,17 @@ Redis sorted-set scores retain recommendation, promotion, and exclusion
 timestamps. These timestamps support ordering and troubleshooting but do not
 prove that database, in-memory, and Redis state are mutually consistent.
 
+At startup, each store writes informational logs for:
+
+- Load start
+- Number of database objects loaded and database-load duration
+- Total store-load duration
+
+An uncaught `@PostConstruct` load failure is exposed through Spring
+application-context startup failure and its logs. The reviewed application and
+routing source do not provide a dedicated health or readiness endpoint tied to
+successful completion of all store loads.
+
 The current implementation does not provide a confirmed cluster-wide view of:
 
 - Last successful memory synchronization
@@ -97,6 +108,11 @@ The current implementation does not provide a confirmed cluster-wide view of:
 - Database-to-memory-to-Redis consistency
 - Expected versus actual Redis key counts
 - Cross-server in-memory divergence
+- Store initialization completeness after startup or refresh failure
+
+Whether a deployment-level load balancer, servlet container, or monitoring
+system withholds traffic or alerts on these conditions remains
+deployment-specific.
 
 ## Related pages
 

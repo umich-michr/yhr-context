@@ -443,17 +443,46 @@ participant-profile or study-property update to other application servers
 while the entity remains active. No message queue, shared active-entity cache,
 or application event broadcast has been confirmed.
 
-## MEMORY-004: Startup failure and readiness
+## MEMORY-004: Startup failure and readiness — application behavior resolved
 
-Process-local active stores are populated from database-backed active views
-during Spring bean initialization.
+Process-local stores inherit a synchronous `@PostConstruct` initializer. During
+Spring bean creation, each store:
 
-Determine:
+1. Clears its concurrent map.
+1. Loads replacement values from its database-backed source.
+1. Inserts the returned values.
+1. Rebuilds any store-specific derived indexes.
+1. Logs object counts and load durations.
 
-- Whether a load failure aborts application startup
-- Whether a partially populated store can remain available
-- Whether readiness or health checks block traffic until all stores initialize
-- How operators observe startup-load completion or failure
+Store initialization contains no local catch-and-continue behavior. An exception
+from database loading, insertion, or derived-index rebuilding escapes the
+initializer and fails that Spring bean's creation. The application therefore
+does not intentionally publish a failed startup store as successfully ready.
+
+The refresh algorithm is not an atomic map swap:
+
+- A database-fetch failure after the clear leaves the map empty.
+- A failure during value insertion can leave a partially populated map.
+- A failure while rebuilding a derived index can leave the primary map loaded
+  while the derived index is stale or incomplete.
+- During initial context creation, the bean still fails initialization.
+- During a later manual or scheduled refresh, an already published store can
+  remain empty, partial, or internally inconsistent after failure.
+
+Most prerequisite stores depend on `inMemoryStoreInitLock`, which depends on the
+production data source. Active-study construction also depends on its builder
+and supporting stores, although the direct lock annotation on
+`ActiveStudiesStoreImpl` is commented out.
+
+Application logs provide per-store load start, object count, database-load
+duration, total duration, and startup exceptions. No dedicated
+store-completeness health indicator, readiness endpoint, or application-level
+traffic gate was found in the reviewed backend or routing source.
+
+Remaining deployment-specific question: determine whether each deployed
+servlet container, load balancer, monitoring system, or orchestration layer
+withholds traffic or alerts based on successful application-context startup and
+store completion.
 
 ## MEMORY-005: Transaction boundary for incremental updates — code behavior resolved
 
