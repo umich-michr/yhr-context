@@ -188,8 +188,18 @@ Scheduler errors are stored as application errors and generate error
 notifications.
 
 Job-control actions such as schedule changes and manual execution produce
-application log messages. No dedicated durable application-job action-audit
-table is confirmed.
+application log messages. The reviewed application does not persist a dedicated
+job-control action-audit record containing actor, action, target job, prior and
+new schedule, request time, or outcome.
+
+Scheduler and matching exceptions are durable application-error records, but
+they are failure evidence rather than a complete audit of job-control actions.
+The administrator job API likewise exposes scheduler state, not a durable action
+history.
+
+Production retention of logs, authenticated-actor attribution, centralized
+collection, failure acknowledgement, and any external administrative audit
+remain deployment-specific. See [Audit and Monitoring](audit-and-monitoring.md).
 
 ## Oracle Scheduler jobs
 

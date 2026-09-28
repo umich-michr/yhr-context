@@ -711,38 +711,59 @@ ______________________________________________________________________
 
 Detailed administrator job control is confirmed to exist but remains to be documented.
 
-## ADMINJOB-004: Cluster-wide and general job concurrency
+## ADMINJOB-004: Cluster-wide and general job concurrency — application behavior resolved
 
-The reviewed backend does not provide general cluster-wide no-overlap enforcement.
+The reviewed backend does not provide general cluster-wide no-overlap
+enforcement.
 
 Confirmed protections are limited to full recommendation recomputation:
 
 - Manual execution checks the local Quartz scheduler's currently executing jobs.
 - A visible existing run causes a second manual request to be rejected.
-- The underlying update-all method is synchronized within one application process.
+- The underlying update-all method is synchronized within one application
+  process.
 
 Confirmed limitations:
 
 - Check and trigger are not atomic.
 - The guard is special-cased to `updateAllRecommendationsJob`.
 - The Quartz wrapper lacks `@DisallowConcurrentExecution`.
-- The reviewed configuration does not enable a clustered JDBC Quartz job store.
-- Process-local synchronization does not coordinate multiple application servers.
-- Other jobs may overlap, including manual/scheduled overlap.
+- The reviewed configuration uses an in-memory job store and does not enable
+  Quartz clustering.
+- Process-local synchronization does not coordinate multiple application
+  servers.
+- Other jobs may overlap, including manual/scheduled and
+  manual/manual overlap.
 
-Still determine the production deployment topology and whether duplicate execution is operationally
-acceptable or externally prevented for each job.
+Application behavior is resolved. Still determine per deployment:
 
-## ADMINJOB-006: Durable job-control audit
+- Application-server and scheduler count
+- Any external clustering, leader election, or duplicate-execution control
+- Whether duplicate execution is acceptable for each job
+- Which jobs require stronger no-overlap guarantees
 
-Application job-control actions produce logs, and scheduler errors create
-application errors and notifications. No dedicated durable action-audit table
-is confirmed.
+## ADMINJOB-006: Durable job-control audit — application behavior resolved
 
-Determine production retention and actor attribution for schedule changes,
-manual execution, interruption, and failure acknowledgement.
+Confirmed application behavior:
 
-______________________________________________________________________
+- Schedule changes and manual execution produce application log messages.
+- Scheduler errors create durable `APPLICATION_ERROR` records and may generate
+  notifications.
+- The administrator API exposes current local scheduler information, not a
+  historical action ledger.
+- No dedicated application-job action-audit table or record was found for
+  actor, action, target job, old and new schedule, request time, or outcome.
+- Application-error rows document failures, not successful job-control actions
+  or complete administrative history.
+
+Still deployment-specific:
+
+- Whether centralized logs retain authenticated actor and request context
+- Log retention and access controls
+- External administrative or platform auditing
+- Failure-notification acknowledgement and ownership
+- Required audit retention for schedule changes and manual execution
+- Whether a dedicated durable job-control audit must be added
 
 # Phase 5: Notification Generation and Delivery
 
