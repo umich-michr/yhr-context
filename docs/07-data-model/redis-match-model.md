@@ -28,6 +28,23 @@ rec = recommendation
 exc = exclusion
 ```
 
+Current application key prefixes are exactly:
+
+```text
+vol.rec:
+std.rec:
+vol.exc:
+std.exc:
+```
+
+A colon separates key and member components. Current source and tests
+read and write only the formats documented here.
+
+Repository history records removal of an older `UNDO_DISMISS` cache
+prefix in 2018. Current code has no compatibility reader, migration,
+or cleanup path for it. Whether old keys remain in a deployed Redis
+instance is deployment-specific.
+
 Identifiers are:
 
 ```text
@@ -94,11 +111,14 @@ Result shape:
 
 ### Study-team-promoted recommendations
 
-Ask if interested places the study in a participant-facing recommendation set whose `<MATCH_SOURCE>`
-distinguishes the promotion from `SYSTEM`.
+Ask if interested uses the participant-facing recommendation source token
+`USER`. The complete current source tokens are:
 
-The exact serialized promotion-source token remains an implementation constant that must be
-documented from source code.
+- `SYSTEM` — ordinary system-generated recommendation
+- `USER` — study-team-promoted recommendation
+
+The corresponding keys are `vol.rec:<APP_USER.ID>:SYSTEM` and
+`vol.rec:<APP_USER.ID>:USER`.
 
 Ask if interested:
 
@@ -132,8 +152,13 @@ An observed partial-match suffix is:
 0
 ```
 
-The exact serialized suffix for each result category must be documented from implementation
-constants before assigning semantic names to all possible suffixes.
+The current serialized study-facing suffixes are:
+
+- `1` — exact match
+- `0` — partial match
+
+The resulting keys are `std.rec:<STUDY.ID>:1` and
+`std.rec:<STUDY.ID>:0`. `ALL` is not stored as a Redis set.
 
 A participant is stored when:
 

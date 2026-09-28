@@ -1059,13 +1059,47 @@ ______________________________________________________________________
 
 ## REDIS-001: Exact key constants
 
-Confirm:
+**Status: application behavior resolved; deployed legacy-key inventory
+remains deployment-specific.**
 
-- Ask if interested source token
-- Exact eligibility suffix
-- Partial eligibility suffix
-- Every exclusion reason
-- Any legacy key formats
+Current prefixes:
+
+```text
+vol.rec:
+std.rec:
+vol.exc:
+std.exc:
+```
+
+Participant-facing source tokens:
+
+- `SYSTEM` — ordinary generated recommendation
+- `USER` — study-team promotion, including Ask if interested
+
+Study-facing suffixes:
+
+- `1` — exact
+- `0` — partial
+
+Participant-side reasons in `vol.exc:<APP_USER.ID>`:
+
+- `ALREADY_SHOWN_INTEREST`
+- `ENROLLED_IN_STUDY`
+- `NOT_INTERESTED`
+
+Study-side reasons in `std.exc:<STUDY.ID>`:
+
+- `ALREADY_SHOWN_INTEREST`
+- `ASKED_IF_INTERESTED`
+- `DISMISSED`
+
+Current code and tests support only these serialized values.
+
+Repository history records removal of an `UNDO_DISMISS` cache prefix
+in 2018. No current compatibility reader or migration was found.
+Whether a deployed Redis instance still contains old or unknown keys,
+and any required migration or rollback procedure, remain
+deployment-specific.
 
 ## REDIS-002: Cold Redis rebuild procedure
 
