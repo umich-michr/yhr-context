@@ -837,52 +837,91 @@ marker or idempotency key in the reviewed implementation.
 
 ## NOTIFY-005: Ask if interested frequency
 
-Which participant preference controls the promoted-study email?
+**Application behavior resolved.**
 
-Determine whether delivery can be:
+The promoted-study email uses the represented participant profile's general
+`recommendationNotificationFrequency`, the same preference used for ordinary
+new-recommendation email.
 
-- Immediate
-- Daily
-- Weekly
-- Disabled
-- Controlled by one general participant frequency setting
+Supported values are:
+
+- `DAILY`
+- `WEEKLY`
+- `BI_WEEKLY`
+- `MONTHLY`
+- `NEVER`
+
+There is no immediate value and no separate Ask if interested frequency
+setting. A `NEVER` preference disables this recommendation-email path.
 
 ## NOTIFY-006: Last-login definition
 
-Which timestamp is used when comparing a promotion with the participant's last login?
+**Application behavior resolved.**
 
-Possible sources include:
+The batch compares Redis recommendation scores with the active represented
+participant `User` object's `lastLoginDate`, persisted as
+`APP_USER.LAST_LOGIN_DATE`. It does not query `LOGIN_AUDIT` or a session record
+for this comparison.
 
-- `LOGIN_AUDIT`
-- Participant profile field
-- Session record
-- Owning-account login
-- Represented-participant context switch
+A successful authentication updates `LAST_LOGIN_DATE` and
+`NEXT_TO_LAST_LOGIN_DATE` for the authenticated account and updates the local
+active-user copy when applicable.
 
-For loved-one accounts, determine whether the owner's login or a context switch counts as the
-represented participant's last login.
+For loved-one accounts:
+
+- The owner's authentication updates the owner account, not all represented
+  accounts.
+- Authentication directly as a loved-one account updates that loved one's
+  timestamp.
+- The ordinary change-account endpoint reloads the selected account into the
+  security context but does not call `recordLoginTime()`.
+- A context switch therefore does not itself update the represented loved
+  one's last-login timestamp.
 
 ## NOTIFY-007: Repeated promotion
 
-Can a study team use Ask if interested more than once for the same participant-study pair?
+**Application behavior resolved.**
 
-If yes:
+Ask if interested first checks for an existing study-side
+`ASKED_IF_INTERESTED` exclusion. If one exists, the operation returns false
+without further recommendation or relational-message operations.
 
-- Is the message replaced or appended?
-- Is the timestamp updated?
-- Can another email be generated?
-- Is prior promotion history retained?
+While that exclusion remains, a repeated promotion therefore:
+
+- Is rejected
+- Does not replace or append the message
+- Does not update the `USER` recommendation timestamp
+- Does not generate a new qualifying recommendation event for email
+- Does not add another `RECOMMENDED_STUDY_MESSAGE` row
+
+The first successful promotion's relational message row remains unless another
+business action removes promotion-message rows for the pair. No ordinary
+reverse transition was found that clears `ASKED_IF_INTERESTED` solely to allow
+repeat promotion.
 
 ## NOTIFY-008: Digest grouping
 
-When multiple events exist, determine whether email is grouped by:
+**Application behavior resolved.**
 
-- Participant
-- Study
-- Event type
-- Recipient
-- Branded instance
-- Digest period
+Recommendation email is evaluated per active represented participant and per
+applicable recommendation-frequency run.
+
+For one participant, the batch queries all participant-facing recommendation
+source sets, including both `SYSTEM` and `USER`, for scores at or after the
+participant's `LAST_LOGIN_DATE`. If at least one result refers to a currently
+active study, the application sends one generic new-recommendations email.
+
+Therefore:
+
+- Multiple studies are collapsed into one participant email for the run.
+- System matches and Ask if interested promotions are not emailed separately.
+- The email is not grouped by study or event type.
+- Each represented loved-one account is evaluated independently.
+- Accounts sharing one email address are not consolidated by recipient
+  address.
+- Frequency selection determines which batch run evaluates the account.
+- Branding and template selection occur during email generation for the
+  deployed instance; they are not a cross-instance grouping mechanism.
 
 ## NOTIFY-009: Delivery evidence
 

@@ -478,7 +478,17 @@ It:
 - Does not create interest
 - Does not create direct messaging
 
-A scheduled job may email participants whose promoted matches are newer than their last login.
+The general participant recommended-studies frequency controls scheduled
+recommendation email. For each frequency run, the batch compares both ordinary
+`SYSTEM` and study-team `USER` recommendation scores with the represented
+participant's `APP_USER.LAST_LOGIN_DATE`. If one or more currently active
+studies qualify, it sends one generic email for that represented participant
+rather than separate messages by study or recommendation source.
+
+For loved-one accounts, the represented account's own frequency and last-login
+timestamp are used. Logging in as the owner does not update every loved-one
+timestamp, and an ordinary account-context switch does not itself record a new
+login time.
 
 ## Not Interested
 

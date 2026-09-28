@@ -65,12 +65,42 @@ The action does not guarantee that the participant will:
 
 ## Scheduled email notification
 
-A scheduled job evaluates study-team-promoted matches.
+Ask if interested does not send an immediate email. It creates a
+participant-facing `USER` recommendation whose Redis sorted-set score records
+the promotion time.
 
-The job compares the promotion or match timestamp with the participant's last login.
+The participant's general recommended-studies preference controls later email
+processing:
 
-When an eligible promoted match is newer than the participant's last login, the participant may
-receive a system-generated email prompting them to sign in and review newly suggested studies.
+- Daily
+- Weekly
+- Biweekly
+- Monthly
+- Never
+
+There is no separate promotion frequency and no immediate option.
+
+For each applicable frequency run, the batch-notification job evaluates active
+participant accounts. It compares both `SYSTEM` and `USER` recommendation
+scores with the represented participant's `APP_USER.LAST_LOGIN_DATE`. A
+qualifying recommendation must also refer to a currently active study.
+
+The application sends at most one generic new-recommendations email to a
+qualifying represented participant during one frequency run. Multiple promoted
+or system-recommended studies are collapsed into that email; they are not
+grouped into separate messages by study or recommendation source.
+
+The comparison uses the `LAST_LOGIN_DATE` field of the represented participant
+account being evaluated, not `LOGIN_AUDIT` or a session timestamp. Ordinary
+authentication updates the authenticated account's login fields. Logging in as
+an owner does not update every loved-one account. The normal account-switch
+path replaces the security principal without invoking the login-time update, so
+switching to a loved-one context does not itself update that loved one's
+`LAST_LOGIN_DATE`.
+
+Loved-one accounts are processed as independent represented participants and
+use their own recommendation preference and login timestamp. They may share an
+email address with their owner, but that does not merge their batch evaluation.
 
 This email:
 
@@ -91,17 +121,30 @@ Ask if interested:
 - Does not enroll the participant
 - Does not guarantee email delivery
 
-## Participant response
+## Repeat behavior and participant response
 
-The participant may:
+While the study-side `ASKED_IF_INTERESTED` exclusion remains for the
+participant-study pair, another Ask if interested attempt is rejected.
+
+A rejected repeat does not:
+
+- Replace or append the stored promotion message
+- Update the participant-facing `USER` recommendation timestamp
+- Create another promotion record
+- Create a new email-triggering event
+
+The application does not expose an ordinary reverse transition that clears the
+`ASKED_IF_INTERESTED` state solely to permit another promotion.
+
+After a successful first promotion, the participant may:
 
 - Open the study posting
 - Begin the show-interest workflow
 - Dismiss the study as Not Interested
 - Take no action
 
-If the participant expresses interest, the ordinary interest transaction and Redis exclusions are
-applied.
+If the participant expresses interest, the ordinary interest transaction and
+Redis exclusions are applied.
 
 ## Common misunderstanding
 

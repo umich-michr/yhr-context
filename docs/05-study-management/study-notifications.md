@@ -136,20 +136,54 @@ day again, or the same job window executes more than once.
 
 ## Ask if interested participant notification
 
-Ask if interested promotes an existing match into the participant's study-team-promoted studies
-area.
+Ask if interested promotes an existing match into the represented
+participant's study-team-promoted studies area. The action creates a
+participant-facing Redis recommendation with source `USER`; its sorted-set
+score is the promotion time.
 
-The promotion updates the applicable Redis recommendation timestamp.
+The same general participant preference used for ordinary recommended-study
+email controls promotion email:
 
-A scheduled job compares promoted-match timestamps with the participant's last login. When an
-eligible promotion is newer than the last login, the participant may receive a system-generated
-email prompting them to sign in and review newly suggested studies.
+- `DAILY`
+- `WEEKLY`
+- `BI_WEEKLY`
+- `MONTHLY`
+- `NEVER`
 
-The email:
+There is no immediate option and no separate Ask if interested email
+preference.
 
-- Does not contain or create a direct-message conversation
-- Does not mean the participant expressed interest
-- Directs the participant to sign in and review the promoted study
+For each applicable frequency run, the batch-notification job iterates active
+participant accounts. It compares recommendation scores with that represented
+participant's `APP_USER.LAST_LOGIN_DATE`, filters out studies that are no longer
+active, and sends at most one generic new-recommendations email to each
+qualifying participant account.
+
+The query includes both `SYSTEM` recommendations and study-team `USER`
+promotions. Multiple qualifying studies or sources are therefore collapsed
+into one email for the represented participant during that run. The email is
+not grouped or sent separately by study or recommendation source.
+
+For a loved-one account:
+
+- Its own recommendation frequency and `APP_USER.LAST_LOGIN_DATE` govern its
+  recommendation email.
+- A normal authentication as that account updates its login timestamp.
+- Logging in as the owner updates the owner's timestamp, not every loved one's.
+- Switching account context changes the security principal but does not call
+  the login-time update path, so the switch itself does not update the selected
+  loved one's last-login timestamp.
+- Loved-one accounts are evaluated separately even when they share the owner's
+  email address.
+
+The email is system-generated. It does not include the study team's
+promotional note as a direct message, open a conversation, or create an
+expression of interest.
+
+A repeated Ask if interested attempt is rejected while the pair retains its
+study-side `ASKED_IF_INTERESTED` exclusion. The repeated attempt does not append
+or replace the promotion message, update the promotion score, or create another
+email-triggering recommendation event.
 
 ## Membership removal
 
