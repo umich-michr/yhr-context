@@ -382,6 +382,29 @@ Before relying on recomputation after Redis loss:
 Do not flush or replace Redis expecting full recommendation recomputation to
 restore all user actions.
 
+### Orphaned Redis state after participant deletion
+
+Hard participant deletion initiates asynchronous recommendation cleanup and
+then deletes relational participant data. It does not synchronously remove all
+Redis state.
+
+After deletion, inspect for the deleted participant ID in:
+
+- `vol.rec:<participant>:SYSTEM`
+- `vol.rec:<participant>:USER`
+- `vol.exc:<participant>`
+- Study-facing `std.rec:<study>:<result>` members
+- Study-facing `std.exc:<study>` members
+
+Ordinary deactivation cleanup targets ordinary recommendations. Exclusions and
+`USER` promotions can remain even when that cleanup succeeds. If cleanup failed
+or was interrupted, ordinary recommendations may remain as well.
+
+The reviewed application has no whole-Redis referential-integrity sweep.
+Removal of orphaned state therefore requires a deployment-approved procedure
+that validates the participant ID, affected studies, business retention
+requirements, and backup or rollback plan before modification.
+
 ## Participant cannot use a reactivated account
 
 Check:

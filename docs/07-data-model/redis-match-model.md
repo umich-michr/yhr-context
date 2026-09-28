@@ -278,6 +278,124 @@ Direction-specific behavior:
 - Participant visibility affects study-facing recommendation computation and storage. Restricted participants do not retain exact or partial study-facing recommendations in `std.rec`.
 - Restricted visibility does not prevent participant-facing recommendation computation.
 
+## Exclusion and promotion retention
+
+Recommendation, promotion, and exclusion sorted sets have no
+application-assigned expiration or time-to-live. They remain until Redis loses
+or evicts them or an explicit application path removes their members or keys.
+
+Ordinary matching treats exclusions as retained business-action state:
+
+- Participant-side exclusions suppress participant-facing system
+  recommendations.
+- Study-side exclusions suppress study-facing exact and partial
+  recommendations.
+- Changed profile data, study properties, eligibility, or interests can add,
+  remove, or move ordinary recommendations without deleting exclusions.
+- Full recommendation recomputation consults retained exclusions and leaves
+  them in place.
+
+### Deactivation and reactivation
+
+Participant deactivation asynchronously removes:
+
+- The participant from study-facing exact and partial recommendations
+- The participant's `SYSTEM` participant-facing recommendation key
+
+It does not remove:
+
+- Participant-side exclusions
+- Study-side exclusions
+- The participant's study-team `USER` promotions
+
+Study deactivation asynchronously removes:
+
+- The study's exact and partial study-facing recommendation keys
+- The study from participant-facing `SYSTEM` recommendations
+
+It does not remove either exclusion direction or participant-facing `USER`
+promotions.
+
+Reactivation adds the participant or study back to the relevant process-local
+active store and triggers ordinary matching. Reactivation does not explicitly
+delete retained exclusions or promotions. Those entries continue to suppress
+or present the participant-study pair according to their direction.
+
+### Explicit exclusion transitions
+
+The confirmed business-action transitions are:
+
+- A participant-side exclusion action writes `NOT_INTERESTED` or
+  `ENROLLED_IN_STUDY`, removes the participant-facing recommendation for the
+  pair, and deletes relational promotion-message rows for that pair.
+- A successful interest action removes existing participant-side
+  `ALREADY_SHOWN_INTEREST` and `NOT_INTERESTED` members and study-side
+  `ALREADY_SHOWN_INTEREST` and `DISMISSED` members. It then writes fresh
+  `ALREADY_SHOWN_INTEREST` exclusions in both directions and removes both
+  recommendation directions.
+- A successful questionnaire/interest submission explicitly removes the
+  participant-side `NOT_INTERESTED` member after recording interest.
+- Ask if interested removes a study-side `DISMISSED` member when present, then
+  writes `ASKED_IF_INTERESTED` and a participant-facing `USER` promotion.
+- A repeated Ask if interested attempt is rejected while the
+  `ASKED_IF_INTERESTED` exclusion remains.
+- The generic participant-side undismiss operation removes only the specified
+  participant-side reason.
+
+The general exclusion-removal helper does not include
+`ENROLLED_IN_STUDY` or `ASKED_IF_INTERESTED`. No general reverse transition was
+found for those reasons outside the specific business workflows above.
+
+### Study archive
+
+An active study cannot be archived. Archiving is represented by a study
+property update after the study is inactive.
+
+The archive update path does not perform additional Redis exclusion or
+promotion cleanup. Redis behavior therefore depends on the preceding
+deactivation cleanup, which removes ordinary recommendations but preserves
+exclusions and `USER` promotions.
+
+### Hard participant deletion
+
+Hard deletion first invokes account deactivation and then deletes relational
+participant data. Deactivation submits Redis recommendation cleanup
+asynchronously; the hard-delete transaction does not wait for that cleanup to
+finish.
+
+The relational deletion removes, among other participant-owned records:
+
+- `STUDY_VOLUNTEER` interest records
+- `RECOMMENDED_STUDY_MESSAGE` promotion-message records
+- Participant messages and matching-interest criteria
+
+The asynchronous Redis deactivation task removes ordinary recommendations only.
+It does not remove participant-side exclusions, study-side exclusions, or
+participant-facing `USER` promotions. Those members can therefore remain
+orphaned after hard deletion even when ordinary recommendation cleanup
+succeeds. Failure or interruption can additionally leave ordinary
+recommendations.
+
+No application-wide garbage collector, whole-key exclusion cleanup, or
+referential-integrity sweep was found for orphaned Redis members.
+
+### Operational consequence
+
+Before hard deletion or destructive Redis maintenance, operators must not
+assume that relational deletion cleans all Redis state. After deletion, inspect
+and remove orphaned keys or members according to a deployment-approved
+procedure.
+
+Product and operations policy remains to be established for:
+
+- Whether exclusions and promotions should survive temporary account or study
+  inactivity
+- How long dismissal, enrollment, interest, and promotion state should remain
+  after its relational context changes
+- Who may authorize removal of orphaned or obsolete Redis state
+- Whether automated referential-integrity and retention cleanup should be
+  added
+
 ## Full recommendation recomputation
 
 The full recommendation job is a recomputation operation, not a complete Redis

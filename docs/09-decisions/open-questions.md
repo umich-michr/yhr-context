@@ -1147,17 +1147,52 @@ exclusions.
 
 ## REDIS-004: Exclusion retention and recovery
 
-Exclusions are retained during ordinary rematching and deactivation cleanup
-unless a specific business action removes or replaces them.
+**Status: application behavior resolved; retention policy and operational
+cleanup remain open.**
 
-Determine retention and cleanup rules for:
+Exclusions and `USER` promotions have no application-assigned expiration.
+Ordinary rematching, full recomputation, participant or study deactivation,
+reactivation, eligibility changes, and study archive do not generally remove
+them.
 
-- Participant or study reactivation
-- Hard deletion
-- Study archive
-- Expired promotion
-- Complete Redis loss
-- Obsolete exclusions with no remaining relational business context
+Confirmed lifecycle behavior:
+
+- Participant deactivation removes study-facing recommendations for that
+  participant and participant-facing `SYSTEM` recommendations. It preserves
+  exclusions and `USER` promotions.
+- Study deactivation removes exact/partial keys for that study and
+  participant-facing `SYSTEM` recommendations. It preserves exclusions and
+  `USER` promotions.
+- Reactivation restores active-store membership and runs ordinary matching; it
+  does not clear retained exclusions or promotions.
+- Archive adds no Redis cleanup beyond the study's preceding deactivation.
+- Changed eligibility affects ordinary recommendations but does not remove
+  exclusion members.
+
+Specific business actions remove or replace specific reasons. Interest replaces
+selected dismissal and not-interested state with `ALREADY_SHOWN_INTEREST` in
+both directions. Ask if interested can replace study-side `DISMISSED` with
+`ASKED_IF_INTERESTED`. Questionnaire submission removes participant-side
+`NOT_INTERESTED`. Generic undismissal removes only the requested
+participant-side reason.
+
+Hard participant deletion removes relational interest and promotion-message
+evidence after initiating asynchronous deactivation cleanup. It does not wait
+for Redis cleanup, and the deactivation task does not remove exclusions or
+`USER` promotions. Orphaned Redis members can therefore remain.
+
+No general application garbage collector or referential-integrity sweep for
+obsolete Redis members was found.
+
+Still open as product, privacy, and operations policy:
+
+- Required retention for each exclusion and promotion reason
+- Whether temporary inactivity should preserve all user-action state
+- Authorized cleanup of orphaned state
+- Production detection and repair procedures
+- Whether automated Redis referential-integrity cleanup should be added
+
+Complete Redis-loss recovery remains covered by `REDIS-002` and `REDIS-003`.
 
 ## REDIS-006: Redis consistency monitoring
 
