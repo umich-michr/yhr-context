@@ -1069,15 +1069,81 @@ Confirm:
 
 ## REDIS-002: Cold Redis rebuild procedure
 
-Full rematching recalculates ordinary recommendations but does not
-automatically detect empty Redis or reconstruct every Redis-only exclusion.
+**Status: application behavior resolved; deployment recovery remains open.**
 
-Determine the supported procedure after:
+The reviewed application has no automatic cold-Redis detection, complete
+rebuild command, or application-managed backup and restore workflow.
 
-- Redis flush or data loss
-- Redis server replacement
-- Application deployment requiring rebuild
-- Redis key-format change
+`updateAllRecommendationsJob` is the supported application operation for
+recomputing ordinary recommendations after the Redis service and process-local
+matching inputs are ready. It does not clear Redis first and does not recreate
+all user-action state.
+
+Application recovery boundary:
+
+1. Infrastructure must restore Redis when retained promotions, exclusions, and
+   timestamps must survive.
+1. Operators must verify that the executing application's active participant
+   and study stores are current and complete.
+1. Full recomputation can then reconstruct ordinary `SYSTEM`
+   participant-facing recommendations and exact/partial study-facing
+   recommendations.
+1. Operators must separately validate `USER` promotions and both exclusion
+   directions.
+
+A flush, unrecoverable data loss, or replacement without a valid backup can
+therefore cause irrecoverable loss of Redis-only facts. Relational promotion
+messages and interest records preserve selected evidence, but no application
+routine deterministically rebuilds every current promotion, exclusion reason,
+direction, and timestamp from them.
+
+Still deployment-specific:
+
+- Redis snapshot or append-only persistence
+- Replication, failover, backup, and restore procedures
+- Eviction and memory policy
+- Maintenance-mode or write-quiescence procedure
+- Key-format migration and rollback plan
+- Post-restore validation thresholds and operational ownership
+
+## REDIS-003: Source of full recomputation
+
+**Status: application behavior resolved.**
+
+Full recommendation recomputation uses both persistent and process-local state,
+but not by directly joining or rereading all relational business tables during
+the job.
+
+Direct job inputs:
+
+- The executing process's `ActiveStudiesStore`
+- The executing process's `ActiveUsersStore`
+- Existing Redis state consulted by pair-level matching, including directional
+  exclusions and current recommendations
+
+The active stores are populated from database-backed sources through separate
+startup, refresh, and synchronization paths. Full recomputation itself iterates
+the local objects already present in those stores.
+
+The job does not use `STUDY_ACTIVE_INTERVAL` as its matching collection and does
+not reconstruct historical exclusions. Active intervals support lifecycle and
+notification processing; active-store membership controls the set processed by
+the full job.
+
+The job writes new pair-computation timestamps. It does not restore original
+recommendation, promotion, or exclusion timestamps.
+
+Relational records preserve only selected facts:
+
+- `RECOMMENDED_STUDY_MESSAGE` preserves participant, study, recommending user,
+  message, and promotion-message reason, but has no event timestamp or
+  current-state marker.
+- `STUDY_VOLUNTEER` preserves expressions of interest and associated
+  relational workflow state.
+
+No reviewed application routine converts those relational rows into a complete,
+unambiguous reconstruction of all `USER` promotions and directional
+exclusions.
 
 ## REDIS-004: Exclusion retention and recovery
 

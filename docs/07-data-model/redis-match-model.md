@@ -280,21 +280,125 @@ Direction-specific behavior:
 
 ## Full recommendation recomputation
 
-The full recommendation job reads active studies and participants from the
-application server's process-local in-memory stores and recomputes both
-recommendation directions.
+The full recommendation job is a recomputation operation, not a complete Redis
+restore operation.
 
-Recalculation:
+### Source data used
 
-- Adds newly qualifying recommendations
-- Removes recommendations that no longer qualify
-- Moves study-facing recommendations between exact and partial sets when the
-  eligibility result changes
-- Honors existing directional exclusions
-- Leaves participant-facing study-team promotions separate from ordinary
-  system recommendations
+`updateAllRecommendationsJob` iterates the active studies held by the executing
+application process. For each study, the matching task compares that study with
+the active participants held by the same process.
 
-Full recomputation does not clear Redis before rebuilding.
+The recomputation path therefore reads:
+
+- The executing process's `ActiveStudiesStore`
+- The executing process's `ActiveUsersStore`
+- Existing Redis exclusions and recommendations needed by pair-level matching
+
+The job does not directly query the relational participant, profile, study, or
+active-interval tables while recomputing. Those database-backed sources are
+used when process-local stores are populated or explicitly refreshed.
+
+Before recomputation, operators must verify that the executing process has
+current and complete active stores. A stale or incomplete process-local store
+produces correspondingly stale or incomplete Redis output.
+
+### State that recomputation can reconstruct
+
+For each active study-participant pair, current matching can create or update:
+
+- Participant-facing `SYSTEM` recommendations when the study has an exact
+  eligibility match, matches the participant's interests, and is not excluded
+- Study-facing exact recommendations
+- Study-facing partial recommendations
+
+The sorted-set score is the matching task's current clock time for the pair. It
+is a new computation timestamp, not restoration of a prior Redis timestamp.
+
+Pair-level matching also removes obsolete ordinary recommendations when current
+matching no longer supports them. It does not clear Redis globally before the
+run.
+
+### State that recomputation does not reconstruct
+
+Full recomputation does not recreate:
+
+- Participant-facing `USER` recommendations created by study-team promotion
+- Study-side `ASKED_IF_INTERESTED`, `DISMISSED`, or
+  `ALREADY_SHOWN_INTEREST` exclusions
+- Participant-side `NOT_INTERESTED`, `ENROLLED_IN_STUDY`, or
+  `ALREADY_SHOWN_INTEREST` exclusions
+- Original promotion or exclusion timestamps
+
+Existing exclusions are consulted by matching and suppress reconstruction in
+their respective directions. If exclusions survive, the full job leaves them
+effective rather than replacing them.
+
+### Relational evidence and its reconstruction limit
+
+`RECOMMENDED_STUDY_MESSAGE` is a relational table associated with study-team
+promotion workflows. A row preserves:
+
+- Participant ID
+- Study ID
+- Recommending user ID
+- Message
+- Reason: `ASKED_IF_INTERESTED` or `RECOMMENDED_ANOTHER_STUDY`
+
+The table and persistence entity do not contain a promotion-event timestamp or
+a current/active marker. Multiple message rows can exist for the same
+participant-study pair. The application has no general rebuild routine that
+uses these rows to reconstruct `vol.rec:<participant>:USER`, the paired
+study-side exclusion, or their original Redis scores.
+
+A message row is therefore evidence that a promotion-related message occurred,
+but it is not by itself a complete or deterministic source for the current
+Redis promotion state.
+
+Relational `STUDY_VOLUNTEER` records preserve expressions of interest and their
+timestamps, but the reviewed application likewise has no cold-rebuild routine
+that converts all such rows into both directional Redis exclusions.
+
+### Expiration behavior
+
+The reviewed recommendation data-access and matching paths create Redis sorted
+sets with `ZADD` and remove members or keys explicitly. They do not assign a
+Redis expiration or time-to-live to recommendation, promotion, or exclusion
+keys.
+
+This establishes application behavior only. Effective Redis persistence,
+append-only-file or snapshot policy, eviction policy, memory limit, replication,
+backup, restoration, and retention are deployment-specific.
+
+### Cold-loss procedure and boundary
+
+The application does not:
+
+- Detect an empty Redis instance automatically
+- Clear Redis before full recomputation
+- Trigger an automatic cold rebuild after a flush, server replacement,
+  deployment, or key-format change
+- Implement a complete Redis backup or restore workflow
+- Implement complete exclusion or study-team-promotion reconstruction
+
+After complete Redis loss:
+
+1. Stop or control application writes according to the deployment runbook.
+1. Restore Redis from an infrastructure backup when promotions, exclusions, and
+   their timestamps must be retained.
+1. Verify the replacement Redis instance and key format before resuming writes.
+1. Verify every application process whose stores may drive matching, especially
+   the process selected for full recomputation.
+1. Run `updateAllRecommendationsJob` only to reconstruct ordinary
+   recommendations.
+1. Validate representative `SYSTEM`, exact, partial, `USER`, and exclusion
+   state before returning the system to ordinary operation.
+
+If no valid Redis backup exists, ordinary recommendations can be recomputed,
+but the reviewed application cannot guarantee complete restoration of
+promotion and exclusion state. Manual reconstruction would require a
+deployment-approved procedure and explicit decisions about ambiguous relational
+evidence; no such general application procedure was found.
 
 ## Redis-loss recovery boundary
 

@@ -368,12 +368,16 @@ Before relying on recomputation after Redis loss:
 1. Do not assume those relational records provide every original Redis member,
    direction, reason, or timestamp; no general application reconstruction
    routine was found.
-1. Restore Redis from infrastructure backup when exclusions and study-team
-   promotions must survive.
+1. Restore Redis from infrastructure backup when exclusions, study-team
+   promotions, or their timestamps must survive.
+1. Verify the executing process's active-participant and active-study stores;
+   full recomputation reads those process-local stores rather than directly
+   rereading all relational source tables.
 1. After source stores and retained Redis business state are correct, manually
-   run `updateAllRecommendationsJob` to reconstruct ordinary recommendations.
+   run `updateAllRecommendationsJob` to reconstruct ordinary `SYSTEM`,
+   exact, and partial recommendations.
 1. Validate representative participant-facing and study-facing results,
-   exclusions, and promotions.
+   exclusions, and `USER` promotions.
 
 Do not flush or replace Redis expecting full recommendation recomputation to
 restore all user actions.
