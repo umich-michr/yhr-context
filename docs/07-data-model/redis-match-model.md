@@ -296,16 +296,45 @@ Recalculation:
 
 Full recomputation does not clear Redis before rebuilding.
 
-## Redis-loss recovery limitation
+## Redis-loss recovery boundary
 
-Ordinary recommendations can be recalculated from active in-memory study and
-participant entities. Directional exclusions are themselves stored in Redis
-and are inputs to recomputation.
+Ordinary recommendations can be recalculated from the executing application
+process's active in-memory study and participant entities. Full recomputation
+can reconstruct:
 
-The application must not assume that full recomputation reconstructs every
-exclusion after complete Redis data loss. The current implementation does not
-detect an empty Redis instance automatically or trigger an automatic cold
-rebuild after a flush, server replacement, deployment, or key-format change.
+- Participant-facing `SYSTEM` recommendations
+- Study-facing exact recommendations
+- Study-facing partial recommendations
+
+Full recomputation cannot by itself reconstruct:
+
+- Participant-facing study-team `USER` promotions
+- Participant-side directional exclusions
+- Study-side directional exclusions
+- Original promotion or exclusion timestamps
+
+Directional exclusions are stored in Redis and are inputs to recomputation.
+When they are lost, recomputation proceeds without those suppression facts.
+Relational expressions of interest, enrollment records, and
+`RecommendedStudyMessage` rows may corroborate selected business events, but
+the reviewed application contains no general routine that converts them into a
+complete reconstruction of every Redis direction, reason, member, and
+timestamp.
+
+The application does not:
+
+- Detect an empty Redis instance automatically
+- Clear Redis before full recomputation
+- Trigger an automatic cold rebuild after a flush, server replacement,
+  deployment, or key-format change
+- Implement a complete Redis backup or restore workflow
+- Implement complete exclusion or study-team-promotion reconstruction
+
+Recovery after complete Redis loss therefore depends first on deployment-level
+Redis backup and restore when user actions must be preserved. Operators must
+also verify that the application process used for recomputation has current,
+complete local stores. Only after restoring retained business state should
+`updateAllRecommendationsJob` be used to rebuild ordinary recommendations.
 
 ## Match freshness
 

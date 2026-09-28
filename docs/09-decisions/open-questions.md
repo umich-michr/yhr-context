@@ -652,17 +652,58 @@ configuration overrides, dashboards, alerts, health probes, traffic gates,
 retention policies, server attribution, or operational thresholds provide
 additional production observability.
 
-## MEMORY-009: Recovery procedures
+## MEMORY-009: Recovery procedures — application behavior resolved
 
-Restart reloads local stores, scheduled synchronization repairs active
-membership, and full rematching recalculates ordinary recommendations.
+Confirmed application recovery behavior:
 
-Document supported operator procedures for:
+- A successful application restart clears and reloads the restarted process's
+  local stores from database-backed sources and rebuilds store-specific derived
+  indexes.
+- Restart does not refresh another application process or rebuild Redis.
+- Administrators can manually execute active-user synchronization,
+  active-study synchronization, and full recommendation recomputation.
+- Active-store synchronization repairs membership only. It adds missing active
+  IDs and removes inactive IDs, but does not reload an entity present in both
+  the database active view and local store.
+- `ApplicationStoreService` exposes only `getById` through the reviewed
+  administrator controller. No generic operator command for per-entity reload
+  or whole-store refresh was found.
+- After a startup database outage or startup-load failure, restore database
+  availability and restart the affected process. A failed later refresh can
+  leave a published store empty, partial, or inconsistent because refresh is
+  clear-first and not atomic.
+- Matching failures are recorded as application errors and may generate error
+  notifications, but are not automatically retried. Operators must rerun the
+  applicable synchronization or recomputation after correcting the cause.
+- No application-supported cross-server broadcast, divergence detector, or
+  cluster-wide repair operation was found. Each affected process must be
+  repaired independently.
+- Full recomputation can reconstruct ordinary participant-facing `SYSTEM`
+  recommendations and exact or partial study-facing recommendations from the
+  executing process's current active stores.
+- Full recomputation does not reconstruct study-team `USER` promotions or
+  Redis-only directional exclusions.
+- Relational business records may support selected event reconstruction, but no
+  general application routine rebuilds every promotion, exclusion direction,
+  reason, member, and timestamp.
+- No complete application implementation for Redis backup, restore, cold
+  rebuild, or exclusion reconstruction was found.
 
-- Repairing stale data for an entity that remains active
-- Recovering from startup database outage or partial store load
-- Repairing cross-server divergence
-- Recovering Redis exclusions after complete Redis data loss
+Operational rule: do not flush or replace Redis expecting full recommendation
+recomputation to restore all user actions. Preserve or restore Redis when
+exclusions and study-team promotions must survive, verify each affected
+process's local stores, and then recompute ordinary recommendations.
+
+Remaining deployment-specific questions:
+
+- Which Redis persistence, backup, restore, and disaster-recovery procedures
+  apply to each environment
+- Which application processes must be restarted or removed from service during
+  repair
+- Whether external orchestration provides traffic gating, rolling restart, or
+  cross-server coordination
+- Which operational runbook verifies restored exclusions, promotions, and
+  recommendation completeness
 
 ______________________________________________________________________
 

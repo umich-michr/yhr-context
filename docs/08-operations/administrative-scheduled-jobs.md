@@ -121,6 +121,21 @@ count, failure count, or last business-error message.
 
 Administrators may trigger a dynamic job immediately and may supply supported parameters.
 
+The confirmed recovery-related manual jobs are:
+
+- `activeUsersSynchronizationJob` — reconciles active-user membership in the
+  handling process's local store
+- `activeStudiesSynchronizationJob` — reconciles active-study membership in the
+  handling process's local store
+- `updateAllRecommendationsJob` — recomputes ordinary recommendations from the
+  handling process's current active stores
+
+The synchronization jobs do not reload entities whose IDs already exist in
+both the database active view and local store. They therefore cannot repair
+stale fields for an entity that remains active. Full recommendation
+recomputation does not reconstruct Redis-only exclusions or study-team `USER`
+promotions after complete Redis loss.
+
 `updateAllRecommendationsJob` has two confirmed process-local protections:
 
 1. Before a manual trigger, `JobSchedulingService` asks Quartz for currently executing instances with
