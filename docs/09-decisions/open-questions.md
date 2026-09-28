@@ -1196,18 +1196,48 @@ Complete Redis-loss recovery remains covered by `REDIS-002` and `REDIS-003`.
 
 ## REDIS-006: Redis consistency monitoring
 
-Recommendation timestamps and counts are available, but no cluster-wide
-consistency comparison is confirmed.
+**Status: application behavior resolved; deployment observability remains
+open.**
 
-Determine whether operators can compare:
+This question overlaps with the resolved application-level portion of
+`MEMORY-008`. The reviewed application exposes entity-specific Redis reads,
+selected per-study recommendation counts, process-local matching status,
+application errors, optional error notifications, local Quartz trigger
+information, and application logs.
 
-- Database source state
-- Per-server in-memory match inputs
-- Redis recommendations and exclusions
-- Last successful full recomputation
-- Expected and actual key counts
+Those signals do not provide a global or cluster-wide freshness determination.
 
-______________________________________________________________________
+No application implementation was found for:
+
+- Global Redis recommendation, promotion, or exclusion inventory
+- Expected versus actual Redis key or member counts
+- Database-active-view versus process-local store comparison
+- Database-to-memory-to-Redis consistency checking
+- Cross-server in-memory divergence detection
+- Last successful full-recomputation tracking
+- Durable full-recomputation completion, duration, processed-count, or
+  failed-count records
+- Freshness thresholds
+- Dedicated matching/store health, readiness, liveness, metrics, or Prometheus
+  endpoints
+
+Redis scores record member event or computation times, but do not prove current
+source-data consistency. The local scheduler's previous trigger fire time does
+not prove successful completion or successful Redis writes.
+
+Canonical application behavior is documented under
+[Audit and Monitoring](../08-operations/audit-and-monitoring.md#matching-and-memory-observability)
+and [Redis Match and Exclusion Model](../07-data-model/redis-match-model.md#match-freshness).
+
+Still deployment-specific:
+
+- Centralized logs and server attribution
+- Dashboards and alerts
+- Health probes and traffic gates
+- Log and metric retention
+- Freshness thresholds and escalation policy
+- Production Redis inventory and consistency tooling
+- Operational ownership and runbooks
 
 # Phase 10: Physical Recruitment Schema
 

@@ -560,13 +560,65 @@ complete local stores. Only after restoring retained business state should
 
 ## Match freshness
 
-Scores record timestamps associated with:
+Redis sorted-set scores record timestamps associated with:
 
 - Match computation
 - Study-team promotion
 - Exclusion action
 
-They support ordering and troubleshooting but do not prove that source data remains current.
+These timestamps support ordering and entity-specific troubleshooting. They do
+not establish that the relational source data or process-local matching inputs
+were current when the Redis member was written.
+
+### Available application signals
+
+The reviewed application provides:
+
+- Entity-specific recommendation and exclusion retrieval
+- Selected per-study exact and partial recommendation counts
+- Process-local matching-task status
+- Application-error records for matching and scheduler failures
+- Optional configured error notifications
+- Local Quartz trigger state, running-instance count, previous trigger fire
+  time, and future execution previews
+- Informational or debug logs for store loading, synchronization, matching, and
+  full recommendation recomputation
+
+These signals have important boundaries:
+
+- Matching-task status is process-local, not cluster-wide.
+- Selected recommendation counts do not inventory all recommendations,
+  promotions, and exclusions.
+- A previous Quartz trigger fire time shows scheduler activity, not durable
+  successful completion.
+- A Redis score is a member timestamp, not a database-to-memory-to-Redis
+  consistency result.
+- Informational success logs are not durable success records and may not be
+  retained under the checked-in production `WARN` logging level.
+
+### Monitoring not implemented by the application
+
+No reviewed application implementation provides:
+
+- A global Redis key inventory
+- Expected-versus-actual recommendation or exclusion key counts
+- Database-active-view versus process-local store comparison
+- Database-to-memory-to-Redis consistency checking
+- Cross-server in-memory divergence detection
+- Last successful full-recomputation tracking
+- Complete processed-entity, failure, or duration statistics
+- Freshness thresholds
+- A dedicated matching/store health, readiness, liveness, metrics, or
+  Prometheus endpoint
+
+Production centralized logging, dashboards, alerts, health probes, server
+attribution, retention, traffic gating, and operational thresholds remain
+deployment-specific.
+
+See [Audit and Monitoring](../08-operations/audit-and-monitoring.md#matching-and-memory-observability)
+for the canonical operational-observability description and
+[Troubleshooting](../08-operations/troubleshooting.md) for investigation and
+recovery steps.
 
 ## Recalculation behavior
 
