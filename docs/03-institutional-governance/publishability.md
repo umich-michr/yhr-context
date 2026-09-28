@@ -151,13 +151,13 @@ A daily scheduled process evaluates lifecycle changes and configured Other Annou
 
 The current PI also receives lifecycle-related notifications when applicable.
 
-Short-lived transitions may be suppressed by a one-day stabilization rule.
+The daily lifecycle query can suppress superseded transitions within its previous-calendar-day evaluation window.
 
 Conceptually:
 
 ```text
 ACTIVE → INACTIVE → ACTIVE within the stabilization period
-    No stable-state PI notification
+    No deactivation announcement for the superseded transition
 ```
 
 If a changed state remains in effect beyond the stabilization period, the PI is notified.

@@ -219,3 +219,28 @@ managed by Oracle Scheduler and deployment-specific database configuration.
 - [Audit and Monitoring](audit-and-monitoring.md)
 - [Troubleshooting](troubleshooting.md)
 - [Study Lifecycle](../05-study-management/study-lifecycle.md)
+
+## Batch notification lifecycle windows
+
+`batchNotificationJob` performs lifecycle announcement and
+upcoming-deactivation warning work using calendar-day windows in the
+application or Java virtual machine system-default time zone.
+
+For activation and deactivation announcements, it queries the previous calendar
+day:
+
+- Start: previous day at midnight
+- End: one second before the current day at midnight
+
+The active-interval query rules suppress superseded transitions. There is no
+separate rolling 24-hour or configurable stabilization timer.
+
+For upcoming-deactivation warnings, the job reads
+`STUDY_ANNOUNCEMENTS_DAYS_AHEAD`. For every configured integer, it queries the
+calendar day exactly that many days ahead. The installation seed is `2,14`.
+
+Both lifecycle announcements and warnings resolve the current Other
+Announcements recipients at dispatch time. The warning workflow stores no
+delivery history or deduplication state. Repeated execution of the same window
+can therefore repeat delivery, and changing a deactivation date can place the
+study into a configured warning day again.

@@ -197,8 +197,8 @@ The following items are confirmed and are no longer open.
 1. Study lifecycle notifications are processed asynchronously.
 1. A daily job processes applicable lifecycle announcements.
 1. Other Announcements configuration controls applicable recipients.
-1. Stable PI status notifications use a one-day stabilization concept.
-1. The PI receives a warning approximately one week before the scheduled deactivation date.
+1. Lifecycle announcements use previous-calendar-day active-interval queries and the current Other Announcements recipient set.
+1. Upcoming-deactivation warnings use configurable calendar-day offsets; the installation seed is two and fourteen days ahead.
 1. Ask if interested updates the promoted-match timestamp.
 1. Ask if interested moves or emphasizes the match in the study-team-promoted participant grouping.
 1. A scheduled job evaluates promoted matches newer than the participant's last login.
@@ -769,44 +769,71 @@ Still deployment-specific:
 
 ## NOTIFY-001: Lifecycle recipient stabilization
 
-Does the one-day stabilization rule apply to:
+**Application behavior resolved.**
 
-- Current PI only
-- All Other Announcements recipients
-- External recipients
-- Every lifecycle event
-- Only publishability-driven transitions
+Lifecycle activation and deactivation announcements are selected through
+`STUDY_ACTIVE_INTERVAL` queries and sent to the complete current recipient set
+returned for Other Announcements.
+
+The mechanism is not limited to the PI and does not apply a separate
+stabilization rule per recipient. The set may include the current PI, other
+selected accepted study team members, and configured external addresses.
+Recipients are resolved at dispatch time.
+
+The lifecycle query does not distinguish manual, date-driven, and
+publishability-driven causes. It operates on active intervals recorded by the
+application.
 
 ## NOTIFY-002: Stabilization calculation
 
-Determine exactly when the stabilization period begins and ends.
+**Application behavior resolved.**
 
-Clarify whether “one day” means:
+The lifecycle-announcement stage evaluates the previous calendar day:
 
-- 24 elapsed hours
-- The next daily-job execution
-- A calendar-day boundary
-- An institution-configured interval
+- Start: previous day at 00:00:00
+- End: current day at 00:00:00 minus one second
+
+This is not a rolling 24-hour delay after each transition and is not controlled
+by a configurable stabilization duration. Processing occurs when the daily
+batch job next runs.
+
+Calendar boundaries use the application or Java virtual machine system-default
+time zone. The effective deployment time zone remains deployment-specific.
 
 ## NOTIFY-003: Upcoming-deactivation warning timing
 
-Determine how “approximately one week” is calculated:
+**Application behavior resolved.**
 
-- Seven calendar days
-- Seven 24-hour periods
-- A date-window query
-- The first scheduled job within a warning window
+Upcoming-deactivation warnings use the configurable integer list
+`STUDY_ANNOUNCEMENTS_DAYS_AHEAD`. For every configured offset, the daily job
+queries the calendar day exactly that many days after the beginning of the
+current day.
 
-Also determine the applicable time zone.
+The installation seed is `2,14`, so the reviewed default configuration checks
+for deactivations two and fourteen calendar days ahead. The behavior is not
+hard-coded as approximately one week.
+
+Calendar boundaries use the application or Java virtual machine system-default
+time zone. The current deployed setting values and effective time zone remain
+deployment-specific.
 
 ## NOTIFY-004: Changed deactivation dates
 
-If the deactivation date changes after a warning:
+**Application behavior resolved.**
 
-- Is another warning sent?
-- Is the old warning state cleared?
-- Can a study receive multiple warnings?
-- Is warning history stored?
+The warning workflow stores no sent-warning state or warning history. Changing
+the current interval's deactivation date updates the date used by later daily
+queries.
+
+A study may receive multiple warnings when:
+
+- More than one warning offset is configured
+- Its deactivation date changes and later enters another configured target day
+- A configured target day is encountered again after another date change
+- The batch job executes more than once for the same window
+
+There is no old warning state to clear and no lifecycle-warning deduplication
+marker or idempotency key in the reviewed implementation.
 
 ## NOTIFY-005: Ask if interested frequency
 

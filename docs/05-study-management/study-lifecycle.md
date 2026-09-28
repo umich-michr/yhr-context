@@ -97,13 +97,19 @@ study unless a study member establishes a new activation range.
 
 ## Upcoming-deactivation warning
 
-The current PI receives an email warning approximately one week before the configured deactivation
-date.
+The daily batch-notification job checks configured future calendar-day offsets
+for studies approaching their deactivation dates. The offsets come from
+`STUDY_ANNOUNCEMENTS_DAYS_AHEAD`; the installation seed is `2,14`, representing
+two and fourteen calendar days ahead rather than a hard-coded one-week warning.
 
-This warning is separate from the notification generated after the study actually becomes inactive.
+The warning uses the current Other Announcements recipient set and is separate
+from the notification generated after the study becomes inactive. Calendar
+boundaries use the application or Java virtual machine system-default time
+zone.
 
-The warning gives the study team an opportunity to review recruitment and, when permitted, establish
-an appropriate future deactivation date before expiration.
+No warning history or deduplication state is stored. Changing the deactivation
+date can therefore cause a later warning when the revised date enters another
+configured target day.
 
 ## Governance-driven inactivation
 
@@ -163,27 +169,31 @@ transition.
 
 Lifecycle email is asynchronous.
 
-A daily scheduled process evaluates:
+The daily batch-notification job evaluates activation and deactivation changes
+recorded in `STUDY_ACTIVE_INTERVAL` during the previous calendar day. It queries
+from the previous day at midnight through one second before the current day at
+midnight, using the application or Java virtual machine system-default time
+zone.
 
-- Activation and deactivation announcements
-- Configured Other Announcements recipients
-- Current PI notifications
-- Upcoming-deactivation warnings
-- Stabilization of recent active-status changes
-
-A short-lived state change may be suppressed by the one-day stabilization rule.
-
-Example:
+The interval-query rules exclude superseded transitions. A sequence such as:
 
 ```text
-ACTIVE → INACTIVE → ACTIVE within one day
+ACTIVE → INACTIVE → ACTIVE within the queried period
 ```
 
-The operational state changes may still occur, and interval rows may be changed by direct or
-import-driven updates, but a stable-state PI notification is not sent for the transient sequence.
+may therefore produce no deactivation announcement even though operational
+changes and interval updates occurred. This is query-based event stabilization,
+not a separate PI-only recipient rule or a rolling 24-hour delay.
 
-If the changed state remains beyond the stabilization period, the applicable PI notification is
-sent.
+For each selected lifecycle event, the application resolves the complete
+current Other Announcements recipient set at dispatch time. This may include
+the current PI, other selected accepted study team members, and external
+addresses. The query does not distinguish manual, date-driven, and
+publishability-driven causes.
+
+The same daily job evaluates upcoming-deactivation warnings using configured
+future calendar-day offsets. The installation seed is two and fourteen days
+ahead. Warning delivery has no persisted sent state or deduplication marker.
 
 ## Effects of date-based inactivity
 

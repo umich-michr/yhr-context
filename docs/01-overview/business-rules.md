@@ -265,7 +265,7 @@ See:
    `V_ACTIVE_STUDY`; it does not itself write or close an interval row in the reviewed code.
 1. Lifecycle announcements query existing interval rows and are handled asynchronously rather than
    being sent synchronously in the status-changing request.
-1. A PI receives a warning approximately one week before a scheduled deactivation date.
+1. Upcoming-deactivation warnings use deployment-configurable calendar-day offsets and the current Other Announcements recipient set; the installation seed is two and fourteen days ahead.
 1. Stable active-status changes participate in delayed PI-notification handling.
 
 See [Study Lifecycle](../05-study-management/study-lifecycle.md).
@@ -488,7 +488,7 @@ See [Study Lifecycle](../05-study-management/study-lifecycle.md).
 1. Membership removal removes that member's notification settings.
 1. Email settings do not control in-application badges.
 1. Lifecycle announcements are dispatched by scheduled processing.
-1. The PI receives a warning approximately one week before the scheduled study deactivation date.
+1. Upcoming-deactivation warnings use deployment-configurable calendar-day offsets and the current Other Announcements recipient set; the installation seed is two and fourteen days ahead.
 1. Participant promotion notifications are evaluated by a scheduled job using the promotion
    timestamp and participant's last-login time.
 

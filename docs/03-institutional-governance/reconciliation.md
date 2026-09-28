@@ -274,9 +274,9 @@ Active-status notifications are handled asynchronously.
 
 A daily process evaluates status changes and configured Other Announcements recipients.
 
-The current PI receives lifecycle notifications when applicable.
+Applicable lifecycle notifications use the current Other Announcements recipient set, which includes the current PI and may include other configured recipients.
 
-Short-lived transitions may be suppressed by the one-day stabilization rule.
+The daily lifecycle query may suppress superseded transitions within its previous-calendar-day evaluation window.
 
 Example:
 
@@ -287,7 +287,7 @@ ACTIVE → INACTIVE → ACTIVE within one day
 Result:
 
 ```text
-No stable-state PI notification
+No deactivation announcement for the superseded transition
 ```
 
 If the changed state remains beyond the stabilization period:
