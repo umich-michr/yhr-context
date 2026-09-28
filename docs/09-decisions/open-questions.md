@@ -607,18 +607,50 @@ agreement.
 
 Deployment-specific effective cron schedules and time zones remain covered by `MEMORY-006`.
 
-## MEMORY-008: Production freshness monitoring
+## MEMORY-008: Production freshness monitoring — application behavior resolved
 
-Process-local task status, logs, application errors, and store counts exist.
+Confirmed application-level observability:
 
-Determine whether production operations expose or alert on:
+- Full store population and refresh log the database object count,
+  database-load duration, and total load duration.
+- Scheduled active-store synchronization logs debug start and return messages
+  and individual activity, but does not record duration or processed counts.
+- Synchronization wrappers log informational success after the synchronizer
+  returns. Cooperative interruption can still reach that message, so it is not
+  proof of complete reconciliation.
+- Matching status is a transient process-local Boolean for one participant or
+  study. Task, thread, and outstanding-work identifiers are held only in local
+  concurrent maps.
+- Matching chunks log debug durations, and matching or scheduler failures create
+  durable `APPLICATION_ERROR` rows and may generate error notifications.
+- The administrator jobs API reports local previous trigger time, next
+  executions, trigger state, and running-instance count. Previous trigger time
+  is not a durable business-success timestamp.
+- Redis recommendation timestamps and selected entity-level counts are
+  queryable, but no global expected-versus-actual key comparison exists.
 
-- Last successful synchronization
-- Database-to-memory count differences
+The reviewed application does not persist or expose:
+
+- Last successful store synchronization or full recomputation
+- Synchronization duration, added/removed/skipped/failed counts, or a
+  complete-versus-interrupted result
+- Database-active-view versus local-store comparison
 - Database-to-memory-to-Redis consistency
-- Cross-server divergence
-- Synchronization duration
+- Cross-server in-memory divergence
+- Expected versus actual Redis recommendation or exclusion key counts
 - Failed-entity thresholds
+- A dedicated freshness health, readiness, liveness, metrics, or Prometheus
+  endpoint
+- Server or process attribution for freshness status
+
+The checked-in production logging configuration sets application logging to
+`WARN`, while freshness and successful-completion messages are emitted at
+`INFO` or `DEBUG`.
+
+Still determine for each deployed instance whether centralized logging,
+configuration overrides, dashboards, alerts, health probes, traffic gates,
+retention policies, server attribution, or operational thresholds provide
+additional production observability.
 
 ## MEMORY-009: Recovery procedures
 
