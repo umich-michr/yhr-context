@@ -301,6 +301,23 @@ Notify the PI
 This delay affects notification delivery. It does not prevent the underlying intermediate
 operational transitions from occurring.
 
+## Import correlation and replay
+
+`IMPORTED_STUDY_SYNC_LOG` is an action-oriented reconciliation log, not an import-run ledger. It
+records the affected table and column, operation, synchronization time, entity identifier, and old and
+new values. It has no foreign key or correlation field for `CSV_FILE_UPLOAD_LOG`, processed filename,
+CSV row number, transaction batch, request, or authentication token.
+
+A replayed row finds existing imported entities by their primary keys and merges replacement values.
+Reconciliation compares the incoming PI, PI attributes, and publishability with current operational
+state before performing many changes. Replaying identical stable state therefore usually avoids those
+operational mutations.
+
+This does not make the complete workflow idempotent. Upload audit rows and processed artifacts are
+new for each completed submission. A row that again causes a lifecycle or PI transition can append
+new reconciliation and interval history. Memory and matching work may have escaped an earlier
+database rollback, and notification selection follows its own timing and deduplication rules.
+
 ## Idempotency
 
 Repeated processing of the same imported state should not:

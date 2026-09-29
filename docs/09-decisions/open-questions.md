@@ -1083,23 +1083,63 @@ the importer does not collapse the rows before reconciliation.
 
 ## IMPORT-005: Import-run identity
 
-Is there an import-run or batch identifier linking:
+**Application behavior resolved.**
 
-- File receipt
-- Individual row results
-- Errors
-- Reconciliation actions
-- Notifications
-- Final completion status
+There is no single end-to-end import-run or transaction identifier.
+
+The closest run-level signals are:
+
+- A processed CSV filename containing the original base and an epoch-millisecond suffix
+- A same-basename text result log
+- A generated `CSV_FILE_UPLOAD_LOG.ID`
+- The processed filename base, authenticated user ID, audit time, counts, and status in that row
+- `CSV_FILE_UPLOAD_DETAILS_LOG` error rows linked to the upload-log ID
+
+Limitations:
+
+- Detail rows omit the transient CSV row number.
+- Successful rows have no upload-detail records.
+- `IMPORTED_STUDY_SYNC_LOG` has action timestamps and entity information but no upload-log ID,
+  filename, CSV row number, batch number, request ID, or token ID.
+- Memory updates, matching tasks, Redis writes, lifecycle selection, result email, and transport
+  evidence do not carry the upload-log ID.
+- The audit row is created only after processing returns. Earlier failure can leave an archived CSV
+  or text log without an upload audit.
+- `SUCCESS` means only that the `ImportResult` has no recorded errors. It does not prove complete
+  database-memory-Redis consistency or notification delivery.
+
+Filename and timestamp proximity can support an investigation, but they are not a durable
+application-enforced correlation relationship.
 
 ## IMPORT-006: Recovery and correction
 
-After an interrupted file:
+**Application behavior resolved.**
 
-- Can processing resume?
-- Must the entire file be resubmitted?
-- Can duplicate earlier rows be safely processed again?
-- Which operations are idempotent?
+The application has no resume cursor, last-committed-row checkpoint, or command that continues an
+interrupted processed file. Recovery requires a new CSV submission.
+
+Earlier committed batches remain applied. The current uncommitted batch is rolled back when possible,
+but process-local memory changes and asynchronous matching work may already have escaped the
+transaction. Operators must establish current state before deciding whether to submit a corrective
+subset or the whole file.
+
+Replay behavior is only conditionally idempotent:
+
+- Imported entities are found by primary key and inserted or merged, so replay normally updates
+  existing imported rows rather than creating duplicate keyed rows.
+- Stable PI attributes and publishability are compared with current operational state, so an
+  identical row usually avoids those reconciliation changes.
+- Reprocessing is not globally idempotent: each completed submission creates new processed artifacts
+  and an upload audit; errors create new detail rows; changed state can append reconciliation and
+  interval history; and memory, matching, Redis, and notification effects have separate duplication
+  and recovery boundaries.
+- The caught-persistence-exception path does not prove row-level rollback, so uncertain rows require
+  direct state verification.
+
+A safe correction procedure preserves the processed artifacts, identifies committed batches, checks
+upload and reconciliation evidence, compares imported and operational state, inspects interval,
+memory, matching, and Redis effects, and submits a new incremental file expressing the intended
+authoritative state.
 
 ## IMPORT-007: Token controls
 

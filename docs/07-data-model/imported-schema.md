@@ -136,6 +136,45 @@ Corrections must be made through:
 - The U-M eResearch-derived import path, or
 - An authorized institutional CSV import
 
+## CSV upload and reconciliation logs
+
+### `CSV_FILE_UPLOAD_LOG`
+
+This table records a completed upload audit after import processing returns.
+
+| Column            | Meaning                                                           |
+| ----------------- | ----------------------------------------------------------------- |
+| `ID`              | Generated upload-log identifier                                   |
+| `FILE_NAME`       | Timestamp-derived processed CSV basename                          |
+| `USER_ID`         | Authenticated application user recorded at audit time             |
+| `UPLOAD_TIME`     | Time when the upload audit is written                             |
+| `STUDIES_CREATED` | Imported-study insert count accumulated from committed batches    |
+| `STUDIES_UPDATED` | Count of rows marked as updates                                   |
+| `STATUS`          | `SUCCESS` when no error was recorded; otherwise `NEEDS ATTENTION` |
+
+The row does not store start time, completion time, original request ID, file checksum, total committed
+batch count, last committed row, token ID, or notification outcome. `SUCCESS` is an import-result
+classification, not proof of database-memory-Redis consistency or message delivery.
+
+### `CSV_FILE_UPLOAD_DETAILS_LOG`
+
+Error details link to `CSV_FILE_UPLOAD_LOG.ID` through `CSV_FILE_UPLOAD_LOG_ID`. Each row stores the
+erroneous row representation and error description. It does not store the source CSV row number even
+though the transient import result has one.
+
+### `IMPORTED_STUDY_SYNC_LOG`
+
+This table stores selected reconciliation actions against operational entities:
+
+- Target table and column
+- Insert, update, or delete operation
+- Synchronization time
+- Entity identifier
+- Old and new values when applicable
+
+It has no upload-log, filename, row-number, transaction-batch, request, or token correlation field.
+Therefore it cannot by itself reconstruct all actions belonging to one CSV submission.
+
 ## Related pages
 
 - [Imported Institutional Data](../03-institutional-governance/imported-data.md)

@@ -62,6 +62,28 @@ transaction without explicitly clearing or restarting it. Compare all three impo
 operational study and PI state, synchronization logs, active intervals, process-local memory, matching
 status, Redis state, and application errors before preparing a corrective incremental row.
 
+## Interrupted CSV import recovery
+
+The application cannot resume an archived CSV from a stored row checkpoint.
+
+1. Preserve the timestamped processed CSV and same-basename text log.
+1. Determine which transaction batches committed and which current batch rolled back.
+1. Check whether `CSV_FILE_UPLOAD_LOG` exists; absence may mean processing failed before the
+   controller wrote the audit.
+1. Inspect linked detail rows, time-adjacent reconciliation logs, imported tables, operational study
+   and PI state, active intervals, application errors, process-local memory, matching status, and
+   Redis.
+1. Account for memory or matching work that may have started before a database rollback.
+1. Build a new corrective incremental file containing the intended authoritative state.
+1. Submit the corrective subset or full file according to the verified state; do not assume replay is
+   globally idempotent.
+1. Verify database, memory, Redis, and notification outcomes after correction.
+
+Resubmitted rows generally update existing imported entities by key, and unchanged stable values
+usually avoid repeat operational changes. Nevertheless, every submission creates new file artifacts
+and may create a new upload audit, errors, reconciliation history, lifecycle effects, matching work,
+and notification consequences.
+
 ## Study cannot be activated
 
 Check:

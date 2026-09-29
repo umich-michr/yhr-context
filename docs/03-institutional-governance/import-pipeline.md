@@ -87,6 +87,40 @@ STUDY_IMPORT_TOKEN_GRACE_PERIOD
 The token is provisioned for a study importer or importing process and expires according to
 application configuration.
 
+## Upload artifacts and run correlation
+
+The CSV upload path creates several records and files, but no single end-to-end import-run identifier.
+
+Before reading the CSV, the application moves it into the configured work directory under
+`study-intake/logs`. The processed CSV filename contains the original base name plus the current epoch
+millisecond value. A text result log is written with the same timestamp-derived base name and a
+`.log` extension.
+
+After processing returns, the controller writes one `CSV_FILE_UPLOAD_LOG` row containing:
+
+- Its own generated database ID
+- The processed filename base
+- The authenticated application user ID
+- The upload-audit time
+- Counts of studies created and updated
+- `SUCCESS` or `NEEDS ATTENTION`
+
+Recorded row errors create `CSV_FILE_UPLOAD_DETAILS_LOG` rows linked to that upload-log ID. The detail
+table stores the erroneous row text and description, but not the CSV row number retained in the
+in-memory `ImportError`.
+
+Operational reconciliation actions may create `IMPORTED_STUDY_SYNC_LOG` rows with action time, table,
+column, operation, entity ID, and old and new values. Those rows do not contain the upload-log ID,
+processed filename, CSV row number, transaction-batch number, request ID, or token ID.
+
+Consequently, filename and timestamp proximity may help an investigation, but the application does
+not provide one durable identifier linking file receipt, every row result, reconciliation actions,
+memory or matching work, notifications, and final completion.
+
+The upload audit is written only after `processFile(...)` returns. A failure before the audit call may
+leave a processed CSV or text log without a corresponding `CSV_FILE_UPLOAD_LOG` row. The automated
+upload endpoint returns its `ImportResult` but does not send the interactive import-result email.
+
 ## Row independence and ordering
 
 CSV rows are read and processed in file order, but row independence does not mean that each row has
@@ -161,9 +195,12 @@ possible.
 If a CSV row contains an anomaly:
 
 - Application code detects the anomaly.
-- Details are recorded in application logs.
-- An email is sent to the responsible study importer, normally the person or process owner for whom
-  the JWT was provisioned.
+- Details are included in the in-memory result and written to the processed text log when processing
+  reaches that step.
+- After processing returns, error details are written to `CSV_FILE_UPLOAD_DETAILS_LOG`.
+- The interactive upload path emails the result to the logged-in importer.
+- The automated JSON Web Token upload path returns the result but does not send this import-result
+  email.
 
 Because rows are handled independently, one invalid row does not redefine the meaning of later rows.
 The exact transaction boundary and continuation behavior for every validation or infrastructure
@@ -204,6 +241,18 @@ An uncaught failure likewise rolls back only the current uncommitted batch durin
 Database rollback cannot reverse process-local active-study changes or asynchronous matching work
 already started before commit. Corrections to committed or externally visible effects require a
 later valid incremental update and, when necessary, explicit memory or matching recovery.
+
+The application has no resume cursor or command that restarts an archived file at the first
+uncommitted row. Recovery uses a new CSV submission. Operators may submit a corrective subset or
+resubmit the whole file, but either choice creates a new processed-file artifact and, when processing
+returns normally, a new upload audit.
+
+Reprocessing is not globally idempotent. Imported rows are located by their keys and inserted or
+merged, and unchanged operational values normally avoid corresponding reconciliation changes.
+However, replay can still produce new upload records, result files, error records, interval effects,
+reconciliation logs for actions that run, process-local reloads, matching submissions, and
+notification consequences. Verify the current imported, operational, memory, and Redis state before
+choosing the correction file.
 
 ## Related pages
 

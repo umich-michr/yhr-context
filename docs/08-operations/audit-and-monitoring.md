@@ -183,6 +183,36 @@ alerts, health probes, traffic gates, retention, server attribution, or
 freshness thresholds remains deployment-specific and must be verified for each
 instance.
 
+## CSV import investigations
+
+No single application record proves the complete history of one CSV import.
+
+Correlate, where available:
+
+- The timestamped processed CSV in the configured `study-intake/logs` directory
+- Its same-basename text result log
+- `CSV_FILE_UPLOAD_LOG`
+- Linked `CSV_FILE_UPLOAD_DETAILS_LOG` rows
+- Time-adjacent `IMPORTED_STUDY_SYNC_LOG` rows
+- Application logs and application-error records
+- `STUDY_ACTIVE_INTERVAL`
+- Current imported and operational records
+- Process-local active-study state
+- Matching status and Redis state
+- Email evidence for the interactive result notification
+
+Treat timestamp and filename correlation as investigative evidence, not a guaranteed foreign-key
+relationship.
+
+A `CSV_FILE_UPLOAD_LOG.STATUS` value of `SUCCESS` means only that the returned `ImportResult` had no
+recorded errors. It does not prove that asynchronous matching completed, process-local stores agree,
+Redis is current, notification transport succeeded, or no unrecorded runtime failure occurred after
+an earlier committed batch.
+
+If processing fails before the controller audit call, a processed CSV or text log may exist without an
+upload-log row. Conversely, the automated upload path does not send the interactive import-result
+email.
+
 ## Related pages
 
 - [PHI Audit](phi-audit.md)
