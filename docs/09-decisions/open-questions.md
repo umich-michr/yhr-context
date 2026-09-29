@@ -1143,15 +1143,25 @@ authoritative state.
 
 ## IMPORT-007: Token controls
 
-Determine:
+**Status: application behavior resolved; deployment controls remain open.**
 
-- Meaning of `STUDY_IMPORT_TOKEN_GRACE_PERIOD`
-- Token lifetime
-- Revocation
-- Signing algorithm
-- Key rotation
-- Issuance audit
-- Use audit
+`STUDY_IMPORT_TOKEN_GRACE_PERIOD` is the CSV-upload JWT lifetime in hours, not a post-expiration grace period. The installation seed is `17520` hours, approximately two years. Each deployment's effective value may differ.
+
+An authenticated `ADMIN` or `STUDY_IMPORTER` can generate a token. Claims include the current user ID as JWT ID, username as subject, issuer `YourHealthResearch`, audience `You`, not-before, issued-at, and expiration.
+
+Generation stores one current per-user signing record by application expectation. Its ID is the token's `kid`. Each generation creates a new random HMAC key using `HS512`, updates the stored key and creation time, and immediately invalidates earlier tokens for that user.
+
+Validation resolves the key from `kid`, verifies signature, requires issuer `YourHealthResearch`, and applies expiration, not-before, and parser time validation with 180 seconds of clock skew. Audience `You` is generated but not explicitly required by the parser. The subject selects the application user, and current roles populate the security context.
+
+Automated upload authorization still depends on current roles: URL security requires `STAFF`, and the method requires `STUDY_IMPORTER` or `ADMIN`. The JWT filter is global rather than upload-specific and skips bearer processing when the request is already authenticated.
+
+Regeneration rotates the key. The authenticated user can delete only a record matching their user ID and supplied record ID. Administrator removal of `STUDY_IMPORTER` deletes that user's signing information. Role removal also prevents upload authorization. Tokens are reusable until expiration or invalidation; no nonce, one-use marker, or use counter exists.
+
+Generation audit records user ID and time. JWT login writes ordinary successful login audit evidence and updates login time. Completed upload audit records the authenticated user. No record links an upload to `kid`, claim ID, generation audit, token fingerprint, or specific reuse.
+
+CSV-upload JWTs are distinct from study-importer invitation tokens. Invitation tokens are stored in `USER_SECURITY_TOKEN`, grant the importer role when redeemed, and use a separately seeded 24-hour lifetime.
+
+Deployment-specific or policy-controlled items remain the effective lifetime, signing-key protection at rest, rotation cadence, acceptability of the installation default, perimeter restrictions, rate limits, log redaction, monitoring, retention, and operational ownership.
 
 ______________________________________________________________________
 

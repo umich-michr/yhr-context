@@ -213,6 +213,14 @@ If processing fails before the controller audit call, a processed CSV or text lo
 upload-log row. Conversely, the automated upload path does not send the interactive import-result
 email.
 
+### CSV token evidence
+
+Token generation appends `JSON_WEB_TOKEN_INFO_AUDIT` with user ID and generation time. JWT authentication also follows the programmatic login path, creating ordinary `LOGIN_AUDIT` evidence and updating login time. A completed upload audit records the authenticated user ID.
+
+These records support correlation by user and time, but none stores the JWT `kid`, claim ID, token fingerprint, generation-audit ID, or upload-to-token foreign key. They cannot prove which exact token performed an upload or how many times it was reused.
+
+Invalid JWT parsing is logged with exception context. The reviewed token service does not intentionally include the raw bearer value or signing key. Reverse-proxy, request-capture, application-error, and centralized-log redaction remain deployment-specific.
+
 ## Related pages
 
 - [PHI Audit](phi-audit.md)

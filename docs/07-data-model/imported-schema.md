@@ -175,6 +175,16 @@ This table stores selected reconciliation actions against operational entities:
 It has no upload-log, filename, row-number, transaction-batch, request, or token correlation field.
 Therefore it cannot by itself reconstruct all actions belonging to one CSV submission.
 
+## CSV import token records
+
+`JSON_WEB_TOKEN_INFORMATION` stores the current CSV-upload signing information expected for a user: the signing-record ID serialized as JWT `kid`, application user ID, Base64-encoded per-user HMAC key, and most recent generation time.
+
+The application expects one current row per user, although the installation DDL does not declare a unique constraint on `USER_ID`. Generation reuses the row when found and replaces its key and creation time.
+
+`JSON_WEB_TOKEN_INFO_AUDIT` appends user ID and generation time. It stores no token ID, `kid`, claim ID, expiration, algorithm, requesting administrator, source address, revocation event, use event, upload-log ID, or token fingerprint.
+
+Deleting the signing row prevents key resolution for tokens carrying its `kid`. Removing the study-importer role through the administrator workflow also deletes that user's signing information.
+
 ## Related pages
 
 - [Imported Institutional Data](../03-institutional-governance/imported-data.md)
