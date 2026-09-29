@@ -240,17 +240,45 @@ Deleting a question removes all answers for that question.
 
 ## Notification email was not sent
 
-Check:
+Check each stage separately:
 
-- Is the event configured?
-- Is the recipient selected?
-- Is the invitee an accepted study member?
-- Was the membership removed?
-- Is the configured frequency immediate, daily, or weekly?
-- Is the address an external recipient?
-- Did email delivery fail?
+1. Did the business event occur?
+1. Did notification-selection logic include the event?
+1. Was the intended recipient configured at selection time?
+1. Did template rendering create an `EmailMessage`?
+1. Did recipient rewriting preserve the address, replace it, or remove all
+   recipients?
+1. Which email-client profile was active: console, Java Mail, or Java Message
+   Service?
+1. Does `EMAIL_LOG` contain a relevant success or failure row?
+1. Did `resendFailedEmailsJob` process a failure row?
+1. Do downstream queue, relay, provider, bounce, or mailbox records show what
+   happened after application handoff?
 
-External addresses are not validated by the application.
+Interpret `EMAIL_LOG` carefully:
+
+- Non-JMS `SUCCESS` means the configured client returned without throwing.
+- Java Mail success does not prove final mailbox delivery.
+- Console success means no external send occurred.
+- JMS queue submission success is not recorded locally in `EMAIL_LOG`.
+- A no-recipient non-JMS message can still receive a local success row.
+- A `FAILURE` row is confirmed when `SendEmailException` reaches controller
+  advice; other background failure paths may differ.
+- A row changed to success by the resend job records a successful retry call,
+  not mailbox delivery.
+
+Also check whether:
+
+- The invitee is an accepted study member.
+- The membership or notification setting was removed.
+- The participant or study frequency was applicable.
+- An external recipient address was entered incorrectly.
+- Replacement and allow-list settings differ from production expectations.
+- Overlapping or repeated resend execution may have produced duplicates.
+
+External addresses are not validated by the application. Final delivery,
+bounce, rejection, and recipient-mailbox acceptance require external
+mail-service evidence.
 
 ## Export is unavailable
 

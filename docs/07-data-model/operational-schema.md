@@ -200,3 +200,36 @@ The application does not retain:
 
 - [Relationship Model](relationship-model.md)
 - [Data-Model Overview](index.md)
+
+## Email attempt log
+
+`EMAIL_LOG` stores local application email-attempt evidence.
+
+Columns include:
+
+- Status: `SUCCESS` or `FAILURE`
+- Attempt timestamp
+- Sender and reply-to
+- To, Cc, and Bcc recipients
+- Subject
+- Body
+
+The stored message is the rewritten message after recipient rewriting.
+
+For non-JMS clients, `SUCCESS` means the configured client returned without an
+observed exception. It does not mean the recipient mailbox accepted, displayed,
+or retained the message. Console-client success records do not represent an
+external send.
+
+The JMS profile does not write successful queue submissions to this table.
+Downstream queue-consumer and mail-provider records are outside this
+application.
+
+`FAILURE` rows are created when a `SendEmailException` reaches the web
+controller exception advice. The table has no event identifier, transport
+message identifier, queue identifier, bounce status, delivery timestamp, retry
+counter, maximum-attempt marker, or error details.
+
+The hourly resend job reads every `FAILURE` row. After a successful direct-client
+retry it changes that row to `SUCCESS`; after a successful JMS queue submission
+it deletes the old row.

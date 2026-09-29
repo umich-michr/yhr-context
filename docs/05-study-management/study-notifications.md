@@ -75,7 +75,7 @@ Event occurred
 Recipient was configured
 Digest job ran
 Email was generated
-Email was delivered
+External mail or recipient system confirms delivery
 ```
 
 ## Activation and deactivation announcements
@@ -218,3 +218,82 @@ to be documented.
 - [Interested-Participant Management](../06-recruitment/interested-participant-management.md)
 - [Messaging](../06-recruitment/messaging.md)
 - [Notification Model](../07-data-model/recruitment-operations-model.md)
+
+## Email generation and delivery evidence
+
+Notification event selection, email generation, transport handoff, and
+recipient delivery are distinct stages.
+
+After an event is selected, the application:
+
+1. Renders a body and subject from the configured theme and language templates.
+1. Creates an `EmailMessage` with sender, reply-to, recipients, subject, and body.
+1. Runs the email-rewriter chain.
+1. Invokes the email client selected by the active Spring profile.
+
+Available clients are:
+
+- `consoleEmailClient` — logs that it would have sent the message
+- `javaEmailClient` — connects to the configured SMTP or SMTPS server and calls
+  Jakarta Mail transport
+- `jmsEmailClient` — serializes the message as a Java Message Service object
+  message and sends it to the configured queue
+
+### Recipient rewriting
+
+Before transport handoff, the recipient rewriter reads
+`REWRITE_EMAIL_RECIPIENTS` and `REWRITE_EMAIL_RECIPIENTS_WHITELIST`.
+
+When rewriting is enabled:
+
+- Original To, Cc, and Bcc addresses are combined for allow-list matching.
+- Matching allow-listed addresses become the To recipients.
+- If none match, configured rewrite recipients are used.
+- If neither an allow-listed recipient nor a replacement exists, all recipients
+  become empty.
+- Cc and Bcc are cleared.
+- The rewritten message is the version handed to transport and stored in local
+  email logs.
+- A later rewriter can append a description of recipient changes to the body.
+
+### Meaning of local success
+
+For non-JMS profiles, `EmailSenderImpl` inserts `EMAIL_LOG.STATUS = SUCCESS`
+after the configured client returns without throwing.
+
+That status has client-specific meaning:
+
+- With `javaEmailClient`, Jakarta Mail connected and returned from
+  `sendMessage(...)` without an observed exception. This is application evidence
+  of SMTP transport handoff, not proof of final mailbox delivery.
+- With `consoleEmailClient`, the application only logged that it would have sent
+  the email. No external delivery occurred.
+- With `jmsEmailClient`, this application does not insert a success row. A
+  successful call establishes only that the local Java Message Service send
+  returned; downstream consumption and email transport belong to another
+  application or service.
+
+A non-JMS message with no recipients skips the client call but still reaches the
+local success-log insertion. Such a row does not prove transport handoff.
+
+### Meaning of local failure
+
+A client or template error becomes `SendEmailException`. The web-controller
+exception advice stores the attached message as `EMAIL_LOG.STATUS = FAILURE` and
+creates an application-error record.
+
+This failure recording is path-dependent. It is confirmed when the exception
+reaches that controller advice. Scheduled or background workflows that catch,
+transform, or handle exceptions elsewhere are not proven to create the same
+failure row.
+
+`EMAIL_LOG` contains the attempted message and one of two statuses, but no
+provider message identifier, queue identifier, SMTP response, bounce reason,
+delivery time, open/read event, retry count, or last-error field.
+
+### External evidence boundary
+
+Final delivery, bounce, rejection after initial SMTP acceptance, Java Message
+Service consumption, downstream retries, and mailbox receipt require records
+from the deployed queue, mail relay, provider, or recipient system. The
+application's local success status alone cannot establish those outcomes.

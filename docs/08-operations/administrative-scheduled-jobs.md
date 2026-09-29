@@ -244,3 +244,37 @@ Announcements recipients at dispatch time. The warning workflow stores no
 delivery history or deduplication state. Repeated execution of the same window
 can therefore repeat delivery, and changing a deactivation date can place the
 study into a configured warning day again.
+
+## Failed-email resend job
+
+`resendFailedEmailsJob` is seeded to run hourly.
+
+For each `EMAIL_LOG` row with status `FAILURE`, the job reconstructs an
+`EmailMessage` and invokes the active raw `emailClient` directly.
+
+After the call returns:
+
+- For a Java Mail or other non-JMS client, the row is changed to `SUCCESS`.
+- For `JmsEmailClient`, the old failure row is deleted after queue submission.
+
+The job does not use `EmailSenderImpl`, so retries do not rerun the recipient
+rewriter chain and do not create a second success row through that wrapper.
+
+The reviewed implementation has no:
+
+- Retry-attempt counter
+- Maximum attempt limit
+- Exponential backoff
+- Next-attempt timestamp
+- Last-error field
+- Per-message exception isolation
+- Idempotency key
+
+An exception while processing one row can stop the current job run before later
+rows are visited. Rows left in `FAILURE` remain eligible for a later run.
+
+A transport may accept a message before a later database status update fails.
+The unchanged `FAILURE` row can then be retried, so duplicate delivery is
+possible. Multiple overlapping job executions can also process the same
+failure row because the application has no general cluster-wide no-overlap
+protection.

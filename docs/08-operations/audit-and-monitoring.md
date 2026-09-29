@@ -189,3 +189,37 @@ instance.
 - [Interested-Participant Management](../06-recruitment/interested-participant-management.md)
 - [Questionnaires and Exports](../06-recruitment/questionnaires-and-exports.md)
 - [Open Questions](../09-decisions/open-questions.md)
+
+## Email delivery evidence
+
+Available application evidence includes:
+
+- Application events and notification-selection logic
+- Rendered email content
+- Rewritten recipients
+- Local email-client invocation
+- `EMAIL_LOG` records for non-JMS success and controller-advice failure paths
+- Application-error records for handled send failures
+- Scheduler information and logs for `resendFailedEmailsJob`
+
+The evidence does not form an end-to-end delivery receipt.
+
+`EMAIL_LOG.SUCCESS` means only that the configured non-JMS client returned
+without an observed exception. For Java Mail this is transport-handoff evidence;
+for console mode it is only simulated-send evidence. JMS success is not logged
+in this table.
+
+`EMAIL_LOG` does not record:
+
+- Provider or SMTP message IDs
+- Queue message IDs
+- Downstream consumer acknowledgement
+- Final mailbox delivery
+- Bounce or complaint events
+- Open or read events
+- Retry count or retry history
+- Error details associated with a failure row
+
+Production queue depth, redelivery, dead-letter handling, SMTP/provider logs,
+bounce processing, delivery dashboards, retention, and alerting remain
+deployment-specific.

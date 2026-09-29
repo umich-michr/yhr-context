@@ -925,21 +925,58 @@ Therefore:
 
 ## NOTIFY-009: Delivery evidence
 
-Document the difference among:
+**Application behavior resolved.**
 
-```text
-Event created
-Notification selected
-Email generated
-Email handed to email service
-Email delivered
-Email bounced
-Email retried
-```
+The application distinguishes these stages:
 
-Identify which stages are available in `EMAIL_LOG` or external email-service records.
+1. A business event occurs.
+1. Notification-selection logic decides whether to notify.
+1. `EmailServiceImpl` renders the configured subject and body and creates an
+   `EmailMessage`.
+1. The rewriter chain may replace or remove recipients and append a change
+   description.
+1. The active profile selects console, Java Mail, or Java Message Service
+   handoff.
+1. Local logging records only selected outcomes.
 
-______________________________________________________________________
+`EMAIL_LOG` stores the rewritten message, attempt date, sender, reply-to,
+recipients, subject, body, and `SUCCESS` or `FAILURE`.
+
+Local status meanings are limited:
+
+- Non-JMS `SUCCESS` means the configured client returned without an observed
+  exception.
+- Java Mail success establishes an observed SMTP transport handoff, not final
+  mailbox delivery.
+- Console success represents a simulated send only.
+- JMS queue-submission success is not written to this application's
+  `EMAIL_LOG`.
+- A non-JMS message with no recipients can still be recorded as `SUCCESS`
+  despite no client call.
+- `FAILURE` is written when `SendEmailException` reaches the web controller
+  advice. This is not proven for every scheduled or background exception path.
+
+`resendFailedEmailsJob` is seeded hourly and retries every `FAILURE` row. A
+successful non-JMS retry changes the row to `SUCCESS`; a successful JMS queue
+submission deletes the old row.
+
+The reviewed application has no retry count, maximum, backoff, next-attempt
+time, transport message ID, queue ID, bounce status, delivery timestamp,
+per-message retry isolation, or idempotency key. Duplicate delivery is possible
+after ambiguous handoff/status-update failures or overlapping job execution.
+
+Final mailbox delivery, bounce, provider rejection after initial acceptance,
+downstream queue consumption, dead-letter handling, and open/read events require
+deployment-specific queue, relay, provider, or recipient-system evidence.
+
+Still deployment-specific:
+
+- Active email-client profile
+- Queue consumer implementation and topology
+- Provider and relay logging
+- Queue redelivery and dead-letter policy
+- Bounce and complaint processing
+- Monitoring, alerting, retention, and operational runbooks
 
 # Phase 6: CSV Import Transactions and Failure Handling
 
