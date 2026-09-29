@@ -1169,27 +1169,63 @@ ______________________________________________________________________
 
 ## PI-001: Separate ordinary membership
 
-If a former PI also has a separately established `STUDY_TEAM_MEMBER` membership, does reconciliation
-preserve that ordinary membership?
+**Application behavior resolved for Java CSV reconciliation.**
+
+`STUDY_TEAM_MEMBER` has a unique `(STUDY_ID, USER_ID)` constraint, so a user cannot retain a separate
+ordinary and PI membership for the same study.
+
+When the incoming PI already has an ordinary membership, reconciliation deletes that row, removes it
+from the study's in-memory membership collection, and flushes. It then reassigns the former PI
+membership row to the incoming PI. The incoming PI ends with one `PRINCIPAL_INVESTIGATOR` row, not two
+memberships.
+
+The former PI is not downgraded or retained as an ordinary member. The reused former-PI row now points
+to the incoming PI.
 
 ## PI-002: Atomic replacement
 
-Are these operations atomic?
+**Application behavior resolved with cross-store limits.**
 
-```text
-Remove former PI membership
-Find or create new PI APP_USER
-Create new PI membership
-Update notification recipients
-```
+The following relational operations and their synchronization logs run inside the current CSV import
+batch transaction:
+
+1. Create the incoming PI `APP_USER` and `STAFF` role if absent.
+1. Delete any existing incoming-PI membership and write a deletion log.
+1. Flush that deletion.
+1. Reassign the former PI membership row and write an update log.
+1. Flush the replacement.
+1. Update the `piUserId` property and write its update log.
+1. Update changed PI identity values and write an identity-update log.
+
+These operations are not a separate PI-only transaction; as many as 500 processed rows may share the
+batch. A batch rollback normally rolls back the relational replacement and logs together.
+
+The active-study refresh occurs after relational mutations but before batch commit. It is
+process-local and cannot be rolled back by the database transaction. A PI-only change refreshes the
+local active-study entry but does not directly invoke matching.
+
+Notification-recipient behavior is handled separately under `PI-004`.
 
 ## PI-003: Reconciliation failure
 
-If removal succeeds but new PI creation fails:
+**Application behavior resolved with the existing caught-persistence concern.**
 
-- Is removal rolled back?
-- Can the study temporarily have no PI membership?
-- Is access restored automatically on retry?
+Explicit flushes enforce delete-before-reassign ordering and can surface membership conflicts before
+later steps. If an unexpected runtime exception escapes, processing stops and cleanup attempts to
+roll back the current uncommitted batch. If final flush or commit fails, the current batch is rolled
+back when still active and the tracked batch rows are marked failed.
+
+A later valid import can retry the authoritative PI state. There is no separate automatic PI-repair
+job.
+
+If a `PersistenceException` is caught during the row, the importer records the row error and
+continues in the same batch transaction without explicitly rolling back, clearing, or restarting it.
+Source inspection therefore does not guarantee clean row-level rollback after a partially staged PI
+replacement; the provider may instead mark the full transaction rollback-only.
+
+A process-local active-study refresh already performed before rollback is not transactionally
+restored. Operators must compare operational memberships, `piUserId`, reconciliation logs, import
+errors, and the affected process's local study before preparing a corrective row.
 
 ## PI-004: Notification migration
 

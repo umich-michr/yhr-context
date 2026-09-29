@@ -84,6 +84,26 @@ usually avoid repeat operational changes. Nevertheless, every submission creates
 and may create a new upload audit, errors, reconciliation history, lifecycle effects, matching work,
 and notification consequences.
 
+## PI reconciliation failed
+
+Check:
+
+- Did the incoming PI already have an ordinary membership for the study?
+- Did reconciliation delete that row before reassigning the former PI row?
+- Did either explicit flush fail?
+- Does the study have exactly one `PRINCIPAL_INVESTIGATOR` membership?
+- Does the `piUserId` property identify the same user?
+- Do synchronization logs show the ordinary-membership deletion, PI-row update, property update, and
+  any identity update?
+- Did the import report a caught persistence error or a batch commit failure?
+- Did the handling process refresh its active-study entry before a later rollback?
+
+The database membership changes and synchronization logs normally share the current import batch
+transaction. A successful rollback should undo that relational batch, but it cannot restore an
+earlier process-local active-study object. The caught-persistence-exception path does not prove
+row-level rollback. Verify current relational and process-local state before submitting a corrective
+row.
+
 ## Study cannot be activated
 
 Check:

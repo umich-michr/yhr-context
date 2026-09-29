@@ -86,17 +86,18 @@ The current PI membership:
 
 ## PI changes
 
-When the imported PI changes:
+When the imported PI changes through Java CSV reconciliation:
 
-1. The former PI's operational `PRINCIPAL_INVESTIGATOR` membership is removed.
-1. The new PI receives a `PRINCIPAL_INVESTIGATOR` membership.
-1. The new PI becomes the current non-removable PI in ordinary application workflows.
+1. If the incoming PI already has an ordinary membership, that row is deleted.
+1. The former PI membership row is reassigned to the incoming PI and remains
+   `PRINCIPAL_INVESTIGATOR`.
+1. The study retains one current PI membership.
+1. The incoming PI becomes the current non-removable PI in ordinary application workflows.
+1. The former PI is not retained or downgraded to an ordinary member.
 
-The former PI does not retain access solely because they were previously PI.
-
-If the former PI has a distinct `STUDY_TEAM_MEMBER` relationship established through another
-supported workflow, that separate membership is not the former PI relationship and must be evaluated
-independently.
+The physical unique constraint on `(STUDY_ID, USER_ID)` permits only one membership row for a person
+on a study. An incoming PI's ordinary membership therefore is not preserved as a separate
+relationship.
 
 ## Removability
 

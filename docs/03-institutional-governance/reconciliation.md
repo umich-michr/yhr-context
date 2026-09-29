@@ -251,24 +251,53 @@ If a corresponding `APP_USER` already exists:
 
 - Reuse the existing application user.
 - Ensure that the PI has a `PRINCIPAL_INVESTIGATOR` membership.
-- Do not copy later imported name or email changes into the existing `APP_USER` under the current
-  implementation.
+- Compare the imported first name, middle name, last name, and email with the operational user.
+- Update changed identity values and write an `IMPORTED_STUDY_SYNC_LOG` entry for the old and new
+  values.
 
 ## PI-change behavior
 
-When the current imported PI changes:
+When the current imported PI changes, the Java CSV reconciliation path uses one operational
+membership row for the current PI:
 
-1. Reconciliation identifies the former operational PI membership.
-1. Reconciliation removes the former PI's operational `PRINCIPAL_INVESTIGATOR` membership for the
-   study.
-1. Reconciliation finds or creates an `APP_USER` for the new PI.
-1. Reconciliation associates the new PI with the study as `PRINCIPAL_INVESTIGATOR`.
-1. The new PI becomes the non-removable current PI in ordinary application workflows.
+1. Find or create the incoming PI's `APP_USER`.
+1. If the incoming PI already has an ordinary membership for the study, delete that row and remove it
+   from the in-memory study collection.
+1. Flush the deletion.
+1. Reuse the former PI membership row by replacing its user with the incoming PI.
+1. Write a membership-update synchronization log and flush.
+1. Update the study's `piUserId` property and write its synchronization log.
+1. Update changed PI name or email values.
+1. Refresh the handling process's active-study entry.
 
-The former PI does not retain PI study access merely because they previously held that role.
+The database unique constraint on `(STUDY_ID, USER_ID)` means an ordinary membership and a PI
+membership cannot coexist for the same study and user. Reconciliation therefore does not preserve
+the incoming PI's prior ordinary membership as a separate row. It deletes that row before converting
+the former PI row to point to the incoming PI.
 
-If the former PI also has a separately established ordinary `STUDY_TEAM_MEMBER` relationship, that
-distinct relationship must be evaluated according to its own source and lifecycle.
+The former PI row is reused, so the former PI is removed entirely from that study. Reconciliation
+does not downgrade the former PI to an ordinary member. Historical access does not survive through a
+second membership row.
+
+### PI replacement transaction and failure boundaries
+
+The incoming-membership deletion, PI-row replacement, `piUserId` update, identity updates, and
+associated synchronization logs use the current CSV import batch transaction. Explicit flushes
+enforce deletion before replacement and surface database errors before later steps.
+
+If an unexpected runtime exception escapes reconciliation, import processing stops and cleanup
+attempts to roll back the current uncommitted batch. If batch flush or commit fails, the current batch
+is rolled back when its transaction remains active. A later retry can reapply the authoritative PI
+state.
+
+A caught `PersistenceException` remains a known concern. The importer records the row error and
+continues without explicitly rolling back the row, clearing the persistence context, or starting a
+replacement transaction. Operators therefore cannot infer from the row error alone whether every
+staged membership or log operation was removed or whether the batch will later fail as rollback-only.
+
+A PI-only change refreshes the handling process's active-study entry before database commit but does
+not directly invoke matching. Relational rollback does not restore the earlier process-local study
+object. Cross-server propagation limits continue to apply.
 
 ## Status-change notification delay
 
