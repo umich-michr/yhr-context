@@ -39,6 +39,29 @@ Check:
 - Does imported `USER_NAME` match the SAML ePPN value?
 - Did import or reconciliation fail?
 
+## CSV import reported row or batch failures
+
+Check:
+
+- Was the header valid and complete?
+- Was the row tokenized successfully?
+- Did bean validation reject publishability, study number, PI username, PI name, or PI email?
+- Did row processing record a persistence exception?
+- Did batch flush or commit fail?
+- Did an uncaught runtime exception stop the file?
+- Which earlier batches had already committed?
+- Did process-local active-study or matching work start before the failed database commit?
+
+The default importer commits in batches of up to 500 processed rows. A commit failure rolls back the
+current batch when possible but does not undo earlier committed batches. It also cannot roll back
+process-local memory changes, asynchronous matching tasks, Redis effects, or later notification
+selection caused by work already initiated.
+
+A row-level persistence error does not prove row-level rollback. The importer continues in the same
+transaction without explicitly clearing or restarting it. Compare all three imported tables,
+operational study and PI state, synchronization logs, active intervals, process-local memory, matching
+status, Redis state, and application errors before preparing a corrective incremental row.
+
 ## Study cannot be activated
 
 Check:

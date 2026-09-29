@@ -89,7 +89,23 @@ application configuration.
 
 ## Row independence and ordering
 
-Each CSV row is processed independently and in file order.
+CSV rows are read and processed in file order, but row independence does not mean that each row has
+its own database transaction.
+
+The current Java importer uses explicit batch transactions:
+
+- The default transaction batch size is 500 processed rows.
+- The same entity manager and transaction are used across the current batch.
+- A valid row stages inserts or updates to `IMPORTED_STUDY`, `IMPORTED_TEAM_MEMBER`, and
+  `IMPORTED_STUDY_TEAM_MEMBER`.
+- Reconciliation with an existing operational study runs before the batch commits and uses the same
+  entity manager and database transaction.
+- The importer flushes and commits after each full batch and once at end of file.
+- A successful commit makes the database work for all successful rows in that batch durable
+  together.
+
+Therefore, one row is processed before the next row, but as many as 500 rows normally share one
+database commit boundary.
 
 If multiple rows affect the same study, each successfully processed row may modify imported and
 operational data before the next row is processed.
@@ -117,6 +133,28 @@ The same last-successful-update behavior applies to values such as:
 
 This is not a preprocessing step that reduces the file to one row per study. Intermediate rows are
 processed and may cause intermediate operational transitions.
+
+## Failure and continuation behavior
+
+Failure handling depends on where and how the failure occurs.
+
+| Failure                                                                                          | Recorded result                                         | Later-row behavior                                                   | Database effect                                        |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------ |
+| Bean-validation failure, including invalid publishability or missing required PI identity fields | Row error                                               | Processing continues                                                 | No persistence is intentionally attempted for that row |
+| CSV tokenization failure                                                                         | Row error                                               | Reader skips the malformed row and continues when reading can resume | No row persistence                                     |
+| Invalid or incomplete header                                                                     | Import error                                            | File processing stops before row commits                             | Current transaction is rolled back during cleanup      |
+| Caught persistence exception while processing a row                                              | Row error                                               | Processing continues in the same batch transaction                   | Rollback of the row is not guaranteed                  |
+| Batch flush or commit failure                                                                    | Every row tracked in the current batch is marked failed | The failed batch is not restarted                                    | The current batch is rolled back when still active     |
+| Uncaught runtime exception                                                                       | No general per-row conversion is guaranteed             | File processing stops                                                | Cleanup rolls back the current batch when still active |
+| Import-result email failure after processing                                                     | Outside the row loop                                    | Does not alter completed import processing                           | Does not roll back committed batches                   |
+
+A caught persistence exception is a known implementation concern. The importer catches the exception
+and continues without explicitly rolling back the transaction, marking it rollback-only, clearing the
+persistence context, or starting a new transaction. If earlier entity operations for that row were
+already staged, source inspection alone does not prove that they are removed before a later batch
+commit. A provider may instead mark the transaction rollback-only, causing the later batch commit to
+fail. Operators must not interpret a per-row error as proof that no database effect from that row was
+possible.
 
 ## Validation and anomaly reporting
 
@@ -155,11 +193,17 @@ can occur during one file when sequential rows change publishability or another 
 
 Documentation and monitoring must not assume that only a precomputed final row was reconciled.
 
-## Rollback
+## Rollback and correction
 
-The application does not support rolling back an applied import batch.
+The application has no supported whole-file or applied-import rollback operation.
 
-Corrections require a later valid incremental update.
+Transaction rollback is limited to the current uncommitted batch. A flush or commit failure rolls
+back that batch when its transaction is still active, but earlier committed batches remain applied.
+An uncaught failure likewise rolls back only the current uncommitted batch during cleanup.
+
+Database rollback cannot reverse process-local active-study changes or asynchronous matching work
+already started before commit. Corrections to committed or externally visible effects require a
+later valid incremental update and, when necessary, explicit memory or matching recovery.
 
 ## Related pages
 

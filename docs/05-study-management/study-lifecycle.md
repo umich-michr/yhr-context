@@ -182,8 +182,13 @@ ACTIVE → INACTIVE → ACTIVE within the queried period
 ```
 
 may therefore produce no deactivation announcement even though operational
-changes and interval updates occurred. This is query-based event stabilization,
-not a separate PI-only recipient rule or a rolling 24-hour delay.
+changes and interval updates occurred. CSV rows are reconciled in file order, so
+the inactive and active transitions each invoke interval handling when their
+effective status changes. Database work may still share one import-batch
+transaction, while process-local memory updates and asynchronous matching
+submission occur during each row before that transaction commits. This is
+query-based event stabilization, not a separate PI-only recipient rule or a
+rolling 24-hour delay.
 
 For each selected lifecycle event, the application resolves the complete
 current Other Announcements recipient set at dispatch time. This may include

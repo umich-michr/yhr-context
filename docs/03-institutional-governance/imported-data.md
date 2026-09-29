@@ -46,8 +46,10 @@ For CSV-based instances:
 
 - Rows are processed in file order.
 - Each row is handled independently.
-- A successfully processed row may immediately update imported data and reconcile operational data.
-- A later row for the same study may overwrite an earlier value.
+- A valid row stages imported-data changes and operational reconciliation before the next row.
+- Up to 500 processed rows normally share one database transaction and commit boundary.
+- A later row for the same study may overwrite an earlier value within the same batch or a later
+  committed batch.
 - The last successfully processed row affecting a particular field determines that field's final
   value after the file is processed.
 

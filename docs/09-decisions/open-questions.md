@@ -984,52 +984,102 @@ The row-order rule is resolved. Transaction and error boundaries remain open.
 
 ## IMPORT-001: One-row transaction boundary
 
-Is each CSV row processed in one database transaction that includes:
+**Application behavior resolved.**
 
-- Imported-table update
-- Operational-study update
-- Publishability processing
-- PI reconciliation
-- Membership changes
-- Active-interval changes
+A CSV row does not have an independent database transaction. The importer uses an explicit
+transaction processor with a default batch size of 500 processed rows. One entity manager and one
+transaction span the current batch.
+
+For each valid row, the importer stages:
+
+- `IMPORTED_STUDY`
+- `IMPORTED_TEAM_MEMBER`
+- `IMPORTED_STUDY_TEAM_MEMBER`
+- Operational study reconciliation
+- Publishability and PI changes
+- Membership and active-interval changes applicable to an existing posting
+
+The batch is flushed and committed after each 500 processed rows and again at end of file. Therefore,
+these relational changes share the batch transaction, not a one-row transaction.
+
+Process-local active-study updates and asynchronous matching submission occur before batch commit.
+They are not part of an atomic transaction with the relational changes. Notification email is not
+sent per row; lifecycle selection occurs later from recorded interval state, while the interactive
+import-result email is sent after `processFile(...)` returns.
 
 ## IMPORT-002: Partial row failure
 
-If imported-table persistence succeeds but operational reconciliation fails:
+**Application behavior resolved with a known implementation concern.**
 
-- Is the imported update rolled back?
-- Does the imported row remain for later reconciliation?
-- Is the row marked failed?
-- Can a later row for the same study proceed?
+A validation failure occurs before persistence and is recorded as a row error. Processing continues.
+
+A `PersistenceException` during row persistence or reconciliation is caught and recorded, and the
+loop continues. The importer does not explicitly roll back that row, mark the shared batch transaction
+rollback-only, clear the persistence context, or begin a replacement transaction. If some entity
+operations were staged before the exception, source inspection does not guarantee their removal.
+The persistence provider may instead mark the entire transaction rollback-only, causing batch commit
+to fail. This is a known implementation concern.
+
+If batch flush or commit fails, the current batch is rolled back when still active and all rows held
+in the batch's successful-row list are marked unable to commit. Earlier committed batches remain
+applied. An uncaught runtime exception stops processing and cleanup rolls back the current
+uncommitted batch.
+
+A later row can proceed after validation, CSV-tokenization, or caught persistence errors. It cannot
+proceed after an uncaught runtime failure. Process-local memory or asynchronous matching work already
+started before rollback cannot be reversed by the database transaction.
 
 ## IMPORT-003: Continuation after invalid row
 
-For each error category, determine whether processing continues:
+**Application behavior resolved.**
 
-- Invalid publishability
-- Missing PI
-- Missing PI email
-- Missing PI username
-- Unknown column value
-- Database failure
-- Runtime exception
-- Notification failure
+- Invalid publishability: bean-validation error; record the row and continue.
+- Missing PI username: bean-validation error; record the row and continue.
+- Missing PI email: bean-validation error; record the row and continue. An empty string is rejected
+  by email validation even though the field uses `NotNull` rather than `NotBlank`.
+- Missing PI first or last name: bean-validation error; record the row and continue.
+- Missing PI relationship as a separate concept: the CSV schema supplies one PI identity per row;
+  malformed or missing required PI fields are handled by validation.
+- Unknown, missing, duplicate, or otherwise invalid header column: record an invalid-header error and
+  stop before ordinary row processing.
+- CSV tokenization error: record the malformed row, skip it, and continue reading when possible.
+- Database `PersistenceException`: record the row and continue in the same batch transaction, subject
+  to the partial-row and rollback-only concern in `IMPORT-002`.
+- Batch flush or commit failure: roll back the current batch when possible, mark tracked batch rows
+  failed, and do not continue into another transaction.
+- Uncaught runtime exception: stop processing and roll back the current uncommitted batch during
+  cleanup.
+- Matching-task failure after asynchronous submission: handle it in the matching future by recording
+  an application error and attempting an error notification; it does not fail or retry the import
+  row.
+- Interactive import-result notification failure: occurs after import processing and does not roll
+  back committed import batches.
 
 ## IMPORT-004: Intermediate lifecycle effects
 
-When sequential rows cause:
+**Application behavior resolved.**
+
+For successful sequential rows that cause:
 
 ```text
 ACTIVE → INACTIVE → ACTIVE
 ```
 
-determine:
+the importer does not collapse the rows before reconciliation.
 
-- How many `STUDY_ACTIVE_INTERVAL` changes occur
-- Whether memory is updated after each row
-- Whether Redis matching is recalculated after each row
-- Whether recomputation is deferred
-- How notification stabilization handles the sequence
+- The active-to-inactive row closes the most recent `STUDY_ACTIVE_INTERVAL`.
+- The inactive-to-active row resets the posting activation timestamp to the current time and normally
+  creates a new interval when it follows the just-closed interval.
+- This produces two interval mutations: one update closing the prior interval and one insert creating
+  the reactivation interval, assuming interval validation succeeds.
+- Each effective status change invokes the process-local active-study update path during its row.
+- Each effective status change submits asynchronous matching or deactivation work during its row.
+- Recalculation is not deferred until the import batch or file commits.
+- The two rows may share one database transaction, so relational rollback can coexist with
+  already-initiated memory or matching side effects.
+- The later daily lifecycle query can suppress the superseded deactivation announcement within its
+  previous-calendar-day window. Stabilization affects notification selection, not the underlying
+  interval, memory, or matching work.
 
 ## IMPORT-005: Import-run identity
 

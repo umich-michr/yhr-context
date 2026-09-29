@@ -147,9 +147,11 @@ Row 2: PUBLISHABLE = 1
 Row 3: PI changed
 ```
 
-Each successful row is reconciled before the next row.
+Each valid row is reconciled before the next row, but the default implementation commits database
+work in batches of up to 500 processed rows rather than one transaction per row.
 
-A later update dominates an earlier update when both modify the same field.
+A later update dominates an earlier update when both modify the same field. Rows for the same study
+within one batch observe the shared persistence context and transaction before that batch commits.
 
 Intermediate transitions may therefore occur:
 
@@ -326,7 +328,17 @@ Reconciliation errors may include:
 - Failure to synchronize in-memory state
 - Failure to schedule or send a notification
 
-CSV-related errors are written to logs and reported by email to the responsible study importer.
+CSV-related errors are written to import results and logs and, for the interactive upload path, the
+result is emailed to the logged-in importer after processing.
+
+Validation and CSV-tokenization errors normally allow later rows to continue. A caught persistence
+exception also allows iteration to continue, but the implementation does not isolate that row in a
+separate transaction. Flush or commit failure rolls back the current batch and ends normal database
+processing for that batch. An uncaught runtime exception stops the import and rolls back the current
+uncommitted batch during cleanup.
+
+Process-local memory changes and asynchronous matching submission occur inside reconciliation before
+the database batch commits. They are not transactionally coupled to database rollback.
 
 ## Rollback
 
