@@ -446,6 +446,27 @@ Age-out uses this same path with reason `CHILD_TURNED_ADULT`. The prior warning 
 in `CHILD_DEACTIVATION_NOTICE`; warning deduplication uses parent ID, child ID, and the recorded
 date-of-birth value.
 
+Age-out disables the account but does not remove its `LOVED_ONE` row or re-key the account. The
+represented participant's profile and historical records remain associated with the same generated
+username and user ID.
+
+## Self-registration identity after age-out
+
+Public self-registration is create-only with respect to an aged-out identity:
+
+- The submitted email becomes the new self account's username.
+- `APP_USER.USER_NAME` is unique.
+- `APP_USER.EMAIL` is required but is not unique.
+- A username collision is returned as username already in use.
+- Registration does not query or match an aged-out account by owner email, represented-person
+  attributes, relationship, or historical user ID.
+- Registration does not remove or repoint the prior `LOVED_ONE` row.
+- Registration does not copy profile, agreement, study, questionnaire, message, or recommendation
+  history into the new account.
+
+The disabled represented account and new self account are therefore distinct identities. Shared or
+similar email and demographic values do not establish a database relationship between them.
+
 ## Analytical cautions
 
 1. `TYPE = VOL` does not distinguish self from loved-one presentation.
@@ -461,6 +482,10 @@ date-of-birth value.
 1. An old agreement acceptance does not satisfy a newer agreement version.
 1. The absence of a current-version audit row indicates that re-agreement is required; it does not
    by itself prove that the user declined.
+1. A self account created after age-out does not inherit the generated loved-one username or any
+   username-keyed agreement history.
+1. Similar names, dates of birth, or email values must not be interpreted as an automatic identity
+   merge.
 
 ## Related pages
 

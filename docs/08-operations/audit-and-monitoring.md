@@ -183,6 +183,32 @@ alerts, health probes, traffic gates, retention, server attribution, or
 freshness thresholds remains deployment-specific and must be verified for each
 instance.
 
+## Child age-out evidence and monitoring
+
+Durable relational evidence is split by stage:
+
+- `CHILD_DEACTIVATION_NOTICE` records parent ID, child ID, date of birth at warning time, and sent date.
+- `USER_DEACTIVATION` records the account, deactivation time, and `CHILD_TURNED_ADULT` reason after a
+  successful relational commit.
+- `APPLICATION_ERROR` records asynchronous matching or Redis cleanup failures handled by the matching
+  exception path.
+- Email evidence follows the general `EMAIL_LOG` and transport limitations documented below.
+
+These records do not form one end-to-end age-out execution ledger. The application does not persist:
+
+- Job-run ID, server ID, start time, completion time, or complete-versus-partial result
+- Per-run examined, warned, deactivated, skipped, or failed counts
+- A foreign key linking warning, deactivation, email, matching task, and Redis cleanup
+- Durable proof that every eligible child was visited
+- A retry count or next-attempt marker
+- Database-to-memory-to-Redis consistency after failure
+- Adult self-registration linkage to the prior loved-one account
+
+The configured scheduler listener persists scheduler infrastructure errors, while asynchronous cleanup
+has its own application-error path. A durable application-error record is not confirmed for every
+business exception escaping the child job. Production log collection, alerting, retention, and job
+ownership remain deployment-specific.
+
 ## PI replacement evidence
 
 `IMPORTED_STUDY_SYNC_LOG` retains technical evidence for PI reconciliation,

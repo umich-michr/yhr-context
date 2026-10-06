@@ -28,6 +28,57 @@ Check:
 - Is the owner using the correct participant context?
 - Did a child account automatically deactivate after turning 18?
 
+## Child age-out warning or deactivation failed
+
+Establish the effective deployment configuration first:
+
+- Current `DAYS_BEFORE_MATURE_TO_NOTIFY`
+- Current `YEARS_TO_BE_CONSIDERED_MATURE`
+- Current persisted `childAccountDeactivationJob` cron expression
+- Scheduler or Java virtual machine default time zone
+- Number of application processes running equivalent schedules
+
+For a missed warning, verify that a successful run occurred while the date of birth was strictly inside
+the configured open interval. With the installation value 14, eligibility is 1 through 13 calendar days
+before maturity. Also inspect `CHILD_DEACTIVATION_NOTICE` using parent ID, child ID, and the recorded
+date-of-birth string.
+
+For a failed or partial run:
+
+1. Inspect Quartz and application logs for the first uncaught child-processing, parsing, template, data,
+   or email exception.
+1. Do not rely on the wrapper success log as proof that every child completed.
+1. Compare authentication enablement and `USER_DEACTIVATION` with the handling process's active-user
+   store.
+1. Inspect `APPLICATION_ERROR` and Redis for incomplete asynchronous cleanup.
+1. Check warning and age-out email evidence separately; transport handoff does not prove delivery.
+1. Account for warning email without a committed notice row and for local-memory or Redis effects that
+   escaped a rolled-back relational transaction.
+1. After correcting the cause, rerun the child job. It reevaluates current state but has no resume
+   cursor or automatic retry ledger.
+1. If relational state is active while local memory is missing, run active-user synchronization or
+   restart the affected process as appropriate.
+1. If ordinary recommendations remain stale, rerun cleanup through a verified deactivation path or
+   perform full recommendation recomputation after local stores are correct. Full recomputation does
+   not restore or remove every exclusion or `USER` promotion.
+
+Repair each affected application process independently; the application has no cluster-wide memory
+repair or age-out reconciliation command.
+
+## Adult self-registration does not show prior loved-one history
+
+Check whether support is comparing two distinct user IDs:
+
+- The aged-out loved-one account retains its generated username, `LOVED_ONE` relationship, profile, and
+  history but is disabled with `CHILD_TURNED_ADULT`.
+- Public self-registration uses the adult's entered email as a new username and creates a new account.
+- No automatic match, claim, merge, transfer, or history migration occurs.
+- A username collision is rejected rather than attached to the old account.
+
+Do not manually re-enable the age-out account or infer identity solely from matching demographics or
+email. Any consolidation, data movement, or disclosure requires an authorized identity, privacy, and
+records-handling procedure with a backup and audit plan.
+
 ## Posting cannot be created
 
 Check:

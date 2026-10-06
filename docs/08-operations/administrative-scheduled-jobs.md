@@ -182,10 +182,44 @@ Interruption is cooperative:
 
 The current administrator job controller does not expose an interrupt endpoint.
 
+## Child age-out job boundaries and failure behavior
+
+`childAccountDeactivationJob` runs the warning pass first and the maturity-deactivation pass second.
+The job bean and service use one required Spring transaction for the invocation. There is no
+per-child transaction, savepoint, exception catch, or retry loop.
+
+Consequences:
+
+- One uncaught runtime, data, template, or email exception stops the current pass, prevents later child
+  accounts from being visited, and prevents the second pass when the warning pass fails.
+- Relational work in the transaction ordinarily rolls back on an uncaught runtime exception.
+- Email transport, process-local memory changes, and asynchronous Redis work are outside the
+  relational transaction and are not compensated by rollback.
+- Warning email is sent before `CHILD_DEACTIVATION_NOTICE` is saved. If handoff succeeds and a later
+  operation fails, the transaction can lack the notice row and a later run can send the warning again.
+- Maturity deactivation disables the account, removes local memory, submits asynchronous cleanup, and
+  saves `USER_DEACTIVATION` before sending the age-out email. A later email failure can roll back the
+  relational disable and deactivation row while the local removal or Redis task has already escaped.
+- A missing date-of-birth property is logged and skipped. A malformed date, missing reloaded child,
+  missing parent in the warning path, or another uncaught exception can abort the run.
+- Cooperative interruption is checked between child accounts. Completed external effects remain, and
+  unvisited accounts wait for another run.
+- The job has no automatic business-level retry or durable per-child success/failure ledger. The next
+  scheduled or administrator-triggered run reevaluates current state.
+
+Asynchronous recommendation-cleanup failures create `APPLICATION_ERROR`, may send configured error
+notification, and are not automatically retried. The future exception handler consumes the exception,
+so its later completion log does not prove successful cleanup.
+
+Quartz's configured scheduler listener records scheduler infrastructure errors. The reviewed wrapper
+does not catch and persist every exception thrown by `runJob()`, and no job listener was found that
+creates a durable application-error row for every business-execution failure.
+
 ## Failure handling and audit
 
-Scheduler errors are stored as application errors and generate error
-notifications.
+Scheduler infrastructure errors are stored as application errors and generate error notifications.
+Business exceptions escaping a job are visible to Quartz and application logs, but a durable
+`APPLICATION_ERROR` row is not established for every such path.
 
 Job-control actions such as schedule changes and manual execution produce
 application log messages. The reviewed application does not persist a dedicated

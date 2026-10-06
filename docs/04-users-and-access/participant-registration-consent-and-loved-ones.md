@@ -423,18 +423,71 @@ the database and in-memory changes.
 
 A scheduled job handles child loved-one age-out.
 
-Before the represented person turns 18:
+### Warning and maturity configuration
 
-- The owning account receives an age-out or deactivation notice.
+Current application behavior reads two positive-integer application settings:
 
-When the child reaches the age threshold:
+- `DAYS_BEFORE_MATURE_TO_NOTIFY` controls the warning threshold.
+- `YEARS_TO_BE_CONSIDERED_MATURE` controls the maturity age.
 
-- The loved-one account is deactivated.
+Installation seed values are 14 days and 18 years. These are defaults, not proof of a deployment's
+current values. No institution-specific seed override for these keys exists in the reviewed source.
+
+For a run date and configured maturity age, the application computes the maturity date-of-birth cutoff.
+A warning is eligible only when the child's date of birth is:
+
+- Strictly after the maturity cutoff
+- Strictly before the cutoff plus the configured warning-day value
+
+The endpoints are excluded. With the installation value 14, the effective warning window is therefore
+1 through 13 calendar days before maturity, not a warning exactly 14 days ahead. A daily run can miss
+the warning if it does not execute successfully during that open interval.
+
+The installation schedule for `childAccountDeactivationJob` is daily at 5:10 a.m. Quartz uses the
+scheduler or Java virtual machine effective default time zone because the trigger has no explicit time
+zone. Administrators can replace the persisted cron expression. Current setting values, cron
+expression, effective time zone, server count, and duplicate-execution controls remain
+deployment-specific.
+
+### Transition at maturity
+
+On or after the configured maturity threshold:
+
+- The loved-one account is disabled with reason `CHILD_TURNED_ADULT`.
 - Proxy access through the owning account ends.
-- The account is removed from active in-memory matching data.
-- The represented person cannot assume control of the existing loved-one account.
+- The account is removed from the handling process's active-user store.
+- Asynchronous Redis system-recommendation cleanup starts.
+- The owning account remains active.
+- The owning account receives the age-out deactivation email when its active in-memory record is
+  available.
 
-The exact warning interval, execution time, and deactivation-reason value remain to be documented.
+Age-out does not delete the represented participant account or remove its `LOVED_ONE` relationship.
+The generated username, profile, agreement history, study interactions, messages, and other historical
+records remain attached to that disabled account.
+
+### Adult self-registration after age-out
+
+Ordinary public self-registration does not claim, convert, merge, or transfer an aged-out loved-one
+account.
+
+Self-registration:
+
+1. Uses the entered email as the new account's username.
+1. Attempts to create a new `APP_USER`, authentication record, participant profile, agreement
+   acceptance, and activation token.
+1. Relies on the unique username constraint; an existing username produces the participant-facing
+   username-in-use response.
+1. Performs no match by prior loved-one ID, generated username, owner email, name, date of birth, or
+   former `LOVED_ONE` relationship.
+
+Because a loved-one account has a generated username and ordinarily shares the owner's communication
+email, a represented adult can usually register a separate self account using their own email. That
+new account is an isolated identity. Historical profile data, agreements, interest, questionnaire
+answers, messages, recommendation state, and study history are not migrated or reused automatically.
+
+If the adult needs prior history associated with the new self identity, or if the desired email already
+belongs to another account, an authorized support, privacy, and identity-resolution procedure is
+required. No application-supported age-out transfer or consolidation workflow was found.
 
 ## Messages and communications
 
@@ -548,8 +601,9 @@ The job is interruptible between child accounts. An interruption may leave
 part of the collection unprocessed until a later run.
 
 The former child loved-one account cannot be reactivated or transferred to the
-represented adult. Future participation requires the supported self-account or
-support workflow.
+represented adult. Ordinary self-registration creates a separate account and does not migrate the
+disabled account's history. Any identity consolidation or historical-data handling requires an
+authorized intervention outside the reviewed self-registration workflow.
 
 ## Related pages
 

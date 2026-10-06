@@ -1266,12 +1266,28 @@ ______________________________________________________________________
 
 # Phase 8: Loved-One Age-Out
 
-## AGEOUT-001: Deployed warning interval
+## AGEOUT-001: Deployed warning interval — application behavior resolved
 
-Mature age and warning interval are application settings. Unit tests use age
-18 and a 14-day warning interval.
+The setting keys are:
 
-Confirm effective setting values for each branded deployment.
+- `DAYS_BEFORE_MATURE_TO_NOTIFY`
+- `YEARS_TO_BE_CONSIDERED_MATURE`
+
+Installation seed values are 14 days and 18 years. No institution-specific seed override for either key
+exists in the reviewed source.
+
+The warning comparison is open at both endpoints. With value 14, a child is eligible 1 through 13
+calendar days before the configured maturity date, not exactly 14 days ahead. The installation cron is
+daily at 5:10 a.m. in the scheduler or Java virtual machine effective default time zone.
+
+Application behavior is resolved. Still deployment-specific:
+
+- Current persisted setting values
+- Current persisted cron expression
+- Effective time zone
+- Number of application schedulers
+- External duplicate-execution controls
+- Monitoring proving that a run occurred during the warning window
 
 ## AGEOUT-004: Immediate age-out cleanup and audit — resolved
 
@@ -1295,20 +1311,55 @@ notice time.
 No distinct age-out PHI-audit event is invoked by the reviewed path. `USER_DEACTIVATION` and
 `CHILD_DEACTIVATION_NOTICE` are the confirmed durable records.
 
-## AGEOUT-005: Adult self-registration and historical data
+## AGEOUT-005: Adult self-registration and historical data — application behavior resolved
 
-A loved-one account deactivated for `CHILD_TURNED_ADULT` cannot be reactivated
-or transferred.
+Age-out disables the loved-one account but does not delete it, remove its `LOVED_ONE` relationship, or
+change its generated username. Existing profile, agreement, study, questionnaire, message, and other
+history remains associated with that original user ID.
 
-Determine the supported path for self-registration, username/email reuse,
-historical-data linkage, and support requests.
+Public self-registration is a separate create-only workflow:
 
-## AGEOUT-006: Age-out failure operations
+- The entered email becomes the new self account's username.
+- The unique `APP_USER.USER_NAME` constraint rejects an existing username.
+- Email is not unique.
+- Registration does not match by old user ID, generated username, owner email, name, date of birth, or
+  relationship.
+- Registration does not claim, merge, transfer, or migrate the aged-out account or its history.
+- New agreement acceptance is stored under the new username.
 
-An interrupted run may leave unvisited accounts active until a later run.
+The new self account and disabled loved-one account are isolated identities. Historical consolidation
+or transfer requires an authorized support, privacy, and records-handling procedure not implemented by
+the reviewed application.
 
-Determine business-exception alerting, manual rerun procedures, partial-run
-identification, and proxy-access review.
+## AGEOUT-006: Age-out failure operations — application behavior resolved with known concerns
+
+The warning and deactivation passes execute in one required job transaction, warning first. There is no
+per-child catch, savepoint, retry, or durable run ledger.
+
+An uncaught runtime, data, date-parsing, template, or email exception stops later work and ordinarily
+rolls back relational writes. It cannot compensate:
+
+- Email already handed off
+- Process-local active-user removal
+- Asynchronous Redis cleanup already submitted or completed
+
+Known failure windows:
+
+- Warning email precedes saving `CHILD_DEACTIVATION_NOTICE`, allowing delivery without committed
+  deduplication evidence and possible repeat warning.
+- Deactivation removes local memory and starts asynchronous cleanup before the final age-out email. A
+  later email failure can roll back database disablement and `USER_DEACTIVATION` while external state
+  has escaped.
+- Asynchronous cleanup failures create `APPLICATION_ERROR`, may notify, are consumed by the future
+  handler, and are not automatically retried.
+- Cooperative interruption leaves completed work in place and unvisited children for a later run.
+- Scheduler infrastructure errors have durable handling, but a durable `APPLICATION_ERROR` is not
+  confirmed for every business exception escaping `runJob()`.
+
+Recovery requires diagnosis across relational state, local memory, Redis, application errors, logs, and
+email evidence, followed by a corrected rerun and targeted memory or recommendation repair. Deployment
+monitoring, alerting, log retention, ownership, and external delivery evidence remain
+deployment-specific.
 
 ______________________________________________________________________
 
