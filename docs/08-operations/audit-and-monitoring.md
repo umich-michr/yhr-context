@@ -183,6 +183,31 @@ alerts, health probes, traffic gates, retention, server attribution, or
 freshness thresholds remains deployment-specific and must be verified for each
 instance.
 
+## PI replacement evidence
+
+`IMPORTED_STUDY_SYNC_LOG` retains technical evidence for PI reconciliation,
+including:
+
+- The former and new `APP_USER` IDs for a `STUDY_TEAM_MEMBER.USER_ID` update
+- The former and new `piUserId` property values
+- Deletion of an incoming PI's duplicate ordinary membership when applicable
+- Creation of a new `APP_USER` and staff role when the imported username does
+  not match an existing account
+- Name and email changes applied to an existing matched PI account
+
+The log includes table, column, operation, synchronization time, entity ID,
+and old and new values. It does not provide one immutable person identifier,
+a direct CSV upload or row foreign key, a username-alias history, or proof of
+notification delivery. Correlate it with current imported rows, upload
+artifacts and audit rows, operational memberships, application logs, and
+institutional identity evidence.
+
+Notification recipient continuity follows storage behavior rather than a
+dedicated PI-migration audit. The retained PI membership ID keeps its
+notification joins, while joins attached to a deleted duplicate membership
+are cascade-deleted. The reviewed path does not write a distinct PI-change
+announcement record.
+
 ## CSV import investigations
 
 No single application record proves the complete history of one CSV import.

@@ -144,6 +144,30 @@ If the retained deactivation date has passed, the resulting range cannot remain 
 Inspect reconciliation logs, the updated activation date, the retained deactivation date, and
 `V_ACTIVE_STUDY` membership.
 
+## PI changed but notifications or account history look unexpected
+
+Check:
+
+- Which `STUDY_TEAM_MEMBER` row was retained as the PI row
+- Whether notification-recipient joins remain attached to that retained
+  membership ID
+- Whether the incoming PI had a duplicate ordinary membership whose recipient
+  joins were cascade-deleted
+- Whether external recipient strings remained in the notification setting
+- Whether the imported username matched an existing prefixed `APP_USER`
+- Whether reconciliation created a new account instead of renaming the former
+  account
+- Whether `IMPORTED_STUDY_SYNC_LOG` records the PI membership, property,
+  duplicate-membership deletion, account creation, or contact update
+- Whether operators are incorrectly expecting memberships, agreements, login
+  history, or other account history to move automatically between usernames
+
+The importer does not generate a separate PI-change announcement and does not
+automatically consolidate accounts that institutional evidence says belong to
+the same person. Perform any account correction only through an authorized
+procedure after verifying institutional identity, current memberships,
+notification settings, and retained audit evidence.
+
 ## Study cannot be archived
 
 Check:

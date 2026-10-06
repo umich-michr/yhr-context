@@ -43,6 +43,24 @@ Other Announcements includes lifecycle events such as study activation and deact
 - The same external address may receive multiple event types.
 - All recipients for one study/event share the configured event frequency.
 
+## PI replacement behavior
+
+When import reconciliation replaces a PI, it retains the existing PI
+membership row and changes the user referenced by that row. Existing study
+notification recipient selections attached to that membership ID consequently
+resolve to the new PI.
+
+When the incoming PI also has a separate ordinary membership, reconciliation
+deletes that duplicate membership. The database cascades deletion to
+notification-recipient join rows attached to the deleted membership; those
+recipient selections are not copied to the retained PI row.
+
+External addresses in the study notification setting remain unchanged. The
+reviewed reconciliation path does not generate a separate PI-change
+announcement. A PI receives a later announcement only if the resulting
+recipient settings and event-processing rules select that membership or
+address for an independently generated event.
+
 ## Immediate events
 
 When Immediate is selected for a supported event, the application attempts to send the applicable

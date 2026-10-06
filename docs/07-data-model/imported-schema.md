@@ -85,6 +85,19 @@ A valid imported PI must have:
 
 Missing required PI identity information is an application error.
 
+## Username changes and row identity
+
+`IMPORTED_TEAM_MEMBER.USER_NAME` is the imported row's primary key.
+`IMPORTED_STUDY_TEAM_MEMBER` references that value with an update-restricting
+foreign key. A new username therefore represents a new imported identity key;
+the import path does not establish a person-level alias between the former and
+new values.
+
+Operational reconciliation looks up `APP_USER` by the normalized imported
+username. It can update names and email on the matched account, but it does not
+rename the account. When no account matches the new username, it creates a new
+staff account and reassigns the current PI membership to that account.
+
 ## Relationships
 
 ```mermaid

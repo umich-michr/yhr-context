@@ -64,6 +64,22 @@ An associated study member may:
 - Remove an ordinary `STUDY_TEAM_MEMBER`
 - Configure applicable email-notification settings
 
+## PI replacement and recipient continuity
+
+PI import reconciliation ordinarily preserves the existing
+`PRINCIPAL_INVESTIGATOR` membership row and changes the user associated with
+that row. Notification recipient selections attached to that membership ID
+therefore follow the retained PI row to the new PI.
+
+If the incoming PI already has a separate ordinary membership, that duplicate
+membership is deleted first. Notification recipient join rows attached to the
+deleted membership are removed by database cascade and are not merged onto
+the retained PI membership.
+
+A changed institutional username is treated as a different identity key.
+Reconciliation does not rename an existing account or transfer all of its
+other study memberships and account history to the new username.
+
 ## Messaging restriction
 
 Study membership alone does not permit messaging every participant.

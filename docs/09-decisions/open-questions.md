@@ -1227,43 +1227,40 @@ A process-local active-study refresh already performed before rollback is not tr
 restored. Operators must compare operational memberships, `piUserId`, reconciliation logs, import
 errors, and the affected process's local study before preparing a corrective row.
 
-## PI-004: Notification migration
+## PI-004: Notification migration — resolved as current implementation
 
-When the PI changes:
+The existing PI membership row is reassigned to the new PI. Notification
+recipient joins attached to that membership ID therefore resolve to the new
+PI. If the incoming PI also has a duplicate ordinary membership, that row is
+deleted and its notification joins cascade-delete rather than being merged.
 
-- Is the former PI removed from Other Announcements?
-- Is the new PI automatically subscribed?
-- Are external addresses unchanged?
-- Is the PI change itself announced?
+External recipient strings are unchanged. The reviewed reconciliation path
+does not generate a separate PI-change announcement.
 
-## PI-005: Historical PI evidence
+This is an implementation finding, not a policy decision that every deployment
+must preserve this migration model.
 
-Where is PI history retained after the former operational membership is removed?
+## PI-005: Historical PI evidence — resolved as current implementation
 
-Possible sources include:
+`IMPORTED_STUDY_SYNC_LOG` records the former and new application user IDs for
+the PI membership update and `piUserId` property update, plus related
+duplicate-membership deletion and account changes.
 
-- Imported history
-- Audit table
-- Study audit
-- Application logs
-- No retained application history
+It is technical reconciliation history, not a complete immutable person
+history: it lacks a source-upload foreign key, durable person identifier,
+username-alias chain, and notification-delivery proof.
 
-## PI-006: Username changes
+## PI-006: Username changes — resolved as current implementation
 
-How are institutional username changes reconciled when:
+`USER_NAME` is the imported identity key. Reconciliation looks up the
+normalized username, updates names and email but not username, and creates a
+new staff `APP_USER` when the new username does not match an existing account.
+It reassigns the current PI membership but does not automatically transfer or
+consolidate the former account's other memberships, agreements, login history,
+or account-specific evidence.
 
-```text
-IMPORTED_TEAM_MEMBER.USER_NAME
-```
-
-changes for the same person?
-
-Determine whether:
-
-- A new `APP_USER` is created
-- The existing username is updated
-- Memberships are transferred
-- Manual intervention is required
+Authorized manual intervention and institutional identity evidence are needed
+when two usernames must be treated as one person.
 
 ______________________________________________________________________
 

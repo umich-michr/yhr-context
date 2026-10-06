@@ -392,6 +392,61 @@ The application does not provide an import-batch rollback function.
 
 Corrections require a later incremental update containing the corrected state.
 
+## Notification recipients when the PI changes
+
+Current implementation preserves the existing
+`PRINCIPAL_INVESTIGATOR` membership row and changes that row's `USER_ID` to the
+new PI. Because study-member notification recipients reference the membership
+row by `STUDY_TEAM_MEMBER.ID`, existing recipient selections attached to that
+PI row now resolve to the new PI without inserting a replacement recipient
+row.
+
+If the incoming PI already has a separate ordinary membership for the study,
+reconciliation deletes that duplicate membership before reassigning the
+existing PI row. Database foreign key `STUDY_NOTIFICATION_RCPT_FK2` cascades
+deletion from `STUDY_TEAM_MEMBER` to any
+`STUDY_NOTIFICATION_RECIPIENT` rows attached to the deleted duplicate
+membership. Those selections are not merged onto the retained PI membership.
+
+External recipient addresses stored in
+`STUDY_NOTIFICATION_SETTING.RECIPIENT_EMAILS` are not changed by PI
+reconciliation. The reviewed reconciliation path does not create a distinct
+notification announcing the PI change.
+
+## Historical PI evidence
+
+A successful PI replacement writes `IMPORTED_STUDY_SYNC_LOG` records for the
+operational changes. The PI membership update records the study membership
+table and `USER_ID` column, the former and new application user IDs, and the
+synchronization time. A companion property log records the old and new
+`piUserId` values. When an incoming PI's duplicate ordinary membership is
+deleted, another synchronization row records that deletion.
+
+These records retain technical before-and-after evidence after the current
+membership is reassigned, but they are not a complete identity history. They
+store application user IDs rather than one immutable institutional-person
+identifier, do not link directly to a CSV upload-log ID or source row, and do
+not by themselves prove notification delivery or a person-level username
+change.
+
+## Institutional username changes
+
+Imported `USER_NAME` is an identity key, not a mutable demographic attribute
+in PI reconciliation. The importer normalizes it with the institutional
+`shib:` prefix and looks up `APP_USER` by that resulting username. It updates
+the matched user's first name, middle name, last name, and email, but does not
+update the matched user's username.
+
+If a person's imported username changes and no `APP_USER` exists under the new
+value, reconciliation creates a new staff `APP_USER` and treats that account
+as the new PI. The current PI membership is reassigned to the new account.
+Other memberships, notification selections tied to other membership rows,
+login history, agreements, and account-specific history are not automatically
+transferred or consolidated from the former account. Resolving duplicate
+accounts or proving that two usernames represent the same person requires
+authorized operational intervention and institution-specific identity
+evidence.
+
 ## Related pages
 
 - [Imported Institutional Data](imported-data.md)
