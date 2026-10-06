@@ -21,6 +21,44 @@ Study notification settings are configured per study and event.
 Event creation and email delivery are separate operations. Some notifications are sent immediately,
 while others are dispatched by scheduled jobs.
 
+## Notification settings and recipients
+
+### Current implementation
+
+Each study has one `STUDY_NOTIFICATION_SETTING` row per notification event. A unique constraint on `(STUDY_ID, NOTIFICATION_SETTING_LV_ID)` enforces that rule. The setting points to an event lookup and, when the event supports selectable timing, a notification-frequency lookup.
+
+`NOTIFICATION_SETTING_FREQ` is the compatibility table between event and frequency lookups. Its composite key contains both lookup IDs, and `ORDER_NUM` controls display order. Checked-in seed data permits:
+
+- immediate, daily, or weekly delivery for new interested participants;
+- immediate, daily, or weekly delivery for new messages;
+- daily or weekly delivery for new matched participants; and
+- no selectable frequency for Other Announcements.
+
+This compatibility is current seed and application behavior, not a policy that every deployment must preserve unchanged.
+
+Selected study members are normalized through `STUDY_NOTIFICATION_RECIPIENT`, whose composite key joins a setting to a `STUDY_TEAM_MEMBER`. Deleting a membership cascades its recipient joins. The setting-side foreign key is restrictive. `RECIPIENT_EMAILS` remains a string on the setting rather than a normalized external-recipient collection.
+
+New studies receive a setting for every supported event. When only one team member exists, that member is the default recipient; otherwise the current service selects the first non-PI member it finds. PI subscription to Other Announcements is application behavior and must not be described as a physical-schema constraint.
+
+A save validates that the event is a `NOTIFICATION_SETTING` lookup, any frequency is a `NOTIFICATION_FREQUENCY` lookup, and every selected member belongs to the study. The update is transactional and invokes `auditNotificationUpdate`. The dispatcher combines selected-member and external addresses into a set, so all recipients of one study/event share that event's frequency.
+
+The current study-team interface presents New Interested Participants, New Messages, New Matched Participants, and Other Announcements. It treats the external-recipient field as one email address, although the transfer-object contract says that comma- or space-separated addresses may be stored. Application-level validation of that stored string was not established.
+
+Participant recommendation notifications are different: their timing comes from each represented participant's preference and last-login state, not from `STUDY_NOTIFICATION_SETTING`.
+
+### Delivery, batching, and retention evidence
+
+Daily and weekly processing owns study-team digests. Current transaction batches contain up to 100 participant emails or 10 study-team emails. `EMAIL_LOG` records rewritten attempt data and local `SUCCESS` or `FAILURE`, but does not prove mailbox delivery. In particular, successful Java Message Service submissions are not recorded as `EMAIL_LOG.SUCCESS`; non-queue success, console success, queue submission, no-recipient success, and failure remain distinct outcomes.
+
+The checked-in Oracle audit-backup job moves `EMAIL_LOG` records older than 180 days to backup storage without the message body, then removes backup rows after 1,461 days. These are job definitions, not proof that every deployment runs them effectively. Recommendation-notification filesystem audit files are separate and expire after 31 days when that audit is enabled.
+
+### Known concerns and remaining decisions
+
+- External recipient normalization and validation are not established.
+- The active email profile, queue topology, provider evidence, scheduler times and time zone, monitoring, operational runbooks, and effective retention execution are deployment-specific.
+- Delivery logs establish application or transport outcomes, not mailbox receipt.
+- Recipient-selection and retention policies remain institutional decisions where they are not fixed by current behavior.
+
 ## Events and frequencies
 
 | Event                       | Available frequency                    |

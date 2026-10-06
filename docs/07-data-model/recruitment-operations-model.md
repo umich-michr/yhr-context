@@ -14,6 +14,36 @@ canonical_for:
 This page maps the recruitment-operation relationships confirmed in the physical schema. Functional
 behavior remains on the corresponding recruitment pages.
 
+## Label, notification, promotion, and deactivation records
+
+### Labels
+
+A label definition belongs to one study, while its join rows attach it to zero or more interested-participant relationships. One relationship can have multiple labels. Definition deletion removes assignment joins, and application deletion of an interested-participant relationship removes its assignments before the relationship. Export flattens assignments into one comma-separated label-name column.
+
+The definition and assignment APIs apply same-study ownership checks, but the interested-participant PATCH path still lacks an independent caller-membership and publishability check.
+
+### Notification settings
+
+One setting per study and notification event selects one shared frequency and a recipient set consisting of study-member joins plus an external-recipient string. Update validation checks lookup types and study membership and records notification-update audit activity. Dispatch deduplicates member and external addresses into a set.
+
+This model records configuration and application-level attempt evidence. It does not by itself prove provider acceptance or mailbox delivery. Participant recommendation notification preferences are participant state, not study notification-setting rows.
+
+### Promotion
+
+Ask if interested writes relational promotion-message context and Redis recommendation state, but those stores have different purposes and lifecycles. Redis `USER` score is the promotion timestamp, while `ASKED_IF_INTERESTED` is the study exclusion used for repeat prevention. The relational row has neither timestamp nor active marker and cannot reconstruct those Redis values deterministically.
+
+Participant Not Interested or Enrolled actions delete relational promotion rows for the pair. They must not be described as creating an expression of interest, enrollment, or direct message.
+
+### Deactivation
+
+A user deactivation row records one current reason and date for a retained user reference. Reactivation removes it; hard user deletion nulls the reference while preserving the row. Owner deactivation also disables enabled loved-one accounts through service behavior rather than a database cascade.
+
+Participant deactivation preserves durable recruitment records but hides them through active-profile query paths. It removes current process-local state immediately on the handling server and schedules incomplete Redis cleanup: ordinary recommendations are removed, but exclusions and user promotions are not.
+
+Child age-out first hands off warning email and then saves deduplication evidence. Actual age-out later records `CHILD_TURNED_ADULT`. These are separate operations without a confirmed distinct age-out PHI audit event.
+
+Study deactivation changes the posting and active interval, blocks participant discovery and matched-participant work, preserves management of existing interest, and schedules ordinary-recommendation cleanup. Exclusions and participant-side promotions remain; notification follows in a later daily batch. Archive remains a separate inactivity state.
+
 ## Interested-participant relationship
 
 ```mermaid

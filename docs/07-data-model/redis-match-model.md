@@ -19,6 +19,19 @@ relevant_when:
 Current participant-study recommendations and directional exclusions are stored in Redis sorted
 sets.
 
+## Promotion and deactivation recovery limits
+
+Ask if interested creates Redis state that is not fully represented in the relational promotion table:
+
+- the participant-side `USER` recommendation score records the promotion timestamp; and
+- the study-side `ASKED_IF_INTERESTED` exclusion prevents repeat promotion.
+
+`RECOMMENDED_STUDY_MESSAGE` preserves the participant, study, recommending user, reason, and note, but it has no promotion timestamp, active marker, or Redis score. Multiple relational rows may exist for the same pair. Relational data therefore cannot deterministically recreate the current promotion or its original score.
+
+Participant deactivation asynchronously removes ordinary recommendations, but current cleanup does not remove exclusions or participant-side `USER` promotions. Study deactivation also removes ordinary recommendations asynchronously while preserving exclusions and `USER` promotions. Hard account deletion can leave orphaned exclusion or promotion members.
+
+A full ordinary-recommendation recomputation is not a complete Redis restore. Promotion reconstruction, exclusion retention, orphan reconciliation, asynchronous-failure recovery, and acceptable retention remain separate operational or policy decisions.
+
 ## Naming conventions
 
 ```text

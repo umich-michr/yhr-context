@@ -1680,65 +1680,51 @@ application-enforced retention period is established.
 
 ## SCHEMA-004: Labels
 
-Confirm:
+**Status:** Resolved for current application and code behavior.
 
-```text
-VOLUNTEER_LABEL
-STUDY_VOLUNTEER_LABEL
-```
+**Current implementation:** `VOLUNTEER_LABEL` stores a study-specific name and style token. `STUDY_VOLUNTEER_LABEL` is the many-to-many assignment between a label and an interested-participant relationship, so one participant can hold multiple labels. Label deletion cascades assignment joins. The database does not enforce label-name or style uniqueness within a study.
 
-including:
+Study members can create, edit, and delete definitions. Definition mutation checks study access and ownership. Assignment mutation checks that the label and interested-participant relationship belong to the same study. The interface supports create, edit, delete, bulk apply, bulk remove, and no change. Export emits one comma-joined label-name column.
 
-- Study ownership
-- Label title
-- Color
-- Uniqueness
-- Assignment cardinality
-- Export fields
+**Known implementation concern:** The interested-participant PATCH endpoint has staff URL-role and cross-site request forgery controls and validates same-study objects, but does not independently require caller membership in that study or study publishability.
+
+**Remaining policy decisions:** Naming rules, maximum count, duplicate-name policy, style governance, retention, and dedicated label audit requirements remain product or institutional decisions. No dedicated definition or assignment audit event was established.
+
+See [Interested participant management](../06-recruitment/interested-participant-management.md), [Operational schema](../07-data-model/operational-schema.md), and [Recruitment operations model](../07-data-model/recruitment-operations-model.md).
 
 ## SCHEMA-005: Notifications
 
-Confirm:
+**Status:** Resolved for current application and code behavior.
 
-```text
-NOTIFICATION_SETTING_FREQ
-STUDY_NOTIFICATION_SETTING
-STUDY_NOTIFICATION_RECIPIENT
-EMAIL_LOG
-```
+**Current implementation:** `NOTIFICATION_SETTING_FREQ` defines event/frequency compatibility and display order. `STUDY_NOTIFICATION_SETTING` enforces one row per study and event and stores the shared frequency plus an external-recipient string. `STUDY_NOTIFICATION_RECIPIENT` joins selected study members to a setting. Current seed behavior permits immediate, daily, or weekly delivery for new interest and messages; daily or weekly delivery for new matches; and no selectable frequency for Other Announcements.
 
-including:
+New studies receive every setting. Save/update validates event and frequency lookup types and selected-member ownership, runs transactionally, and invokes notification-update auditing. Dispatch combines member and external addresses into a set. Participant recommendation timing is separate participant preference state.
 
-- Event type
-- Frequency
-- Member recipient
-- External recipient
-- PI subscription
-- Delivery status
-- Digest ownership
+`EMAIL_LOG` records local attempt outcomes but not mailbox delivery. Successful queue submissions are not `EMAIL_LOG.SUCCESS`. Checked-in retention jobs move records older than 180 days to body-free backup and remove backup records after 1,461 days; separate recommendation audit files expire after 31 days when enabled. These definitions do not prove effective deployment execution.
+
+**Known implementation concerns:** The interface treats external recipients as one address while the transfer-object contract permits comma- or space-separated addresses; application validation was not established. Configuration, queue, attempt, transport, and mailbox-delivery states must remain distinct.
+
+**Remaining deployment and policy decisions:** Effective email profile, provider and queue topology, schedules, time zone, monitoring, runbooks, recipient policy, external-address validation, and executed retention remain deployment or institutional concerns.
+
+See [Study notifications](../05-study-management/study-notifications.md), [Operational schema](../07-data-model/operational-schema.md), and [Recruitment operations model](../07-data-model/recruitment-operations-model.md).
 
 ## SCHEMA-006: Promotion and deactivation
 
-Confirm:
+**Status:** Resolved for current application and code behavior.
 
-```text
-RECOMMENDED_STUDY_MESSAGE
-USER_DEACTIVATION
-CHILD_DEACTIVATION_NOTICE
-```
+**Current implementation — promotion:** `RECOMMENDED_STUDY_MESSAGE` stores participant, study, recommending user, reason, and a message of at most 512 characters. It has no promotion timestamp, active marker, participant-study-reason uniqueness, Redis score, or durable email-attempt link. Ask if interested writes relational context plus Redis state: participant-side `USER` score is the promotion time, and study-side `ASKED_IF_INTERESTED` prevents repetition. The interface limits notes to 275 characters, shows promoted studies separately from system matches, and does not create expression of interest, direct messaging, or enrollment. Participant Not Interested or Enrolled actions remove relational promotion rows for the pair.
 
-including:
+**Current implementation — user and child deactivation:** `USER_DEACTIVATION` permits one current row per retained user reference. User deletion nulls the reference and preserves history; reactivation deletes the row. Owner deactivation disables enabled loved-one accounts through service behavior. Durable recruitment records remain but active-profile paths hide them. Asynchronous Redis cleanup removes ordinary recommendations, not exclusions or `USER` promotions.
 
-- Participant and study references
-- Promotion text
-- Promotion timestamps
-- Deactivation reason
-- Cascading deactivation
-- Age-out notice state
+`CHILD_DEACTIVATION_NOTICE` records parent, child, date of birth, and sent date and deduplicates by that combination. A corrected date of birth can permit another notice. Warning email is handed off before the notice row is committed, so delivery can occur without committed deduplication evidence. Age-out later writes `CHILD_TURNED_ADULT`; warning and deactivation are separate operations.
 
-______________________________________________________________________
+**Current implementation — study deactivation:** Posting dates and `STUDY_ACTIVE_INTERVAL` change, participant discovery and matched-participant work stop, and management of existing interest continues. Ordinary Redis cleanup is asynchronous; exclusions and `USER` promotions remain. Notification follows through the daily batch, and archive is separate.
 
-# Phase 11: Audit, Export, and Security Controls
+**Known implementation concerns:** Relational promotion rows cannot reconstruct current Redis state or original timestamps. Hard deletion can leave orphaned Redis state. Deployment-specific numeric reason IDs are not universal, including the current hard-coded `261001` interface check. No distinct age-out PHI audit event was established.
+
+**Remaining policy and deployment decisions:** Promotion and deactivation retention, orphan reconciliation, Redis reconstruction, delivery proof, scheduler configuration and time zone, monitoring, recovery, and institutional reason visibility remain open operational or policy concerns.
+
+See [Ask if interested](../06-recruitment/ask-if-interested.md), [Matching and visibility](../06-recruitment/matching-and-visibility.md), [Operational schema](../07-data-model/operational-schema.md), [Recruitment operations model](../07-data-model/recruitment-operations-model.md), and [Redis match model](../07-data-model/redis-match-model.md).
 
 ## AUDIT-001: Export auditing
 

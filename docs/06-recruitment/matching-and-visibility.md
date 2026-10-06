@@ -18,6 +18,18 @@ Matching has two independent dimensions:
 1. Study-interest matching
 1. Eligibility matching
 
+## Promotion and deactivation interactions
+
+Ask if interested promotes a match without creating expression of interest, direct messaging, or enrollment. Redis stores two distinct effects: a participant-side `USER` recommendation score whose score is the promotion time and a study-side `ASKED_IF_INTERESTED` exclusion used to prevent repeat promotion. Relational `RECOMMENDED_STUDY_MESSAGE` rows preserve the recommending user and note but do not preserve enough state to reconstruct the current Redis promotion deterministically.
+
+Participant Not Interested or Enrolled actions remove relational promotion-message rows for the pair. Ordinary recommendation cleanup, exclusions, and user promotions have different lifecycles and must not be treated as one state.
+
+Participant deactivation retains durable interest, questionnaire answers, labels, and messages, while active-profile query paths hide those records from current recruitment views. Process-local removal is immediate on the handling server. Asynchronous Redis cleanup removes ordinary recommendations but not exclusions or `USER` promotions; hard account deletion can therefore leave orphaned Redis exclusions or promotions.
+
+Study deactivation changes posting dates and `STUDY_ACTIVE_INTERVAL`, makes the posting unavailable to participants, and blocks matched-participant activity. Study staff can continue managing people who already expressed interest. Ordinary Redis recommendation cleanup is asynchronous, while exclusions and `USER` promotions remain. The deactivation notification is generated later by the daily batch rather than synchronously. Archival is a separate inactivity workflow.
+
+These distinctions are current implementation. Promotion retention, orphan reconciliation, complete Redis recovery, and deployment-specific batch operations remain policy or operational concerns.
+
 ## Matching runtime
 
 To reduce calculation latency, the application maintains active studies and active participants in

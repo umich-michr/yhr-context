@@ -19,6 +19,26 @@ An interested participant is represented by one `STUDY_VOLUNTEER` row. The row i
 relationship used for workflow lists, labels, participant access, questionnaires, messaging, and
 exports.
 
+## Labels and participant assignments
+
+### Current implementation
+
+Label definitions are study-specific `VOLUNTEER_LABEL` rows containing a sequence ID, `STUDY_ID`, `NAME`, and `STYLE`. The study foreign key is restrictive. The database does not enforce uniqueness for a label's name or style within a study, and style is a user-interface class or style token rather than a normalized color entity.
+
+`STUDY_VOLUNTEER_LABEL` is the composite join between a label and a `STUDY_VOLUNTEER`. One interested participant relationship can therefore have multiple labels. Deleting a label cascades its assignment rows. The interested-participant foreign key is restrictive; when the application deletes the relationship, Hibernate removes assignment rows before deleting it.
+
+Study members can create, edit, and delete label definitions. Definition endpoints perform study-access checks, and edit and delete also verify that the label belongs to that study. Assignment updates verify that the label and interested-participant relationship belong to the same study.
+
+The study-team interface supports label creation, editing, deletion, bulk apply, bulk remove, and no-change operations. Its delete warning states that the label will be removed from every participant and that deletion cannot be undone. Recruitment export emits one label column whose applied names are joined with commas.
+
+### Known authorization concern
+
+The interested-participant PATCH endpoint has staff URL-role and cross-site request forgery protection, and the assignment logic checks same-study ownership. The endpoint still does not independently require the caller to be a member of that study or verify study publishability. Same-study object validation is not a substitute for caller authorization.
+
+### Remaining decisions
+
+Dedicated audit events for label definitions and assignments were not established. Naming rules, maximum label count, duplicate-name policy beyond the absence of database uniqueness, style governance, and retention are product or institutional decisions.
+
 ## Fixed workflow state
 
 The persisted status enum is:

@@ -24,6 +24,27 @@ It is distinct from:
 - Expression of interest
 - Ordinary system-generated participant recommendations
 
+## Promotion storage and lifecycle
+
+### Current implementation
+
+Ask if interested is a study-team promotion action available from exact- and partial-match workflows. It moves the represented participant into the study team's Asked if interested list. The modal limits the optional note to 275 characters and supports first- and last-name merge tokens for bulk action. It also states that the study and note will appear in the participant's studies list and will not be sent as a direct message.
+
+The participant interface separates Suggested by study teams from Matched by system. Ask if interested does not create an expression-of-interest `STUDY_VOLUNTEER`, a direct message, or enrollment. Participant history currently categorizes interest and dismissal events but has no promotion-history category.
+
+`RECOMMENDED_STUDY_MESSAGE` stores the participant, study, recommending user, message, and reason. Its physical message limit is 512 characters. The reason includes `ASKED_IF_INTERESTED` and `RECOMMENDED_ANOTHER_STUDY`. The three foreign keys are restrictive, but the table has no promotion timestamp, active marker, participant-study-reason uniqueness constraint, Redis score, or durable email-attempt link. Multiple rows for the same participant and study can therefore exist physically.
+
+The current repeat-prevention mechanism is Redis rather than relational uniqueness. The `ASKED_IF_INTERESTED` study-side exclusion prevents the same action from recurring, while the participant's `USER` recommendation score carries the promotion timestamp. A relational message row alone cannot deterministically reconstruct current Redis promotion state or its original timestamp.
+
+When the participant selects Not Interested or Enrolled for a promoted study, the application removes promotion-message rows for that participant-study pair. Promotion retention, orphan cleanup, and exact reconstruction procedures remain unresolved policy or operational concerns.
+
+### Known concerns
+
+- Durable rows do not enforce promotion uniqueness or preserve the promotion event timestamp.
+- Redis state and relational promotion messages can diverge and are not complete substitutes for each other.
+- The participant-visible 275-character limit is stricter than the 512-character database limit.
+- The promoted-study display is intentionally separate from direct messaging and expression of interest; documentation and code review must not conflate these workflows.
+
 ## Preconditions
 
 Ask if interested requires:
