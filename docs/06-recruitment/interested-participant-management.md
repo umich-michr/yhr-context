@@ -15,113 +15,146 @@ relevant_when:
 
 # Interested-Participant Management
 
-An interested participant is represented by a participant-study relationship in `STUDY_VOLUNTEER`.
+An interested participant is represented by one `STUDY_VOLUNTEER` row. The row is the durable
+relationship used for workflow lists, labels, participant access, questionnaires, messaging, and
+exports.
 
-## Initial state
+## Fixed workflow state
 
-A successful expression of interest creates the relationship in:
-
-```text
-NEW
-```
-
-## Fixed workflow lists
-
-The fixed workflow lists are:
+The persisted status enum is:
 
 ```text
 NEW
 ELIGIBLE
-INELIGIBLE
 PENDING
+INELIGIBLE
 ```
 
-`ALL` is an aggregate view and is not a workflow-list membership.
+A successful expression of interest begins in `NEW`. `ALL` is a user-interface aggregate and query
+without a status constraint; it is not a stored membership.
 
-## List membership
+One row has one current status. Status movement updates both `STATUS` and
+`STATUS_LAST_UPDATE_DATE`. The model does not retain prior status values, who moved the participant,
+or a transition reason.
 
-- One interested-participant relationship belongs to one workflow list at a time.
-- Any associated study team member may move the participant.
-- A participant may be returned to `NEW`.
-- A participant cannot be moved to the list they already occupy.
+Labels are independent many-to-many tags and do not replace the status.
 
-List movement does not change:
+## Physical interested-participant schema
 
-- Eligibility matching
-- Redis exclusions
-- Messaging permission
-- Export permission
-- Participant profile visibility
+`STUDY_VOLUNTEER.ID` is the primary key. A unique constraint on `(USER_ID, STUDY_ID)` prevents
+duplicate interest. Foreign keys connect to `APP_USER` and `STUDY` and cascade on deletion.
 
-Moving to `INELIGIBLE` does not create a Redis exclusion.
+`STUDY_VOLUNTEER_LABEL` has the composite primary key:
 
-## Restricted-visibility participants
+```text
+VOLUNTEER_LABEL_ID
+STUDY_VOLUNTEER_ID
+```
 
-Successful expression of interest makes the participant available to the applicable study team
-through the Interested Participants workflow even when the participant selected restricted
-visibility.
+The label foreign key cascades when a label is deleted. The interested-participant foreign key is
+restrictive at the database level; application deletion removes join rows through Hibernate before
+deleting the relationship.
 
-In this case:
+`VOLUNTEER_LABEL` stores `ID`, `STUDY_ID`, `NAME`, and `STYLE`. Its study foreign key is restrictive.
+No database uniqueness constraint was found for label name or style within a study.
 
-- The participant appears in the applicable study's Interested Participants list.
-- Authorized members of that study team may access the participant profile information available
-  through the interested-participant workflow.
-- The participant's restricted visibility preference remains in effect for pre-interest matching by
-  other studies.
-- The expression of interest does not make the participant visible to unrelated study teams.
+## Query and list behavior
 
-This access results from the participant's interest relationship with the applicable study, not from
-changing the participant's visibility preference.
+Current list queries:
 
-## Profile access
+- constrain by study;
+- optionally constrain by one status or one label;
+- cannot combine status and label in the same application query;
+- join the active quick-profile view;
+- exclude inactive participant accounts;
+- sort by interest date descending and relationship ID ascending;
+- add applied labels; and
+- calculate unread participant-to-study message counts.
 
-Selecting an interested participant displays:
+Statistics likewise count only enabled participants. Participant-side interest history reads study
+IDs from `STUDY_VOLUNTEER` ordered by interest date.
 
-- Participant profile information
-- Demographic and health information
-- Screening questions and answers
-- Workflow list
-- Applied labels
-- Messaging controls
+Current exports use the same active interested-participant query before reading full profile data from
+process-local active-user memory.
 
-Profile visibility still depends on:
+## Authorization and visibility
 
-- Participant account status
-- Study publishability
-- Study membership or administrative access
+List, profile, navigation, statistics, name-search, conversation-list, and export read paths require:
+
+- an authenticated staff or administrator URL role;
+- study membership or administrator access; and
+- `PUBLISHABLE = 1` for interested-participant-specific access.
+
+Expression of interest grants that study full profile access even when the participant's general
+visibility is restricted. It does not change the participant's visibility preference or expose the
+participant to unrelated studies.
+
+Participant-data list and profile reads create PHI audit events.
+
+## Known authorization concern: workflow and label PATCH
+
+The interested-participant PATCH endpoint is under `/secure/staff`, so it requires a staff or
+administrator role and CSRF protection. Unlike the corresponding read endpoints, it does not call
+study-membership or publishability authorization. Its service accepts the study ID and relationship
+ID and performs the requested status or label update.
+
+This allows an authenticated staff account that knows IDs to attempt a status or label change outside
+its study membership, and it permits mutation while the study is not publishable. Label assignment
+does verify that the label and interested-participant relationship belong to the same study, but that
+does not authorize the caller.
+
+This is a current backend authorization gap and must not be documented as intended permission.
+
+## Workflow-list operations
+
+The current interface permits moving selected interested participants among the four fixed statuses,
+including back to `NEW`. A test operation can make bulk updates conditional on the row still matching
+the expected status or label.
+
+Status movement does not alter:
+
+- eligibility results;
+- Redis recommendation exclusions;
+- participant visibility;
+- messaging eligibility;
+- export authorization; or
+- the participant's expression-of-interest timestamp.
+
+No dedicated workflow-transition audit is created.
 
 ## Labels
 
-Study team members may create study-specific labels.
+Labels are study-specific shared definitions. Study members can create, rename, and delete them and
+can assign multiple labels to one interested-participant row.
 
-Rules:
+Deleting a label cascades its assignment rows. Deleting an interested-participant relationship through
+the application removes its assignments first. Label changes are not audited.
 
-- Labels are shared by the study team.
-- A participant may have multiple labels.
-- Labels may be renamed.
-- Labels may be deleted.
-- Deleting a label removes its participant assignments.
-- Labels are independent of workflow-list membership.
-- Labels are included in CSV exports.
-- Label changes are not audited.
+The physical schema and current implementation establish ownership and deletion behavior. Naming
+policy, maximum count, and retention remain product or institutional decisions unless enforced by
+client validation.
 
-## Messaging
+## Deactivation, hard deletion, and retention
 
-A study team member may initiate messaging from the interested-participant profile.
+Participant deactivation retains the interested-participant row, answers, labels, and messages, but
+active-profile list, statistics, and export queries hide the participant. Historical study-team
+conversation views also depend on active-user views and become hidden.
 
-See [Messaging](messaging.md).
+Administrator hard deletion runs in a transaction, deletes messages before `STUDY_VOLUNTEER`, removes
+label assignments, deletes the relationship, and then removes the user. Questionnaire answers also
+cascade from the user foreign key.
 
-## Audit behavior
+No ordinary archive flag, withdrawal timestamp, enrollment outcome, or separate participation state
+exists in `STUDY_VOLUNTEER`. The four workflow statuses are operational study-team organization, not
+clinical enrollment or participation records.
 
-Workflow-list movement is not audited.
-
-Participant-data viewing is audited through `PHI_AUDIT`.
-
-See [PHI Audit](../08-operations/phi-audit.md).
+Retention duration and whether deactivated relationships should remain recoverable are unresolved
+institutional policy questions.
 
 ## Related pages
 
 - [Expressions of Interest](expressions-of-interest.md)
-- [Messaging](messaging.md)
 - [Questionnaires and Exports](questionnaires-and-exports.md)
+- [Messaging](messaging.md)
 - [Recruitment Operations Model](../07-data-model/recruitment-operations-model.md)
+- [PHI Audit](../08-operations/phi-audit.md)

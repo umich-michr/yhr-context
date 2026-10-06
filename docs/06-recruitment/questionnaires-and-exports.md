@@ -11,126 +11,164 @@ canonical_for:
 
 # Questionnaires and Exports
 
-A study may have zero or one screening questionnaire.
+A study has a physical `STUDY_SCREEN_QNAIRE` row associated with the study. Current participant and
+study-team services retrieve it by `STUDY_ID`.
 
-## Purpose
+## Physical questionnaire model
 
-The questionnaire captures study-specific information during the expression-of-interest transaction.
+| Table                        | Purpose and key relationships                                                                                  |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `STUDY_SCREEN_QNAIRE`        | Questionnaire header; sequence primary key, `STUDY_ID` foreign key to `STUDY`, integer `VERSION`               |
+| `STUDY_SCREENING_QUESTION`   | Ordered questions; sequence primary key and `QUESTIONNAIRE_ID` foreign key with cascade delete                 |
+| `STUDY_SCR_QUES_OPTION`      | Ordered response choices; sequence primary key and question foreign key with cascade delete                    |
+| `VOL_SCR_QUESTION_ANSWER`    | Participant answer; sequence primary key plus `USER_ID`, `STUDY_ID`, question ID, answer text, and answer date |
+| `VOL_QSTN_ANSWR_SLCTD_OPTNS` | Composite-key join table connecting one answer to selected options                                             |
 
-Questionnaire answers:
+Questionnaire deletion cascades to questions. Question deletion cascades to options and answers.
+Deleting an answer or option cascades the applicable selected-option joins. Account deletion cascades
+participant answers. Study deletion cascades questionnaire definitions but the answer table's direct
+`STUDY_ID` foreign key is restrictive; dependent answers must be removed through question cascades or
+application deletion ordering.
 
-- Are not used by matching
-- Are not used to resolve partial eligibility
-- Are shown to authorized study team members
-- Are included in CSV exports
+The current schema does not declare a database unique constraint on `STUDY_SCREEN_QNAIRE.STUDY_ID`.
+The application queries as though one questionnaire per study exists and would fail on multiple
+results. Treat zero-or-one questionnaire per study as an application invariant rather than a
+database-enforced uniqueness fact.
 
-## Question types
+## Questions, choices, and ordering
 
-Supported question types are:
+A question stores:
 
-| Type             | Participant response         |
-| ---------------- | ---------------------------- |
-| Single-line text | Short free text              |
-| Paragraph text   | Longer free text             |
-| Checkboxes       | One or more selected options |
-| Multiple choice  | One selected option          |
-| Dropdown         | One selected option          |
+- `ORDER_NUM`
+- `EDITABLE`
+- `REQUIRED`
+- `TEXT`
+- `HELP_TEXT`
+- `INPUT_TYPE`
 
-Each question may include:
+Questions are returned in ascending `ORDER_NUM`. Response choices similarly store `ORDER_NUM` and
+`TEXT` and are returned in display order.
 
-- Question text
-- Optional help text
-- Required or optional status
-- Display order
-- Response options when required by the question type
+Current participant rendering supports free text and option selections. Profile-backed questions are
+represented in the participant payload as `VOLUNTEER_PROFILE`; their values are persisted through the
+ordinary profile-property tables rather than `VOL_SCR_QUESTION_ANSWER`. User-defined study questions
+persist in the answer tables.
 
-## Active-study editing restriction
+## Current authoring behavior
 
-The questionnaire cannot be edited while the study is active.
+A study member may author questions while the study is inactive. The service rejects add, update,
+delete, and reorder operations while `Study.isActive()` is true.
 
-## Inactive-study editing
+The application allows:
 
-While the study is inactive, study team members may:
+- adding questions;
+- changing question text, help text, and required status;
+- adding response choices;
+- changing or removing choices in the submitted model;
+- deleting questions; and
+- reordering questions.
 
-- Add questions
-- Edit question text
-- Edit help text
-- Change required status
-- Reorder questions
-- Add response options
-- Edit response-option text
-- Delete response options
-- Delete questions
+The service does not replace `INPUT_TYPE` while updating an existing question, so question type is
+effectively fixed after creation.
 
-Question type cannot be changed after creation.
+The study-team interface disables editing or deleting an existing choice when answer count for the
+question is greater than zero, while still allowing new choices. This client guard is important
+because the service's update merge can remove choices omitted from a request.
 
-## Response deletion effects
+## Authorization concerns
 
-Deleting a response option:
+The staff URL namespace requires an authenticated `ADMIN` or `STAFF` role. GET, DELETE, reorder PATCH,
+and answer-count paths also call study-level authorization.
 
-- Deletes stored answers selecting that option
-- Does not delete the complete questionnaire submission
-- Does not delete unrelated answers
+The question-creation POST and question-update PUT handlers do not call `checkStudyAccess`, and their
+service methods do not verify study membership. Therefore any authenticated staff account can
+currently attempt those operations for an inactive study ID. This is a known backend authorization
+gap, not an intended business rule.
 
-Deleting a question:
+## Version and concurrency control
 
-- Requires confirmation
-- Deletes answers associated with that question
+`STUDY_SCREEN_QNAIRE.VERSION` is a JPA `@Version` field. Study-team GET responses expose it as an
+`ETag`; authoring calls supply `If-Match`.
 
-Questionnaires and answers are not versioned.
+Questionnaire updates use a pessimistic force-increment lock together with the version field.
+Application code also compares expected and actual versions on selected paths. A stale operation is
+returned as precondition failure where the controller handles the locking exception.
 
-## Concurrent editing
+The participant submission also sends `If-Match`. A stale or missing questionnaire causes
+precondition failure, forcing a refresh before interest can be finalized.
 
-When multiple study members edit the questionnaire concurrently:
+This version is a concurrency counter, not a historical questionnaire version. No definition
+snapshot or version history is retained.
 
-1. The first valid submission succeeds.
-1. A later stale submission is rejected.
-1. The later editor must refresh.
-1. Unsaved changes from the rejected edit are not preserved.
+## Participant submission and answers
 
-## Participant submission
+The participant submits one form containing profile-backed and study-specific questions.
 
-The questionnaire is displayed in the same show-interest form as the temporal profile review.
+For a user-defined answer:
 
-When a questionnaire exists:
+- free text is stored in `ANSWER_VALUE`; or
+- one answer row links to one or more selected choices through
+  `VOL_QSTN_ANSWR_SLCTD_OPTNS`;
+- `ANSWER_DATE`, `USER_ID`, `STUDY_ID`, and question ID are stored.
 
-- Required questions must be answered
-- Optional questions may be unanswered
-- The complete form is submitted in one request
-- Questionnaire capture and interest creation occur in one transaction
+Blank optional responses create no answer row. Participants cannot save a partial submission or edit
+submitted answers through the current interface.
 
-Participants cannot save and resume an incomplete show-interest questionnaire.
+## Definition changes and historical reconstruction
 
-Participants cannot edit submitted answers.
+Deleting a question explicitly deletes its existing answer rows before deleting the question.
+Selected-option joins are then removed by cascade.
 
-## Export contents
+When a response choice is deleted, database cascade removes selected-option joins referencing that
+choice. The parent answer row can remain, potentially with no selected choices. Existing free-text
+answers are unaffected.
 
-Authorized study team members may export:
+Question text and option text are mutable in place, and answers do not retain snapshots of the text
+shown at submission. Exports and profile display join answers to the current question and option
+definitions. Consequently:
 
-- All visible participant profile fields
-- Contact information
-- Questionnaire answers
-- Interested-participant workflow-list information
-- Applied labels
+- later text edits change the label or option text used to interpret old answers;
+- deleted definitions and deleted answer links cannot be reconstructed from these tables;
+- the questionnaire concurrency version cannot recreate a historical questionnaire; and
+- complete historical reconstruction requires an external archive or audit source not established in
+  the reviewed application.
 
-## Export availability
+## Interested-participant export
 
-Historical interested-participant data may be exported while `PUBLISHABLE = 1`, including when the
-study is inactive by date.
+The export endpoint requires study membership or administrator access and `PUBLISHABLE = 1`. It
+streams CSV directly to the response and creates no retained server-side export file.
 
-Participant deactivation hides that participant's information from new exports.
+Rows are selected through the interested-participant query, which requires an active quick profile.
+The exporter then reads full participant data from the handling process's active-user store.
 
-`PUBLISHABLE = 0` blocks participant-data access and new exports.
+The CSV contains profile and contact fields, interest date, workflow status, labels, and
+questionnaire answers. Questionnaire columns use current question text; selected-choice values use
+current option text.
 
-Exports are generated in memory and streamed to the browser.
+Known implementation concerns:
 
-The application does not retain a server-side export file or definitive export audit event.
+- The exporter assumes a questionnaire exists and calls `getQuestions()` without a null guard.
+- An answer whose question was removed from the current definition cannot be mapped by the current
+  export code.
+- Free-text and selected-option values receive a trailing tab intended to reduce spreadsheet
+  auto-conversion, but there is no general formula-injection neutralization.
+- The active-user store is process-local, so stale local profile data can affect a generated export.
+- No definitive export audit event is created by this endpoint.
 
-Downloaded files cannot be recalled.
+Downloaded files cannot be recalled. Export-file handling after download is outside application
+control.
+
+## Audit and retention
+
+Participant list and profile views create PHI audit events. No questionnaire-definition change audit,
+answer-change history, export event, or historical definition snapshot was found.
+
+Retention periods for questionnaire definitions, answers, and downloaded exports remain policy and
+deployment questions.
 
 ## Related pages
 
 - [Expressions of Interest](expressions-of-interest.md)
 - [Interested-Participant Management](interested-participant-management.md)
-- [Study Lifecycle](../05-study-management/study-lifecycle.md)
+- [Operational Schema](../07-data-model/operational-schema.md)
 - [PHI Audit](../08-operations/phi-audit.md)

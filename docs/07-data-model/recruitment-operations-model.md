@@ -11,135 +11,120 @@ canonical_for:
 
 # Recruitment Operations Model
 
-This page records confirmed functional relationships. Exact physical table and column names are
-shown only when known.
+This page maps the recruitment-operation relationships confirmed in the physical schema. Functional
+behavior remains on the corresponding recruitment pages.
 
-## Interested participant
-
-`STUDY_VOLUNTEER` associates a participant with a study after successful expression of interest.
-
-Known relationship:
-
-```text
-STUDY_VOLUNTEER
-→ STUDY
-→ APP_USER participant
-```
-
-The row also provides the interested-participant relationship used by messaging and workflow
-management.
-
-## Workflow list
-
-One `STUDY_VOLUNTEER` belongs to one fixed workflow list at a time:
-
-```text
-NEW
-ELIGIBLE
-INELIGIBLE
-PENDING
-```
-
-`ALL` is a query view rather than a stored membership.
-
-## Labels
-
-Labels are study-specific, many-to-many tags applied to `STUDY_VOLUNTEER`.
-
-Conceptually:
+## Interested-participant relationship
 
 ```mermaid
 erDiagram
-    STUDY ||--o{ STUDY_VOLUNTEER : receives
-    APP_USER ||--o{ STUDY_VOLUNTEER : expresses
-    STUDY ||--o{ STUDY_LABEL : defines
-    STUDY_VOLUNTEER }o--o{ STUDY_LABEL : tagged_with
+    APP_USER ||--o{ STUDY_VOLUNTEER : expresses_interest
+    STUDY ||--o{ STUDY_VOLUNTEER : receives_interest
+    STUDY_VOLUNTEER }o--o{ VOLUNTEER_LABEL : tagged_with
+    STUDY ||--o{ VOLUNTEER_LABEL : defines
+    STUDY_VOLUNTEER ||--o{ USER_MESSAGE : scopes
 ```
 
-Exact label-table names must be verified.
+`STUDY_VOLUNTEER` has a sequence primary key and a unique `(USER_ID, STUDY_ID)` constraint. It stores
+the interest date, current fixed workflow status, and status-update date.
 
-## Messages
+The fixed values are `NEW`, `ELIGIBLE`, `PENDING`, and `INELIGIBLE`. `ALL` is not stored.
 
-A conversation is scoped to:
+`STUDY_VOLUNTEER_LABEL` has a composite primary key joining `STUDY_VOLUNTEER` and
+`VOLUNTEER_LABEL`.
 
-- Study
-- Interested participant
-- Shared study team
+## Questionnaire definition and answers
 
-Messages identify:
-
-- Sender
-- `STUDY_VOLUNTEER` recipient relationship
-- Timestamp
-- Content
-
-Attachments and templates are study-specific.
-
-Exact table names must be verified.
-
-## Study notifications
-
-Notification configuration is scoped to:
-
-```text
-Study
-+ Event
-+ Shared frequency
-+ Selected recipients
+```mermaid
+erDiagram
+    STUDY ||--o| STUDY_SCREEN_QNAIRE : owns
+    STUDY_SCREEN_QNAIRE ||--o{ STUDY_SCREENING_QUESTION : contains
+    STUDY_SCREENING_QUESTION ||--o{ STUDY_SCR_QUES_OPTION : offers
+    APP_USER ||--o{ VOL_SCR_QUESTION_ANSWER : submits
+    STUDY ||--o{ VOL_SCR_QUESTION_ANSWER : receives
+    STUDY_SCREENING_QUESTION ||--o{ VOL_SCR_QUESTION_ANSWER : answers
+    VOL_SCR_QUESTION_ANSWER }o--o{ STUDY_SCR_QUES_OPTION : selects
 ```
 
-Recipients may include:
+The application assumes at most one questionnaire per study, but no database unique constraint on
+`STUDY_SCREEN_QNAIRE.STUDY_ID` was found.
 
-- Accepted study members
-- External email addresses
+`VERSION` is a concurrency counter. No definition-history table exists.
 
-Exact table names must be verified.
+Profile-backed fixed questions write ordinary participant profile properties. User-defined screening
+answers write `VOL_SCR_QUESTION_ANSWER`; selected choices use
+`VOL_QSTN_ANSWR_SLCTD_OPTNS`.
 
-## Active intervals
+Question and option deletion cascades can destroy the definition links needed to interpret historical
+answers. Current definitions, not submission-time snapshots, supply question and option text.
 
-`STUDY_ACTIVE_INTERVAL` records configured lifecycle ranges created or updated by direct study
-changes and imported publishability transitions.
+## Messages and derived conversations
 
-Conceptually:
-
-| Value               | Meaning                                           |
-| ------------------- | ------------------------------------------------- |
-| `STUDY_ID`          | Operational study                                 |
-| `ACTIVATION_DATE`   | Beginning of the recorded range                   |
-| `DEACTIVATION_DATE` | End of the recorded range                         |
-| `UPDATE_DATE`       | Time the interval row was last created or changed |
-
-These rows support lifecycle and notification queries. They are not a complete observation log of
-runtime state:
-
-- Pure passage across a posting date boundary does not itself write an interval row.
-- `BatchNotificationJob` queries interval rows but does not mutate them.
-- Process-local active membership is reconciled separately from `V_ACTIVE_STUDY`.
-
-Analyses must not assume that an interval-row write proves when every application server observed the
-study becoming active or inactive.
-
-## Total enrollment and archive date
-
-Both values are stored using the study-property model:
-
-```text
-STUDY
-→ STUDY_PROPERTY_VALUE
-→ ENTITY_PROPERTY
+```mermaid
+erDiagram
+    STUDY_VOLUNTEER ||--o{ USER_MESSAGE : conversation
+    APP_USER ||--o{ USER_MESSAGE : sends
+    USER_MESSAGE }o--o{ ATTACHMENT : includes
+    STUDY ||--o{ ATTACHMENT : owns
+    STUDY ||--o{ MESSAGE_TEMPLATE : defines
+    APP_USER ||--o{ MESSAGE_TEMPLATE : creates
+    MESSAGE_TEMPLATE }o--o{ ATTACHMENT : includes
 ```
 
-Relevant logical properties include:
+There is no physical conversation table. One conversation is all `USER_MESSAGE` rows sharing a
+`STUDY_VOLUNTEER_ID`.
 
-```text
-Enrollment number
-Archived date
-```
+`USER_MESSAGE.STATUS` is `READ` or `UNREAD`. It is one shared directional status, not a per-reader
+receipt.
+
+`MESSAGE_ATTACHMENT` and `MESSAGE_TEMPLATE_ATTACHMENT` are composite-key joins. Attachment metadata
+is relational; bytes are stored in the application filesystem.
+
+## Query views
+
+- `V_CONVERSATION_FOR_STUDY_TEAM` derives one row per interested-participant conversation and includes
+  participant-to-study unread count and most recent received date.
+- `V_CONVERSATION_FOR_VOLUNTEER` derives participant inbox rows and staff-to-participant unread count.
+- Study synopsis views count enabled `NEW` interested participants and enabled-sender unread messages.
+
+These views depend on active-user state. Deactivated participants are hidden without deleting durable
+relationships or messages.
+
+## Ownership and deletion
+
+| Parent or action           | Confirmed effect                                                                                                    |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Delete participant account | Cascade answers; application deletes messages, label joins, and `STUDY_VOLUNTEER` before user deletion              |
+| Delete study               | Cascade questionnaire definitions and interested-participant rows; restrictive dependents require deletion ordering |
+| Delete questionnaire       | Cascade questions, options, answers, and selected-option joins                                                      |
+| Delete question            | Explicitly delete answers, then cascade options                                                                     |
+| Delete option              | Cascade selected-option joins; answer row may remain                                                                |
+| Delete label               | Cascade label assignments                                                                                           |
+| Delete attachment          | Cascade message/template attachment joins and delete external file                                                  |
+| Deactivate participant     | Retain relational data but hide it from active-profile query paths                                                  |
+
+## Transaction boundaries
+
+- Show interest uses one relational transaction for profile, answers, and interest creation, but
+  process-local memory, Redis, and email are not one atomic resource transaction.
+- Single message persistence and email notification execute in one Spring transaction, but external
+  email or queue side effects cannot be rolled back.
+- Bulk messages use one new transaction per participant.
+- Attachment database changes and filesystem operations are not atomic together.
+
+## Audit and historical limits
+
+Interested-participant list and profile reads create PHI audit rows. Workflow transitions, labels,
+questionnaire definition changes, answer history, message reads, and template changes have no complete
+dedicated audit established in this model.
+
+No historical questionnaire snapshots, workflow-transition history, per-reader message receipts,
+message edit history, or attachment-file reconciliation history exists.
 
 ## Related pages
 
+- [Expressions of Interest](../06-recruitment/expressions-of-interest.md)
+- [Questionnaires and Exports](../06-recruitment/questionnaires-and-exports.md)
 - [Interested-Participant Management](../06-recruitment/interested-participant-management.md)
 - [Messaging](../06-recruitment/messaging.md)
-- [Study Notifications](../05-study-management/study-notifications.md)
-- [Study Lifecycle](../05-study-management/study-lifecycle.md)
-- [PHI Audit](../08-operations/phi-audit.md)
+- [Operational Schema](operational-schema.md)

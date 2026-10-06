@@ -1586,67 +1586,97 @@ Still deployment-specific:
 Detailed physical documentation may be completed later. Until then, do not infer columns or foreign
 keys solely from table names.
 
-## SCHEMA-001: Interested participants
+## SCHEMA-001: Interested participants — application behavior resolved
 
-Document:
+`STUDY_VOLUNTEER` is the durable expression-of-interest and workflow relationship.
 
-```text
-STUDY_VOLUNTEER
-```
+Confirmed physical and application behavior:
 
-including:
+- Sequence primary key `ID`
+- Foreign keys from `USER_ID` to `APP_USER` and `STUDY_ID` to `STUDY`
+- Unique `(USER_ID, STUDY_ID)`, enforcing one interest relationship per pair
+- Interest timestamp, current workflow status, and status-update timestamp
+- Fixed status values `NEW`, `ELIGIBLE`, `PENDING`, and `INELIGIBLE`
+- `ALL` is an aggregate query, not stored state
+- Active-profile list, statistics, and export queries hide deactivated participants without deleting
+  the row
+- Labels use `VOLUNTEER_LABEL` and composite-key `STUDY_VOLUNTEER_LABEL`
+- Participant list and profile reads create PHI audit events
+- Hard deletion deletes messages first, then label joins and `STUDY_VOLUNTEER`
 
-- Primary key
-- Study foreign key
-- Participant foreign key
-- Workflow-list storage
-- Interest timestamp
-- Eligibility state, if stored
-- Unread-message count, if stored
-- Uniqueness constraints
+Show interest is a required relational transaction, but process-local memory, Redis exclusions, and
+email are not one atomic resource transaction. The duplicate-submit handler catches a data-integrity
+exception, continues to undismiss, and can report success; this is a known implementation concern.
 
-## SCHEMA-002: Questionnaires
+Known authorization concern: the interested-participant PATCH URL requires a staff or administrator
+role and CSRF protection but does not call study-membership or publishability authorization. This is
+not intended permission.
 
-Confirm the columns and relationships among:
+No separate enrollment state, withdrawal state, status history, transition actor, transition reason,
+or retention period is stored.
 
-```text
-STUDY_SCREEN_QNAIRE
-STUDY_SCREENING_QUESTION
-STUDY_SCR_QUES_OPTION
-VOL_SCR_QUESTION_ANSWER
-VOL_QSTN_ANSWR_SLCTD_OPTNS
-```
+## SCHEMA-002: Questionnaires — application behavior resolved
 
-Determine:
+Confirmed physical schema:
 
-- Questionnaire-to-study cardinality
-- Question order
-- Question type storage
-- Required status
-- Option order
-- Free-text answer storage
-- Selected-option storage
-- Submission ownership
+- `STUDY_SCREEN_QNAIRE`: questionnaire header, study reference, and concurrency `VERSION`
+- `STUDY_SCREENING_QUESTION`: ordered question, required/editable flags, text, help text, and input
+  type
+- `STUDY_SCR_QUES_OPTION`: ordered response choices
+- `VOL_SCR_QUESTION_ANSWER`: user, study, question, answer date, and free-text answer
+- `VOL_QSTN_ANSWR_SLCTD_OPTNS`: composite-key answer-to-option selections
 
-## SCHEMA-003: Messaging
+Definitions cascade from study to questionnaire, question, and option. Question deletion explicitly
+deletes answer rows. Option deletion cascades selected-option joins and can leave the parent answer row
+without a selection. User deletion cascades answers.
 
-Confirm the columns and relationships among:
+`VERSION` and `If-Match` provide concurrency control but no historical questionnaire version.
+Question and option text are mutable in place; answers do not retain submission-time text snapshots.
+Current display and export use current definitions, so deleted or changed definitions limit historical
+reconstruction.
 
-```text
-USER_MESSAGE
-MESSAGE_TEMPLATE
-MESSAGE_ATTACHMENT
-MESSAGE_TEMPLATE_ATTACHMENT
-```
+Profile-backed fixed questions update ordinary profile-property tables. User-defined study questions
+write the answer tables.
 
-Determine:
+Known authorization concern: staff URL security applies, but question POST and PUT do not call
+study-level membership authorization. DELETE, reorder PATCH, answer-count, and questionnaire GET do.
+This is a backend authorization gap, not intended behavior.
 
-- Conversation scoping
-- Sender and recipient references
-- `STUDY_VOLUNTEER` relationship
-- Attachment storage
-- Template ownership
-- Deletion behavior
+Definition-change audit, answer history, external definition archives, and retention requirements
+remain unestablished.
+
+## SCHEMA-003: Messaging — application behavior resolved
+
+`USER_MESSAGE` is the durable in-application message table. A conversation is derived from all
+messages sharing one `STUDY_VOLUNTEER_ID`; no conversation table exists.
+
+Confirmed schema and behavior:
+
+- Message sequence primary key, sender, interested-participant relationship, body, sent timestamp, and
+  `READ` or `UNREAD`
+- Restrictive foreign keys to sender and `STUDY_VOLUNTEER`
+- `MESSAGE_ATTACHMENT` composite-key join to reusable study-owned `ATTACHMENT`
+- Study-specific `MESSAGE_TEMPLATE` with unique `(STUDY_ID, TYPE, NAME)`
+- `MESSAGE_TEMPLATE_ATTACHMENT` composite-key join
+- Conversation views derive shared study-team and participant inbox summaries
+- Fetching a conversation marks messages addressed to the logged-in side as `READ`
+- Read state is shared for the study team; no reader identity or read timestamp exists
+- Message sending requires sender identity, interest, and staff study membership where applicable
+- Message send does not independently enforce study publishability
+- Single-message persistence and notification run in one Spring transaction, but external email or
+  queue effects cannot be rolled back
+- Bulk messages use one new transaction per participant
+- Hard participant deletion removes messages before the interest relationship
+
+Attachment metadata is relational while bytes are filesystem state. Creation writes the file before
+the row; deletion removes the row and file in one service call, but database and filesystem are not
+atomic. No automatic orphan reconciliation was found.
+
+Current client validation allows any file type and limits size to 5 MB; the reviewed backend service
+does not independently enforce those controls.
+
+No separate message audit, message edit/delete history, per-reader receipt, retained template link, or
+application-enforced retention period is established.
 
 ## SCHEMA-004: Labels
 

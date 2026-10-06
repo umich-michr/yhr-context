@@ -10,39 +10,26 @@ relevant_when:
 
 # Operational Schema
 
-This page provides a compact map of operational storage.
-
-Use the specialized schema pages for field-level detail.
+This page is the compact physical-storage map for operational identities, studies, recruitment,
+questionnaires, messaging, and audit evidence.
 
 ## Identity and access
 
-Operational identity and authorization include:
-
 ```text
 APP_USER
-UMCS_USER
+DB_USER_AUTH_DETAIL
+USER_ROLE
+VOLUNTEER_PROFILE
+CONTACT_INFO
+LOVED_ONE
 STUDY_TEAM_MEMBER
 STUDY_TEAM_INVITATION
-LOVED_ONE
 ```
 
-For institutional identities:
-
-```text
-APP_USER.USER_NAME
-=
-SAML ePPN attribute value
-```
-
-See:
-
-- [Institutional Users](../04-users-and-access/institutional-users.md)
-- [Study Membership](../04-users-and-access/study-membership.md)
-- [Participant Account and Consent Model](participant-account-consent-model.md)
+See [Participant Account and Consent Model](participant-account-consent-model.md) and
+[Study Membership](../04-users-and-access/study-membership.md).
 
 ## Studies and lifecycle
-
-Study data includes:
 
 ```text
 STUDY
@@ -51,185 +38,120 @@ STUDY_PROPERTY_VALUE
 ENTITY_PROPERTY
 ```
 
-Active status is derived from publishability and activation boundaries.
+Active matching membership is derived through `V_ACTIVE_STUDY`. Archive and enrollment values use the
+study-property model.
 
-Archive state and total enrollment are stored through study properties.
+## Eligibility and recommendations
 
-See:
+Eligibility and participant interests use the criterion tables. Current recommendations and
+exclusions use Redis keys documented in the Redis model; Redis is not the authoritative
+interested-participant store.
 
-- [Study Lifecycle](../05-study-management/study-lifecycle.md)
-- [Study Archiving](../05-study-management/study-archiving.md)
-- [Study Property Model](study-property-model.md)
-
-## Criteria
-
-Eligibility and participant study interests use:
-
-```text
-STUDY_ELIGIBILITY_CRITERION
-FIND_STUDIES_CRITERION
-CRITERION_CLAUSE
-CRITERION_CLAUSE_EXPRESSION
-CRITERION_VARIABLE
-CRIT_CLAUSE_EXPRESSION_VALUE
-EXPRESSION_VALUE_LOOKUP_VALUE
-LOOKUP_VALUE
-```
-
-See [Criteria Data Model](criteria-data-model.md).
-
-## Recommendations
-
-Current recommendations and exclusions are stored in Redis:
-
-```text
-vol.rec
-std.rec
-vol.exc
-std.exc
-```
-
-See [Redis Match and Exclusion Model](redis-match-model.md).
-
-## Expressions of interest
-
-Successful show-interest processing creates:
+## Interested participants
 
 ```text
 STUDY_VOLUNTEER
+STUDY_VOLUNTEER_LABEL
+VOLUNTEER_LABEL
 ```
 
-The relationship supports:
+`STUDY_VOLUNTEER` has:
 
-- Workflow-list membership
-- Questionnaire submission
-- Labels
-- Messaging
-- Export
+- sequence primary key `ID`;
+- foreign keys to `APP_USER` and `STUDY`;
+- unique `(USER_ID, STUDY_ID)`;
+- interest and status timestamps; and
+- one current status: `NEW`, `ELIGIBLE`, `PENDING`, or `INELIGIBLE`.
+
+`STUDY_VOLUNTEER_LABEL` is the composite-key assignment table.
 
 See [Recruitment Operations Model](recruitment-operations-model.md).
 
 ## Questionnaires
 
-A study may have zero or one questionnaire.
-
-Questionnaire storage includes concepts such as:
-
 ```text
-Questionnaire
-Question
-Response option
-Questionnaire submission
-Question response
+STUDY_SCREEN_QNAIRE
+STUDY_SCREENING_QUESTION
+STUDY_SCR_QUES_OPTION
+VOL_SCR_QUESTION_ANSWER
+VOL_QSTN_ANSWR_SLCTD_OPTNS
 ```
 
-Exact physical names remain to be documented.
+`STUDY_SCREEN_QNAIRE.VERSION` provides optimistic-concurrency state, not historical versions.
+Question and option ordering are physical columns.
 
-See [Questionnaires and Exports](../06-recruitment/questionnaires-and-exports.md).
+User-defined answers contain user, study, question, answer date, and either free text or selected
+options. Fixed profile-backed questions persist through participant profile-property tables instead.
 
-## Messaging and notifications
+No database unique constraint on questionnaire `STUDY_ID` or historical definition snapshot was found.
 
-Messaging storage includes:
-
-- Messages
-- Study-specific templates
-- Stored attachments
-- Message attachments
-
-Notification storage includes:
-
-- Study
-- Event
-- Shared frequency
-- Study-member recipients
-- External recipients
-
-Exact physical table names remain to be documented.
-
-See:
-
-- [Messaging](../06-recruitment/messaging.md)
-- [Study Notifications](../05-study-management/study-notifications.md)
-- [Recruitment Operations Model](recruitment-operations-model.md)
-
-## Consent
-
-Consent uses:
+## Messaging
 
 ```text
-USER_AGREEMENT
-USER_AGREEMENT_AUDIT
+USER_MESSAGE
+MESSAGE_ATTACHMENT
+ATTACHMENT
+MESSAGE_TEMPLATE
+MESSAGE_TEMPLATE_ATTACHMENT
+V_CONVERSATION_FOR_STUDY_TEAM
+V_CONVERSATION_FOR_VOLUNTEER
 ```
 
-See [Participant Account and Consent Model](participant-account-consent-model.md).
+A conversation is derived from messages sharing `STUDY_VOLUNTEER_ID`; no conversation table exists.
+`USER_MESSAGE` stores sender, body, timestamp, shared `READ` or `UNREAD` status, and the
+interested-participant relationship.
 
-## PHI audit
-
-Participant-data access uses:
-
-```text
-PHI_AUDIT
-```
-
-See [PHI Audit](../08-operations/phi-audit.md).
-
-## Study-posting authoring telemetry
-
-Study-posting attempts and optional AI generation use:
-
-```text
-APPLICATION_SETTING
-STUDY_POSTING_AUDIT
-STUDY_POSTING_GENERATION_AUDIT
-STUDY_POSTING_GENERATION_AUDIT_ERROR
-```
-
-See [Study-Posting Authoring Audit Model](study-posting-authoring-audit-model.md).
+Attachment metadata is relational. File bytes are external filesystem state. Message and template
+join rows cascade when an attachment is deleted.
 
 ## Generated exports
 
-CSV exports are streamed to the browser.
+Interested-participant CSV is generated from:
 
-The application does not retain:
+- active interested-participant query results;
+- the handling process's active-user store;
+- current questionnaire definitions and answer rows; and
+- current labels and workflow status.
 
-- Relational export jobs
-- Server-side export files
-- Definitive export audit events
+The response is streamed to the browser. No relational export job, retained server-side CSV, or
+definitive export audit event is created.
 
-## Related pages
+## PHI and application audit
 
-- [Relationship Model](relationship-model.md)
-- [Data-Model Overview](index.md)
+```text
+PHI_AUDIT
+APPLICATION_ERROR
+LOGIN_AUDIT
+USER_AGREEMENT_AUDIT
+EMAIL_LOG
+```
+
+Interested-participant list and profile reads create PHI audit evidence. Recruitment workflow changes,
+labels, questionnaire definition history, message reads, and exports do not have complete dedicated
+audit records established by the reviewed paths.
+
+## Deletion and retention boundaries
+
+Foreign-key cascades remove many dependent rows on account, study, question, option, label, message,
+or attachment deletion. Restrictive message and relationship foreign keys require explicit
+application deletion ordering.
+
+Participant deactivation is not deletion. Active-profile queries hide the participant while durable
+interest, answer, and message rows remain.
+
+The schema does not encode institutional retention periods. Filesystem attachment retention and
+orphan reconciliation are also operational concerns outside relational constraints.
 
 ## Email attempt log
 
-`EMAIL_LOG` stores local application email-attempt evidence.
+`EMAIL_LOG` stores selected direct-client success or failure evidence after recipient rewriting. It
+does not prove mailbox delivery, and successful JMS queue submissions are not logged there.
 
-Columns include:
+See [Audit and Monitoring](../08-operations/audit-and-monitoring.md).
 
-- Status: `SUCCESS` or `FAILURE`
-- Attempt timestamp
-- Sender and reply-to
-- To, Cc, and Bcc recipients
-- Subject
-- Body
+## Related pages
 
-The stored message is the rewritten message after recipient rewriting.
-
-For non-JMS clients, `SUCCESS` means the configured client returned without an
-observed exception. It does not mean the recipient mailbox accepted, displayed,
-or retained the message. Console-client success records do not represent an
-external send.
-
-The JMS profile does not write successful queue submissions to this table.
-Downstream queue-consumer and mail-provider records are outside this
-application.
-
-`FAILURE` rows are created when a `SendEmailException` reaches the web
-controller exception advice. The table has no event identifier, transport
-message identifier, queue identifier, bounce status, delivery timestamp, retry
-counter, maximum-attempt marker, or error details.
-
-The hourly resend job reads every `FAILURE` row. After a successful direct-client
-retry it changes that row to `SUCCESS`; after a successful JMS queue submission
-it deletes the old row.
+- [Data-Model Overview](index.md)
+- [Recruitment Operations Model](recruitment-operations-model.md)
+- [Questionnaires and Exports](../06-recruitment/questionnaires-and-exports.md)
+- [Messaging](../06-recruitment/messaging.md)
