@@ -175,6 +175,41 @@ readers, read timestamps, failed notification attempts, edits, or deleted messag
 
 Retention duration for messages and files remains an institutional policy question.
 
+## Attachment security and lifecycle
+
+**Current implementation:** Attachment metadata is stored relationally while bytes are written under
+the configured work directory's `attachments` path. Upload and listing require study access. Rename,
+delete, and download use attachment-specific authorization for the study and attachment identifier.
+The reviewed path establishes study-level authorization, not a creator-only ownership rule.
+
+The stored filename is a SHA3-256 digest of the attachment creation timestamp with the original
+extension appended. This avoids using the submitted basename as the stored basename, but it is not a
+content-security, encryption, or secrecy control.
+
+The study-team client rejects files larger than 5 MiB. Although the generic file service can validate
+size, the reviewed attachment upload service does not invoke that validator. No attachment-specific
+backend enforcement was established for allowed extensions, declared or detected content type,
+extension-content agreement, malware scanning, quarantine, archive inspection, active content, or
+decompression limits. Download MIME type is guessed from the file stream and falls back to
+`application/octet-stream`; that download behavior is not upload validation.
+
+**Known implementation concern:** Filesystem and relational changes are not atomic. Creation writes
+the file before saving metadata, so a later database failure can leave an orphaned file. Deletion
+removes metadata and then attempts file deletion. The file helper logs deletion failure without
+propagating it, so metadata deletion can commit while bytes remain. No automatic attachment-orphan
+reconciliation or retry was established.
+
+Deletion is an attempted hard deletion of current metadata and current filesystem bytes. No recycle
+bin, tombstone, restore workflow, or dedicated upload, rename, download, or delete audit was found.
+Generic age-based file deletion support exists, but reviewed evidence does not establish that it is
+scheduled for attachments.
+
+**Deployment-specific facts and open decisions:** Filesystem or volume encryption, service-account
+permissions, backup encryption and retention, external malware scanning, replication, monitoring, and
+secure disposal must be verified per environment. Authoritative server-side size and content rules,
+retention, deletion guarantees, orphan reconciliation, lifecycle auditing, and creator-versus-study
+member deletion policy remain institutional security and privacy decisions.
+
 ## Related pages
 
 - [Interested-Participant Management](interested-participant-management.md)

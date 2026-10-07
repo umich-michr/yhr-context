@@ -147,6 +147,29 @@ controls include:
 
 These optional controls should not be described as current requirements unless implemented.
 
+## Invitation lifecycle evidence
+
+**Current implementation:** A live invitation row records token type, inviter user ID, creation time,
+expiration time, recipient metadata, and, for a study-team invitation, study ID. Resending reuses the
+same token, replaces its expiration, preserves its creation date, and sends another email.
+
+The live row is operational state rather than durable lifecycle history:
+
+- resend does not retain a resend count, previous expiration, resend time history, or resending actor;
+- revocation deletes the row;
+- successful study-team acceptance deletes the row after membership creation;
+- scheduled expiration cleanup deletes expired rows; and
+- no dedicated event was established for creation, resend, revocation, acceptance, or expiration.
+
+Email evidence may support investigation of a send attempt but does not form a complete invitation
+ledger. Because links are transferable, the authenticated accepter can differ from the intended email
+recipient. Any future acceptance event must distinguish inviter, intended recipient, and accepting
+identity.
+
+**Open decision:** Historical invitation security events, their fields, access controls, and retention
+remain institutional security, privacy, and product decisions. Audit records must not retain raw
+invitation tokens.
+
 ## Related pages
 
 - [Study membership](study-membership.md)

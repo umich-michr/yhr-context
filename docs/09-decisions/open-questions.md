@@ -1726,61 +1726,131 @@ See [Study notifications](../05-study-management/study-notifications.md), [Opera
 
 See [Ask if interested](../06-recruitment/ask-if-interested.md), [Matching and visibility](../06-recruitment/matching-and-visibility.md), [Operational schema](../07-data-model/operational-schema.md), [Recruitment operations model](../07-data-model/recruitment-operations-model.md), and [Redis match model](../07-data-model/redis-match-model.md).
 
+# Phase 11: Audit, Export, and Security Controls
+
 ## AUDIT-001: Export auditing
 
-Should CSV export generation receive a dedicated audit event?
+**Status: application behavior resolved; audit policy remains open.**
 
-Current documentation says it is not separately audited.
+Interested-participant CSV is authorized through the interested-participant study-access check and is
+streamed directly to the browser. The application retains neither an export-job entity nor a
+server-side output file and creates no definitive export audit event.
 
-Determine whether request logs provide sufficient operational evidence.
+List and profile PHI events, request logs, and timestamps provide only indirect investigative
+correlation. They do not prove request completion, returned participant scope or fields, failure after
+headers were committed, or handling of the downloaded file.
+
+Whether to add a dedicated export event, and its actor, study, source address, scope or count, result,
+and failure semantics, remains an institutional privacy, security, and product decision.
 
 ## AUDIT-002: CSV formula injection
 
-Determine whether participant-data exports protect spreadsheet users from formula injection in
-values beginning with characters such as:
+**Status: implementation gap established; remediation policy remains open.**
 
-```text
-=
-+
--
-@
-```
+Super CSV performs structural quoting but does not neutralize spreadsheet formulas. Questionnaire
+answer values receive a trailing tab intended to reduce spreadsheet type or date conversion. That does
+not neutralize a leading equals sign, plus sign, minus sign, or at sign.
 
-If not, determine whether the risk is accepted or remediation is required.
+Fixed profile and contact values, labels, questionnaire headers, current option text, and free-text
+answers do not pass through one general formula-control policy. Current tests do not cover malicious
+formula-leading headers or values.
+
+Whether remediation is required and which neutralization contract to apply remain security and
+product decisions. Any remediation must cover every exported header and cell and include tests for
+each supported formula-leading character.
 
 ## AUDIT-003: Job auditing
 
-Determine whether administrative job changes and manual executions require dedicated audit events.
+**Status: application behavior resolved; audit policy and deployment controls remain open.**
+
+Administrator schedule changes and manual execution require `ADMIN`. Schedule changes persist a new
+cron expression and recreate the local Quartz job and trigger. Manual execution invokes Quartz with
+supplied parameters.
+
+The application writes log messages but no dedicated durable action record containing actor, target
+job, parameters, prior and new schedule, request and completion times, outcome, counts, or process
+identity. Quartz's previous fire time is not proof of business success. Scheduler infrastructure
+errors and selected application errors are failure evidence, not a complete execution ledger.
+
+Whether control-action and job-run events are required remains an institutional security and
+operations decision. Effective schedules, time zone, server topology, external concurrency controls,
+centralized logging, and retention remain deployment-specific.
 
 ## AUDIT-004: Invitation auditing
 
-Determine whether invitation creation, resend, revocation, and acceptance should be retained as
-historical security events.
+**Status: application behavior resolved; historical-audit and retention policy remain open.**
+
+A live invitation row temporarily retains inviter, recipient metadata, creation, expiration, type,
+and applicable study. Resending reuses the token and replaces expiration without retaining resend
+history. Revocation, successful acceptance, and expiration cleanup delete the live row.
+
+No dedicated historical event was established for invitation creation, resend, revocation,
+acceptance, or expiration. Email evidence is partial and does not form a complete lifecycle ledger.
+Because invitation links are transferable, accepting identity may differ from intended recipient.
+
+Whether to retain historical security events, their fields, access controls, and retention remains an
+institutional security, privacy, and product decision. A future audit must not retain raw invitation
+tokens.
 
 ## AUDIT-005: Membership auditing
 
-Determine how PI replacement, ordinary member removal, and backend membership overrides are audited.
+**Status: Java application behavior resolved; unified audit and override policy remain open.**
+
+Ordinary membership creation and deletion change current `STUDY_TEAM_MEMBER` state without a dedicated
+history identifying actor, source, reason, prior and resulting role, notification effects, times, and
+outcome.
+
+Java CSV PI replacement writes selected `IMPORTED_STUDY_SYNC_LOG` evidence for membership
+reassignment, `piUserId`, duplicate-membership deletion, and identity changes. It lacks an immutable
+person identifier and direct upload, source-row, request, batch, or token correlation and does not
+prove complete cross-store success. U-M Oracle reconciliation is separate and requires database or
+deployment evidence.
+
+Whether ordinary changes, PI replacement, and authorized backend interventions require one durable
+audit model remains an institutional security and operations decision.
 
 ## AUDIT-006: Attachment security
 
-Determine:
+**Status: application behavior and gaps resolved; deployment and policy controls remain open.**
 
-- Malware scanning
-- Content-type validation
-- Storage encryption
-- Retention
-- Hard-deletion behavior
-- User deletion permissions
+The application stores relational metadata and filesystem bytes separately. Study or attachment
+authorization protects reviewed operations, but no creator-only deletion rule is established.
+
+The current attachment service does not independently enforce the client 5 MiB limit and does not
+establish extension allowlisting, content-type validation, extension-content agreement, malware
+scanning, quarantine, archive inspection, or active-content controls. Download MIME detection is not
+upload validation.
+
+Filesystem and database operations are non-atomic. Creation can leave bytes without metadata;
+deletion can remove metadata while file deletion fails and leaves an orphan. No automatic
+reconciliation, retry, recycle bin, tombstone, restore path, or dedicated lifecycle audit was found.
+
+Encryption, filesystem permissions, backup controls, external scanning, retention, secure disposal,
+authoritative content rules, deletion guarantees, orphan handling, audit requirements, and
+creator-versus-study-member deletion policy remain deployment, security, privacy, and institutional
+decisions.
 
 ## AUDIT-007: Backend overrides
 
-Identify the approval and audit process for backend changes to:
+**Status: reviewed application behavior resolved; approval and unified audit policy remain open.**
 
-- Membership
-- Publishability
-- Activation dates
-- Participant state
-- Job schedules
+No single backend-override mechanism exists. Privileged changes occur through imported reconciliation,
+administrator and Customer Support interfaces, ordinary authorized study workflows, settings and job
+administration, scheduled automation, and direct backend or database intervention.
+
+The reviewed application establishes no common approval process, dual authorization, ticket
+requirement, reason field, or durable override ledger spanning membership, publishability, activation
+dates, participant state, job schedules, and related settings.
+
+Publishability is normally institutionally governed; no general administrator interface for direct
+editing was established. Participant deactivation retains target, time, and reason, but reactivation
+deletes current deactivation evidence and service records do not identify the administrator actor for
+every path. Job controls lack durable action history. Direct backend and database changes remain
+outside ordinary application evidence.
+
+Approval, actor and approver identity, source channel, prior and resulting values, reason or ticket,
+outcome, correction linkage, sensitive-value handling, and retention remain institutional security
+and operations decisions.
 
 ______________________________________________________________________
 

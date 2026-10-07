@@ -193,6 +193,23 @@ When the study becomes non-publishable:
 - Historical interest relationships remain stored.
 - Previously downloaded CSV files cannot be recalled or invalidated by the application.
 
+## Privileged corrections and evidence
+
+Publishability changes should normally originate from the institutionally governed source and its
+documented reconciliation path. The reviewed application does not establish a general administrator
+interface for directly editing `PUBLISHABLE`. Institution-specific messaging that asks an
+administrator to review a study does not by itself prove a direct application override.
+
+Java CSV reconciliation writes selected before-and-after `IMPORTED_STUDY_SYNC_LOG` evidence for an
+operational publishability change. That evidence is not a general approval record and does not prove
+equivalent behavior for U-M Oracle reconciliation, direct database intervention, or external
+administrative controls.
+
+Any emergency correction outside the authoritative import path must be treated as an authorized
+operational intervention. Approval, actor attribution, reason or ticket reference, prior and resulting
+values, reconciliation back to the authoritative source, and retention remain institutional security
+and operations decisions.
+
 ## Related pages
 
 - [Imported Institutional Data](imported-data.md)

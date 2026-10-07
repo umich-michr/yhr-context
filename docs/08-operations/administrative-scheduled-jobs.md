@@ -235,6 +235,31 @@ Production retention of logs, authenticated-actor attribution, centralized
 collection, failure acknowledgement, and any external administrative audit
 remain deployment-specific. See [Audit and Monitoring](audit-and-monitoring.md).
 
+## Administrative control evidence
+
+**Current implementation:** Schedule replacement and manual execution require the application-wide
+`ADMIN` role. Schedule replacement updates `APPLICATION_JOB_SCHEDULE`, deletes the existing local
+Quartz job, and creates a replacement job and trigger. Manual execution calls Quartz `triggerJob(...)`
+with any supplied parameters.
+
+These actions emit application log messages but do not create a dedicated durable control-action
+record. No reviewed record consistently retains the authenticated actor, target job, supplied
+parameters, prior and new schedule, request time, completion time, result, processed or failed counts,
+or server and process identity.
+
+The administrator display's most-recent execution value is Quartz's previous trigger fire time. It is
+not proof that business work completed successfully. The scheduler listener persists scheduler
+infrastructure errors, but ignores ordinary scheduling lifecycle callbacks. Individual jobs emit
+different informational or debug messages, and selected failures may create `APPLICATION_ERROR`.
+Those signals are operational evidence, not a complete job-run ledger.
+
+**Deployment-specific facts:** Effective schedules, default time zone, server count, centralized log
+collection, external no-overlap controls, and log retention must be verified in each environment.
+Application Quartz jobs and Oracle Scheduler jobs have separate administration and evidence.
+
+**Open decision:** Whether schedule changes, manual triggers, and every job execution require durable
+control and run events remains an institutional security and operations decision.
+
 ## Oracle Scheduler jobs
 
 Oracle deployments may also define database-native jobs through

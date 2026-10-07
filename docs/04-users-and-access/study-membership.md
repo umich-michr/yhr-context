@@ -163,6 +163,29 @@ Administrators have application-wide access without ordinary study membership.
 
 Administrators cannot create study memberships through ordinary application UIs.
 
+## Membership-change evidence
+
+**Current implementation:** Ordinary membership creation and deletion update the current
+`STUDY_TEAM_MEMBER` state but do not create a dedicated membership-history record. Ordinary removal
+also removes the member from notification-recipient selections. No reviewed record consistently
+retains the acting user, reason or source, prior and resulting role, affected notification selections,
+request and completion times, or outcome.
+
+Java CSV PI reconciliation provides stronger but incomplete technical evidence.
+`IMPORTED_STUDY_SYNC_LOG` may retain the former and new application-user IDs on the reused PI
+membership, old and new `piUserId` values, deletion of an incoming PI's duplicate ordinary membership,
+and selected identity changes. It does not provide one immutable institutional-person identifier or a
+direct source-row, upload, request, transaction-batch, or token relationship, and it does not prove
+complete cross-store or notification success.
+
+The U-M Oracle reconciliation implementation is separate. Its effective membership evidence and
+deployment controls must not be inferred from the Java CSV path.
+
+**Open decision:** Whether ordinary membership changes, PI replacement, and authorized backend
+interventions require one durable audit model remains an institutional security and operations
+decision. Approval identity, executor identity, reason, ticket reference, retention, and correction
+linkage are not established application requirements.
+
 ## Related pages
 
 - [Institutional Users](institutional-users.md)

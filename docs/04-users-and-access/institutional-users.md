@@ -304,6 +304,41 @@ Administrator access to participant profiles is audited.
 
 Export actions, including administrator exports, are not separately audited.
 
+## Privileged changes and backend interventions
+
+There is no single reviewed backend-override mechanism. Privileged state changes use distinct paths:
+
+- imported institutional reconciliation;
+- administrator and Customer Support interfaces;
+- authorized study lifecycle interfaces;
+- administrator-managed settings and Quartz jobs;
+- scheduled automation; and
+- direct backend or database intervention outside ordinary application workflows.
+
+These paths must not be treated as one permission or one audit model. The application does not
+establish a common approval step, dual authorization rule, change-ticket requirement, reason field, or
+durable override ledger covering all of them.
+
+Customer Support can deactivate, reactivate, and hard-delete participant accounts through
+administrator workflows. Deactivation writes current `USER_DEACTIVATION` evidence with target, time,
+and reason. Reactivation deletes that row after enabling the account and restoring local active state,
+so the row is not a permanent deactivate-reactivate history. Service-level records do not themselves
+identify the administrator actor for every invocation.
+
+Administrators can also change application settings and manage application jobs. Reviewed evidence
+does not establish a dedicated setting-change history retaining actor, prior value, new value, reason,
+approval, outcome, and rollback relationship. This matters because settings can alter token lifetime,
+notification behavior, storage paths, and lifecycle timing.
+
+Publishability remains institutionally governed. No current general administrator interface for
+directly editing `PUBLISHABLE` was established by the reviewed paths. Institution-specific text
+requesting administrative review is user guidance, not evidence of a direct publishability-edit
+endpoint.
+
+**Open decision:** Emergency intervention and privileged-change procedures, approvals, audit fields,
+sensitive-value handling, retention, and reconciliation back to authoritative systems remain
+institutional security and operations decisions.
+
 ## Institutional account lifecycle
 
 Institutional identities are managed by institutional identity providers.

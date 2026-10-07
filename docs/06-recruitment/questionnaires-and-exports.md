@@ -158,6 +158,32 @@ Known implementation concerns:
 Downloaded files cannot be recalled. Export-file handling after download is outside application
 control.
 
+## Export security and audit interpretation
+
+**Current implementation:** The export controller verifies interested-participant study access, sets
+CSV response headers, and streams the generated content directly to the browser. Neither the
+controller nor the exporter creates a dedicated export audit event, export-job row, or retained
+server-side copy.
+
+Participant-list and profile-view PHI events and application request logs may support investigation
+by actor and time. They are indirect evidence and do not prove that an export completed, identify the
+exact fields or participant rows returned, distinguish failure after response headers were committed,
+or establish what happened to the downloaded file.
+
+**Known implementation concern:** Super CSV provides structural CSV quoting, but quoting is not
+spreadsheet-formula neutralization. Questionnaire free-text and selected-option values are
+HTML-unescaped and receive a trailing tab intended to discourage spreadsheet type or date conversion.
+A trailing tab does not neutralize a leading equals sign, plus sign, minus sign, or at sign. Fixed
+profile and contact values, labels, questionnaire headers, current option text, and free-text answers
+do not pass through one general formula-control policy. Current tests establish ordinary CSV output
+but do not exercise formula-leading malicious values.
+
+**Open decisions:** Whether export generation requires a dedicated event and whether exported headers
+and cells require formula-injection remediation are institutional privacy, security, and product
+decisions. A future event would need defined actor, study, source address, participant scope or count,
+request and completion times, result, and failure semantics. A future CSV contract should cover every
+exported header and cell and test every supported formula-leading character.
+
 ## Audit and retention
 
 Participant list and profile views create PHI audit events. No questionnaire-definition change audit,
