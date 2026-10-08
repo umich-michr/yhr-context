@@ -220,6 +220,14 @@ Conceptually:
 
 The values may be represented as configured strings or codes in a particular deployment.
 
+`USER_AGREEMENT` stores only the current type and version. It has no agreement-text column, content
+hash, immutable artifact identifier, effective or publication date, or archive reference. Agreement
+content is maintained as institution- and language-specific frontend HTML.
+
+The schema therefore cannot reconstruct the exact text associated with a version. If frontend content
+changes without a corresponding current-version change, the version comparison does not require
+reacceptance.
+
 ## Self and loved-one agreement treatment
 
 Self and loved-one participant workflows use the same participant agreement type and version:
@@ -283,10 +291,24 @@ Required acceptance exists =
 
 If no corresponding audit row exists, the user must review the current agreement.
 
-Acceptance creates a new audit row for the current type and version.
+Acceptance creates a new audit row for the current type and version. The backend supplies that current
+version when saving rather than accepting a client-selected version.
 
-The previous acceptance is historical evidence of an earlier version; it does not satisfy the
-current-version check.
+Multiple accepted versions can coexist for a username. The previous acceptance is historical evidence
+of an earlier version; it does not satisfy the current-version check. Username changes update the
+agreement-audit username.
+
+Administrator hard deletion explicitly removes agreement-audit rows for the deleted username. Parent
+deletion applies this cleanup to the parent and loved-one accounts; deleting one loved one leaves
+unrelated parent and sibling rows intact.
+
+No physical foreign key links an acceptance to an immutable agreement artifact, and no checked-in
+agreement-specific retention job, historical-definition table, or application-managed definition
+archive was established. Git history may retain earlier frontend text, but it is not an
+application-enforced or approved records archive.
+
+Legal, privacy, institutional records-retention, backup, deployment, and external archive requirements
+remain open owner decisions.
 
 ## Loved-one audit interpretation
 

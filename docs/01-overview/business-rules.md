@@ -152,6 +152,14 @@ than treating this page as a complete user manual.
    - `VOL`
    - `STM`
 1. When a participant accepts the current agreement, a new `USER_AGREEMENT_AUDIT` record is created.
+1. The backend records the current version; an acceptance row does not store or link to the rendered
+   agreement text.
+1. Agreement text is institution- and language-specific frontend content. Changing that content
+   without changing `USER_AGREEMENT.VERSION` does not itself trigger reacceptance.
+1. Multiple accepted versions may remain until account hard deletion, which explicitly removes the
+   target username's agreement-audit rows.
+1. Legal, privacy, institutional, backup, deployment, and external-definition retention requirements
+   are policy decisions not encoded by the agreement schema.
 1. When a participant declines:
    - The participant is warned that the current account context will be deactivated.
    - The participant must confirm the decision.

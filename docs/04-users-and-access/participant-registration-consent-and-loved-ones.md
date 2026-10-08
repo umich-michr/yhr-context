@@ -183,6 +183,15 @@ where:
 - `VOL` identifies the participant or volunteer agreement
 - `STM` identifies the study-team-member agreement
 
+The relational definition stores only the current type and version. It does not store the agreement
+text, a content hash, an immutable content identifier, an effective or publication date, or a reference
+to an archived definition. The rendered definitions are institution- and language-specific frontend
+HTML artifacts.
+
+Consequently, changing an agreement HTML artifact without also changing the applicable
+`USER_AGREEMENT.VERSION` does not itself trigger reacceptance. An acceptance row identifies the type
+and version selected by the backend, but cannot identify or reconstruct the exact rendered text.
+
 ## Self and loved-one agreement presentation
 
 Self and loved-one participant workflows use the same participant agreement type:
@@ -265,6 +274,22 @@ relationship context rather than from a separate agreement type.
 These rules identify the account to which acceptance is attributed. They do not record the rendered
 agreement wording or child-versus-adult presentation variant.
 
+Multiple accepted versions may coexist for one username. When a participant username changes, the
+application updates agreement-audit rows to the new username.
+
+Account deactivation does not remove agreement acceptance. Administrator hard deletion explicitly
+deletes all `USER_AGREEMENT_AUDIT` rows for the target username. Deleting an owning account also
+deletes the agreement-audit rows for its loved-one accounts; deleting one loved-one account preserves
+the owner's and siblings' rows.
+
+No agreement-specific duration-based cleanup job, retention schedule, historical-definition table, or
+application-managed immutable definition archive was established in checked-in source. Source-control
+history may contain earlier frontend text, but the application does not identify it as an approved
+records archive.
+
+Legal, privacy, institutional records-retention, backup, deployment, and external-definition archive
+requirements remain owner-controlled decisions outside the behavior established here.
+
 ## Agreement-version enforcement at login
 
 At login, the application compares:
@@ -344,11 +369,26 @@ If a study team member declines:
 
 After successful registration and required agreement processing:
 
-1. The application generates an expiring Java UUID token.
-1. The application sends an activation email to the communication address.
+1. The application generates an expiring Java UUID token associated with the owning registration
+   flow.
+1. The application sends the activation email to the shared communication address.
 1. The owner follows the activation link.
 1. The application validates the token and expiration.
-1. The applicable account becomes active.
+1. Self signup enables, authenticates, and records login evidence for the self-signing participant.
+1. Signup for a loved one enables both the owning and newly registered loved-one accounts.
+1. For signup for a loved one, the newly registered loved one becomes the automatic
+   post-activation represented and authenticated participant. The Spring Security principal,
+   HTTP-session security context, concurrent-session registration, login-time update, and
+   `LOGIN_AUDIT` user ID and username identify that loved-one account.
+1. The owner remains the related owning account and may be reached later through ordinary
+   account-context switching. The owner is not the automatic post-activation represented identity.
+1. Matching and recommendation initialization continues for both the owner and loved one.
+
+These identity statements describe current implementation. The activation token's owning-account
+association and the shared communication email do not determine which participant account is
+automatically represented after successful loved-one activation. `LOGIN_AUDIT` is login evidence for
+the represented account; it is not evidence of unrelated business actions. Later account switching is
+a separate workflow and records login evidence for the selected account context.
 
 ## Where did you learn about us?
 

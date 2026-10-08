@@ -336,13 +336,36 @@ Implementation caution: the current UI disables child-age-out reactivation using
 reason ID `261001`. The backend independently checks the semantic `CHILD_TURNED_ADULT` lookup and is
 authoritative if deployment IDs differ.
 
-## AGREEMENT-008: Agreement-definition and policy retention
+## AGREEMENT-008: Agreement-definition and policy retention — application behavior resolved; policy intentionally retained
 
-Hard deletion removes participant agreement-audit rows. Acceptance rows retain
-version strings, but this model does not store historical agreement text.
+**Status: current application behavior resolved; legal, privacy, institutional, backup, deployment,
+and external-definition retention requirements remain intentionally open for owner decision.**
 
-Determine audit retention, external definition archives, and institutional
-records-retention requirements.
+Current agreement text is maintained as institution- and language-specific frontend HTML.
+`USER_AGREEMENT` stores only the current agreement type and version; it does not store agreement text,
+a content hash, an immutable artifact identifier, effective or publication dates, or an archive
+reference.
+
+`USER_AGREEMENT_AUDIT` stores username, type, backend-selected current version, acceptance time, remote
+address, and user agent. Multiple accepted versions can coexist. Current acceptance requires any row
+for the username whose type and version match the current role-derived definition. Changing the current
+version therefore requires reacceptance, while changing frontend text without changing that version
+does not itself do so. An acceptance row cannot identify or reconstruct the exact rendered text.
+
+Username changes update agreement-audit usernames. Account deactivation retains acceptance history.
+Administrator hard deletion explicitly deletes agreement-audit rows for the target username. Parent
+deletion also removes rows for the parent's loved-one accounts; deleting one loved one preserves the
+parent's and siblings' rows.
+
+No agreement-specific duration-based cleanup job, retention schedule, historical-definition table,
+physical link to immutable content, or application-managed external definition archive was established
+in checked-in source. Git history may contain older agreement text but is not established as an
+approved records-retention archive.
+
+Application behavior is therefore resolved. Required audit duration, immutable definition archival,
+backup and log treatment, access controls, deletion exceptions, and legal, privacy, or institutional
+records-retention obligations require owner evidence and remain intentionally retained policy and
+deployment decisions.
 
 ______________________________________________________________________
 
