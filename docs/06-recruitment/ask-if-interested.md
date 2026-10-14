@@ -77,6 +77,27 @@ The participant sees the study in the area labeled for studies suggested by stud
 The study-team-authored promotion appears with or above the study card, depending on the current
 interface presentation.
 
+### Current interface explanation and evidence limits
+
+The study-team modal labels the action and submit control `Ask if interested`. It requires a note,
+limits the client-entered text to 275 characters, and tells staff that the study and note will be
+presented in the participant's *Studies for me* list and will not be sent as a message. For multiple
+selected participants, the modal explains first- and last-name merge tokens and shows how many
+participants will be asked.
+
+A study can retain one reusable Ask if interested default-note template through the current
+interface. For one selected participant, the client substitutes the selected participant's name
+before display; the backend also performs name substitution before recording each promotion. The
+current code and durable records establish presentation and state change, not whether participants
+or study-team members understand the distinction from messaging.
+
+No dedicated comprehension, modal-usability, promotion-open, promotion-impression, or
+promotion-attribution event was established in the reviewed application. Later expressions of
+interest and recommendation state can establish that events occurred, but they do not by
+themselves prove that a participant saw or understood a particular promotion or that the promotion
+caused the response. Naming, placement, usability research, and any approved response-measurement
+design remain product, research, privacy, and analytics decisions.
+
 The action does not guarantee that the participant will:
 
 - Open the study

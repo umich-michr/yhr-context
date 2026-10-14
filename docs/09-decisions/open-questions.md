@@ -1883,57 +1883,89 @@ The following are observations or proposed directions, not implemented requireme
 
 ## PRODUCT-001: Ask if interested comprehension
 
-Determine:
+**Status:** Intentionally retained — product research, usability, privacy, and analytics decision.
 
-- How often users mistake promotion for messaging
-- Whether the current modal text is understood
-- Whether naming or placement should change
-- Whether analytics can measure participant response
+**Established current behavior:** The modal is named `Ask if interested`, requires a note, limits
+client-entered text to 275 characters, supports a reusable default note and name substitution, shows
+the selected-participant count, and explicitly says the study and note will appear in *Studies for
+me* and will not be sent as a message. Promotion state and later interest can be observed, but no
+dedicated comprehension, impression, open, or causal-attribution event was established.
+
+**Owner evidence still required:** Determine how often either audience mistakes promotion for
+messaging, whether the wording and placement are understood, whether naming or placement should
+change, and whether an approved analytics or research design may measure participant response
+without treating later interest as proof of comprehension or causation.
+
+See [Ask If Interested](../06-recruitment/ask-if-interested.md).
 
 ## PRODUCT-002: Matched-participant actions
 
-Investigate whether study teams need actions beyond:
+**Status:** Intentionally retained — product, privacy, authorization, and IRB decision.
 
-- Ask if interested
-- Dismiss
+**Established current behavior:** Matched Participants has Exact Match, Partial Match, Asked if
+interested, and Dismissed lists with list and profile navigation, pagination, counts, selection,
+bulk actions, Ask if interested, and Dismiss. Active-study and source-status checks constrain
+actions; asked participants have no ordinary further action. Before interest, matched-profile
+access hides contact information. List and profile reads require study access and create PHI audit
+evidence.
 
-Any proposed action must preserve participant privacy and IRB constraints.
+**Owner evidence still required:** Determine whether study teams need additional actions, reverse
+transitions, contact operations, or workflow states. Any proposal must define authorization,
+publishability, participant privacy, audit, state-transition, and applicable IRB constraints.
+
+See [Matching and Visibility](../06-recruitment/matching-and-visibility.md).
 
 ## PRODUCT-003: Recruitment effectiveness
 
-Define reliable measures beyond self-reported enrollment totals.
+**Status:** Intentionally retained — analytics, research, privacy, governance, and institutional-owner decision.
 
-Candidate measures include:
+**Established current behavior:** Relational data and Redis provide operational events and counts
+for matches, promotions, expressions of interest, current workflow state, labels, and messages.
+The reviewed participant browser analytics client transports page and route events and left-page
+duration to a configured endpoint. These sources do not establish a validated effectiveness metric,
+causal attribution, verified enrollment source, approved dataset, or effective deployment and
+retention of the analytics endpoint.
 
-- Posting views
-- Matches
-- Promotions
-- Expressions of interest
-- Contact initiation
-- Workflow progression
-- Verified enrollment from an approved source
+**Owner evidence still required:** Define outcomes, denominators, cohorts, attribution windows,
+identity resolution, consent and privacy basis, quality controls, retention, access, deployment
+verification, and an approved enrollment source before treating posting views, matches, promotions,
+interest, contact, workflow progression, or enrollment as recruitment effectiveness.
+
+See [Recruitment Operations Model](../07-data-model/recruitment-operations-model.md).
 
 ## PRODUCT-004: Interested-participant filtering
 
-Determine requirements for:
+**Status:** Intentionally retained — product, privacy, authorization, and performance decision.
 
-- Advanced filters
-- Screening-answer filters
-- Rule-based filtering
-- Stop logic
-- Saved views
-- Export reduction
+**Established current behavior:** The interface provides four fixed status lists, `ALL`, one list
+per study label, pagination, totals, selection, bulk status and label actions, and separate
+study-scoped name search after at least three characters. The ordinary query accepts one status or
+one label, not both. DTO constraints cover relationship, participant, study, status, label, interest
+dates, and navigation bounds. Current export is not a saved reduced-view feature.
+
+**Owner evidence still required:** Define requirements and authorized data exposure for combined or
+advanced filters, screening-answer filters, rule-based filtering, stop logic, saved views, and
+reduced exports, including performance, PHI audit, sharing, retention, and the existing workflow
+PATCH authorization concern.
+
+See [Interested-Participant Management](../06-recruitment/interested-participant-management.md).
 
 ## PRODUCT-005: Suspicious participation
 
-Before documenting fraud controls, define:
+**Status:** Intentionally retained — privacy, security, legal, governance, deployment, and product decision.
 
-- Duplicate account indicators
-- Incentive-driven behavior
-- Abnormal interest spikes
-- False-positive safeguards
-- Study-team review workflow
-- Privacy and governance approval
+**Established current behavior:** No explicit CAPTCHA, throttling, suspicious-participation or fraud
+classification, duplicate-account or duplicate-participation indicator, participant flag, risk
+score, abnormal-interest detection, incentive-behavior detection, review queue, false-positive
+safeguard, or deny or block list was found in the reviewed production source. This does not establish
+that external deployment, identity-provider, network, or institutional controls are absent.
+
+**Owner evidence still required:** Before documenting or implementing controls, define indicators,
+permitted evidence and purpose, review authority, study-team visibility, escalation, false-positive
+safeguards, participant notice and recourse, retention, audit, security response, privacy and legal
+approval, deployment responsibilities, and whether any action may affect access or participation.
+
+See [Recruitment Operations Model](../07-data-model/recruitment-operations-model.md).
 
 ______________________________________________________________________
 

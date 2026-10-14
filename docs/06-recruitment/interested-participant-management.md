@@ -91,11 +91,27 @@ Current list queries:
 - add applied labels; and
 - calculate unread participant-to-study message counts.
 
+The current interface exposes `NEW`, `ELIGIBLE`, `PENDING`, `INELIGIBLE`, `ALL`, and one list per
+study label. `ALL` removes the status constraint. Label lists apply one label identifier rather than
+combining a label with a status. Lists are paginated, show totals, permit page-level and all-results
+selection, and support bulk status movement and bulk label changes. Profile navigation uses interest
+date and relationship ID bounds to find adjacent rows in the current list ordering.
+
+Name search is a separate study-scoped lookup. The client begins requests after at least three
+entered characters and navigates from a selected result to that participant's profile; it is not a
+general filter combined with the active status or label list. The current query constraints support
+relationship, participant, study, one status, one label, exact or bounded interest date, and bounded
+relationship ID. They do not expose screening-answer predicates, arbitrary rule composition, stop
+logic, or saved views.
+
 Statistics likewise count only enabled participants. Participant-side interest history reads study
 IDs from `STUDY_VOLUNTEER` ordered by interest date.
 
 Current exports use the same active interested-participant query before reading full profile data from
-process-local active-user memory.
+process-local active-user memory. Export is an authorized full recruitment export rather than an
+interface for constructing and saving reduced filtered views. Requirements for combined or advanced
+filters, screening-answer filters, rules, stop logic, saved views, and reduced exports remain product,
+privacy, performance, and authorization decisions.
 
 ## Authorization and visibility
 

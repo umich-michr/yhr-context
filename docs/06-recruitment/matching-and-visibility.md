@@ -482,7 +482,27 @@ Eligibility is reevaluated using the updated show-interest form values.
 Ask if interested moves or emphasizes an existing participant-study match in the study-team-promoted
 participant-facing bucket.
 
-It:
+The current Matched Participants interface has four lists: Exact Match, Partial Match, Asked if
+interested, and Dismissed. Exact and partial lists support selecting participants on the current
+page or the applicable all-results action. For an active study, selected exact or partial matches
+can be asked or dismissed. Asked participants remain viewable but cannot receive another ordinary
+list action, and inactive studies do not permit matched-participant actions. Dismissed participants
+can still be selected for Ask if interested, which removes the dismissal exclusion as part of the
+promotion transition.
+
+List and profile reads require study access and create the corresponding recommended-participant PHI
+audit evidence. Before expression of interest, an authorized study member's matched-participant
+profile access hides contact information. Profile navigation can move to the adjacent participant
+within the selected recommendation list. Bulk requests include a test for the source status so an
+item that moved concurrently can fail without being treated as though it still belonged to the
+displayed list.
+
+The implemented terminal actions are Ask if interested and Dismiss. Current source does not
+establish demand for additional actions. Any new action, reverse transition, contact operation, or
+workflow state requires a product decision together with participant-privacy, study-authorization,
+publishability, and applicable IRB review.
+
+Ask if interested:
 
 - Updates the promotion timestamp
 - Creates the applicable study-side exclusion

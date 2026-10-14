@@ -142,6 +142,31 @@ relationships or messages.
 - Bulk messages use one new transaction per participant.
 - Attachment database changes and filesystem operations are not atomic together.
 
+## Recruitment measurement and suspicious-participation boundaries
+
+The relational model provides operational facts such as expressions of interest, current workflow
+status and update time, recommendation and promotion state, labels, messages, and questionnaire
+answers. Study summaries and statistics expose selected counts. These facts can support analysis,
+but the model does not define a validated recruitment-effectiveness measure, causal attribution,
+verified enrollment source, denominator, cohort rule, or approved analytics dataset.
+
+The reviewed participant analytics client transports browser page and route events, left-page
+duration, a browser analytics identifier, language, and cookie-consent values to a configured
+analytics endpoint. That transport is separate from the recruitment relational model. Source review
+did not establish the endpoint's effective deployment, governance, retention, identity resolution,
+approved uses, or a study-team analytics client at the expected source paths. Browser transport and
+relational counters must not be presented as validated effectiveness evidence without an approved
+measurement design and deployment verification.
+
+No explicit production-source implementation was found in the reviewed repositories for CAPTCHA,
+request throttling, suspicious-participation or fraud classification, duplicate-account or
+duplicate-participation indicators, participant flags, risk scores, abnormal-interest detection,
+incentive-behavior detection, review queues, false-positive safeguards, or deny or block lists. This
+source finding does not establish that deployment, identity-provider, network, or institutional
+controls are absent. Definitions, review authority, permitted data use, participant recourse,
+false-positive handling, retention, and governance remain privacy, security, legal, institutional,
+and product decisions.
+
 ## Audit and historical limits
 
 Interested-participant list and profile reads create PHI audit rows. Workflow transitions, labels,
