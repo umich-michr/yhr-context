@@ -84,15 +84,44 @@ backend precondition.
 
 New message objects default to `UNREAD`.
 
-Fetching the full conversation marks each message addressed to the logged-in side as `READ`.
-Consequences:
+Fetching the full conversation loads all message rows for the interested-participant relationship and
+then marks every message addressed to the logged-in side as `READ`. The controller updates each
+applicable row during that request. Consequently:
 
+- opening one conversation with many unread incoming messages marks all of those incoming messages
+  read;
 - participant reads mark staff-to-participant messages read;
 - staff reads mark participant-to-study messages read;
 - one study member's read changes the shared status for all study members; and
 - there is no read timestamp or reader identity.
 
-Inbox summaries are derived from current status, not an immutable delivery or read audit.
+Inbox summaries are derived from current status, not an immutable delivery, acknowledgment, or read
+audit. `UNREAD` and unanswered are different concepts: an inquiry can be read without receiving a
+study-team reply.
+
+## Recommended response-reporting convention
+
+The application does not persist a reply-to relationship or a response-time metric. For reporting,
+the following convention fits the continuous chat-style interaction while remaining distinct from
+current product behavior:
+
+1. A participant inquiry begins with a participant-authored message.
+1. Consecutive participant messages before the next study-team-authored message form one inquiry
+   burst.
+1. The inquiry-received time is the sent time of the first message in the burst.
+1. The first later study-team-authored message in the same conversation is the response.
+1. Response time is that response timestamp minus the burst's first-message timestamp.
+1. A burst with no later study-team message is unanswered.
+1. The oldest unanswered inquiry is the earliest still-open burst, not the oldest unread message.
+
+This is temporal sequence pairing, not semantic linkage to a particular prior message. Automated
+email notifications and Ask if interested are outside `USER_MESSAGE` and are excluded.
+
+While message rows remain retained, reports can retrospectively derive inquiry-burst counts,
+responded and unanswered counts, response rate, response-time distributions, target compliance,
+oldest unanswered age, distinct participants with exchanges, and message counts by direction. Daily
+snapshots are still required for reproducible historical trends in mutable current states such as
+unread count and open-inquiry backlog, and hard deletion removes the operational message evidence.
 
 ## Templates
 

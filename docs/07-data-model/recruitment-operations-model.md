@@ -113,9 +113,15 @@ is relational; bytes are stored in the application filesystem.
 ## Query views
 
 - `V_CONVERSATION_FOR_STUDY_TEAM` derives one row per interested-participant conversation and includes
-  participant-to-study unread count and most recent received date.
+  participant-to-study unread count and most recent received date. Direction is established where
+  message sender equals the participant on `STUDY_VOLUNTEER`.
 - `V_CONVERSATION_FOR_VOLUNTEER` derives participant inbox rows and staff-to-participant unread count.
-- Study synopsis views count enabled `NEW` interested participants and enabled-sender unread messages.
+- The focused Java study-level unread query restricts sender to the participant, status to `UNREAD`,
+  study, and a sent-date window. This supports the participant-to-study definition used by the
+  nonresponsive-report workflow.
+- Study synopsis views count enabled `NEW` interested participants and enabled-sender unread messages;
+  their broader count should not be assumed to have the same directional contract as the focused
+  report query.
 
 These views depend on active-user state. Deactivated participants are hidden without deleting durable
 relationships or messages.
@@ -141,6 +147,28 @@ relationships or messages.
   email or queue side effects cannot be rolled back.
 - Bulk messages use one new transaction per participant.
 - Attachment database changes and filesystem operations are not atomic together.
+
+## Reporting reconstruction and snapshot boundaries
+
+`STUDY_ACTIVE_INTERVAL` records configured activation and deactivation ranges and update time, but no
+cause or actor. `STUDY_AUDIT` can supply a study-team user, operation time, and changed paths for
+posting-date and archived-property actions. The reviewed Java CSV `IMPORTED_STUDY_SYNC_LOG` can
+supply table, column, operation, synchronization time, entity ID, and old/new publishability values.
+Correlating these records can often classify study-team activation or deactivation, imported
+governance transition, or scheduled expiration, but there is no direct correlation key and ambiguous
+cases must remain unknown.
+
+Message sender and sent time support retrospective participant-inquiry-burst response calculations
+while message rows remain. Mutable current states require snapshots for historical trend reporting,
+including `NEW` backlog, workflow-status distribution, label coverage, directional unread messages,
+open unanswered inquiry bursts, and oldest-open-inquiry age. Participant hard deletion removes
+messages and therefore removes that operational response evidence.
+
+The checked-in Oracle scheduler defines a disabled-by-default weekly
+`YHR_NON_RESPONSIVE_STUDIES` job that calls a database package. The package body was not found in the
+reviewed source. Effective enablement, recipients, schedule, and exact package query are deployment
+facts. The directional Java DAO and confirmed report behavior establish participant-to-study unread
+semantics but do not by themselves prove every deployed package revision.
 
 ## Recruitment measurement and suspicious-participation boundaries
 

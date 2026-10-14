@@ -46,13 +46,20 @@ Any associated study team member may activate the study when:
 
 Activation:
 
-- Sets activation to the current date/time
-- Saves the selected deactivation boundary
+- Sends the browser's current epoch-millisecond time as the posting activation value
+- Sends the selected calendar date's browser `Date.getTime()` value as the posting deactivation
+  boundary
 - Causes the derived state to become active
 - Adds or updates the study in active in-memory matching data
-- Creates a new active interval
+- Creates or updates the applicable active interval
 - Initiates asynchronous lifecycle-notification handling
 - Initiates applicable match recomputation
+
+The date picker is date-only but submits a JavaScript `Date` epoch value. It ordinarily represents
+local midnight in the browser's effective time zone. The backend stores a timestamp without a zone,
+while active calculations compare calendar dates. Reports that depend on exact boundaries must
+account for the effective browser, application/JVM, and database time zones rather than assuming one
+universal midnight.
 
 A study team member cannot activate the study or assign a new activation range while
 `PUBLISHABLE = 0`.
@@ -63,16 +70,28 @@ Any associated study member may select Deactivate Study.
 
 Manual deactivation:
 
-- Sets the deactivation boundary to the current date/time
+- Sends browser `Date.now()` as the posting deactivation value, preserving click time rather than a
+  date-picker midnight
 - Makes the study inactive as current time moves beyond that boundary
-- Prompts for total enrollment
+- Prompts for the total number of participants enrolled through the application
 - Removes the study from active in-memory matching data
-- Closes the current active interval
+- Updates the current active interval's deactivation and update times
 - Initiates asynchronous lifecycle-notification handling
 
-The enrollment question is displayed, but the user may indicate that the value is unknown.
+The enrollment field permits a nonnegative value, including an intentional zero, and the interface
+also offers `I do not know`. The intended stored convention is:
 
-Total enrollment is stored through `STUDY_PROPERTY_VALUE`.
+- `0` = the study team reports that no participants were enrolled;
+- positive value = the reported total; and
+- `-1` = unknown or not entered.
+
+The current client maps `doNotKnow || !enrollmentNumber` to `-1`. Preservation of an entered zero
+therefore depends on the form binder supplying string `"0"` rather than numeric `0`; this runtime
+edge case should be tested before treating every stored `-1` as an explicit `I do not know` choice.
+
+Posting-date patch and enrollment-property merge are separate requests. They are not one atomic
+transaction. A failure can therefore leave deactivation saved without the intended enrollment value,
+or leave a prior enrollment value unchanged.
 
 There is no separate manual-deactivation Boolean.
 
@@ -128,24 +147,42 @@ When `PUBLISHABLE` changes to `0`:
 
 ## Automatic reactivation
 
-When imported `PUBLISHABLE` changes from `0` to `1`, reconciliation sets the posting activation date
-to the current time and retains the configured posting deactivation date.
+In the reviewed Java CSV path, when imported `PUBLISHABLE` changes and the resulting study is active
+under its existing posting dates, reconciliation resets `STUDY.POSTING_ACTIVATION_DATE` to the current
+application time and retains the configured posting deactivation date.
 
-When the resulting range is matching-active:
+It then updates the operational study, updates interval history, refreshes process-local active-study
+state, and initiates applicable matching. If the retained deactivation date has passed, the study
+cannot remain active and a study member must establish a valid future range.
 
-- The study returns to active in-memory matching data.
-- Applicable matching recomputation begins.
-- A new active interval may be created.
-- Delayed lifecycle-notification handling begins.
-
-If the retained deactivation date has passed, the resulting range cannot remain matching-active.
-A study member must establish a valid future range.
-
-This imported-publishability behavior differs from merely reevaluating unchanged dates.
+This is implementation-specific behavior, not a general business rule that publishability must reset
+the posting activation date. The checked-in U-M Oracle job invokes database packages whose equivalent
+implementation was not found in the reviewed source.
 
 ## Active intervals
 
 `STUDY_ACTIVE_INTERVAL` stores configured active ranges used for lifecycle queries and notifications.
+A row stores study ID, activation date, deactivation date, and update date. It has no direct cause,
+actor, source, event type, or foreign key to another audit event. The service can add an interval or
+mutate the most recent interval's deactivation and update times, so this table is not an immutable
+event ledger.
+
+Cause, actor, source, and event type can often be derived by temporal and entity correlation:
+
+- A nearby `STUDY_AUDIT` row containing `postingDeactivationDate` supports study-team deactivation
+  and identifies the application user. A row containing both posting-date paths supports explicit
+  activation.
+- In the reviewed Java CSV path, a nearby `IMPORTED_STUDY_SYNC_LOG` row for `STUDY.PUBLISHABLE`
+  with old and new values supports an imported governance transition.
+- Reaching the configured boundary without a corresponding posting-date audit or publishability sync
+  can support scheduled expiration as a reporting classification.
+
+These are evidence-supported classifications rather than stored interval causes. Closely timed
+actions, missing or expired audit data, direct database changes, and deployment paths without
+equivalent logs can remain ambiguous and must be reported as unknown. `STUDY_AUDIT` identifies user,
+study, operation time, and changed paths, but does not retain old and new values. The Java sync log
+records old and new publishability values but no actor, upload/run ID, source filename, or resulting
+interval ID.
 
 The interval service is called by two confirmed production paths:
 

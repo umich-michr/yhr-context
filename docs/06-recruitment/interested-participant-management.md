@@ -107,6 +107,12 @@ logic, or saved views.
 Statistics likewise count only enabled participants. Participant-side interest history reads study
 IDs from `STUDY_VOLUNTEER` ordered by interest date.
 
+Current `NEW`, status, label, and unread counts are mutable operational snapshots. The relational
+model retains the interest time and latest status-update time but not prior statuses, transition
+actor, transition reason, or label-assignment history. Historical trend lines for backlog, status
+distribution, label coverage, unread participant messages, or age buckets therefore require periodic
+snapshots in a reporting store.
+
 Current exports use the same active interested-participant query before reading full profile data from
 process-local active-user memory. Export is an authorized full recruitment export rather than an
 interface for constructing and saving reduced filtered views. Requirements for combined or advanced

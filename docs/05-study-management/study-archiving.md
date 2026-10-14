@@ -28,13 +28,17 @@ Archiving:
 - Sets the archived-date study property.
 - Removes the study from Current Studies.
 - Places the study in Archived Studies.
-- Prevents public access and discovery because stud is inactive .
+- Prevents public access and discovery because the study is already inactive
 - Does not delete the study.
 - Does not change participant-data access.
 - Does not remove exports.
 - Does not hide existing conversations.
 
 `ARCHIVED_DATE` is stored through `STUDY_PROPERTY_VALUE` as string in the long time format.
+
+Archive and unarchive use the study-property update path. `STUDY_AUDIT` records the user, study,
+operation time, and `studyProperties[archivedDate]` field path, but it does not retain the old and new
+archived values. Archive is not a lifecycle cause stored on `STUDY_ACTIVE_INTERVAL`.
 
 ## Unarchive behavior
 

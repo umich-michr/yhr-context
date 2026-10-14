@@ -79,19 +79,42 @@ persist a separate local governance-deactivation state.
 
 ## Transition to publishable
 
-When an imported `PUBLISHABLE` value changes from `0` to `1`:
+### Reviewed Java CSV synchronization path
 
-1. The application updates `STUDY.PUBLISHABLE`.
-1. It sets `POSTING_ACTIVATION_DATE` to the current time.
-1. It records or updates the applicable `STUDY_ACTIVE_INTERVAL`.
-1. It updates local active-study state.
-1. It initiates applicable matching when effective status changes.
+When an imported `PUBLISHABLE` value differs from the current operational value, the Java CSV
+synchronizer toggles the stored Boolean after confirming that the two values differ. If the study is
+then active under its existing posting dates, the synchronizer:
 
-The configured posting deactivation date is not replaced by this path. If that date has passed, the
-resulting range cannot remain matching-active.
+1. Updates `STUDY.PUBLISHABLE`.
+1. Sets `STUDY.POSTING_ACTIVATION_DATE` to the current application time.
+1. Updates the `STUDY` row.
+1. Adds or updates `STUDY_ACTIVE_INTERVAL` using that new activation time and the retained posting
+   deactivation date.
+1. Updates process-local active-study state.
+1. Initiates applicable matching when effective status changes.
 
-This behavior differs from merely reevaluating an unchanged activation range: imported transition to
-publishable explicitly resets the activation boundary.
+The configured posting deactivation date is not replaced by this path. If it remains in the future,
+the study can become active without a study-team member selecting Activate. If it has passed, the
+resulting range cannot remain active.
+
+This is confirmed current implementation for the reviewed Java CSV synchronization path. The
+checked-in Oracle synchronization job invokes a database package instead. Do not assume that direct
+database reconciliation, the Oracle package, or every deployment performs the same activation-date
+reset without separate evidence.
+
+### Imported synchronization evidence
+
+For this Java path, `IMPORTED_STUDY_SYNC_LOG` records:
+
+- table and column name;
+- operation;
+- synchronization time;
+- operational entity ID; and
+- old and new publishability values.
+
+It does not link directly to a CSV upload-log row and does not record the actor, source filename,
+run ID, institutional study number, resulting activation-date write, or active-interval row. Its
+retention and backup behavior are deployment concerns.
 
 ## Known governance concern
 
