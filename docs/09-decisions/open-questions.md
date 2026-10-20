@@ -553,6 +553,8 @@ store completion.
 
 ## MEMORY-005: Transaction boundary for incremental updates — code behavior resolved
 
+**Canonical documentation:** [Participant profile change](../06-recruitment/matching-and-visibility.md#participant-profile-change) and [matching execution and failure handling](../06-recruitment/matching-and-visibility.md#matching-execution-and-failure-handling).
+
 The participant matching-trigger path uses AspectJ `@After` advice on annotated
 controller methods. The advice:
 
@@ -586,6 +588,8 @@ documented according to their own path.
 Database, process-local memory, and Redis do not form one atomic transaction.
 
 ## MEMORY-006: Effective synchronization schedule by deployment — application behavior resolved
+
+**Canonical documentation:** [Schedule representation](../08-operations/administrative-scheduled-jobs.md#schedule-representation) and [scheduled active-membership reconciliation](../06-recruitment/matching-and-visibility.md#scheduled-active-membership-reconciliation).
 
 Confirmed application behavior and installation defaults:
 
@@ -641,6 +645,8 @@ agreement.
 Deployment-specific effective cron schedules and time zones remain covered by `MEMORY-006`.
 
 ## MEMORY-008: Production freshness monitoring — application behavior resolved
+
+**Canonical documentation:** [Matching and memory observability](../08-operations/audit-and-monitoring.md#matching-and-memory-observability) and [match freshness](../07-data-model/redis-match-model.md#match-freshness).
 
 Confirmed application-level observability:
 
