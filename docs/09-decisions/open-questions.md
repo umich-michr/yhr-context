@@ -1485,6 +1485,8 @@ Still deployment-specific:
 
 **Status: application behavior resolved.**
 
+**Canonical documentation:** [Full recommendation recomputation](../07-data-model/redis-match-model.md#full-recommendation-recomputation), including [state that recomputation can reconstruct](../07-data-model/redis-match-model.md#state-that-recomputation-can-reconstruct) and [state that recomputation does not reconstruct](../07-data-model/redis-match-model.md#state-that-recomputation-does-not-reconstruct).
+
 Full recommendation recomputation uses both persistent and process-local state,
 but not by directly joining or rereading all relational business tables during
 the job.
