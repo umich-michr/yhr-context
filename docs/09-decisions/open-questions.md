@@ -1220,6 +1220,8 @@ ______________________________________________________________________
 
 **Application behavior resolved for Java CSV reconciliation.**
 
+**Canonical documentation:** [Current PI membership](../04-users-and-access/study-membership.md#current-pi-membership) and [PI-change behavior](../03-institutional-governance/reconciliation.md#pi-change-behavior).
+
 `STUDY_TEAM_MEMBER` has a unique `(STUDY_ID, USER_ID)` constraint, so a user cannot retain a separate
 ordinary and PI membership for the same study.
 
@@ -1234,6 +1236,8 @@ to the incoming PI.
 ## PI-002: Atomic replacement
 
 **Application behavior resolved with cross-store limits.**
+
+**Canonical documentation:** [PI-change behavior](../03-institutional-governance/reconciliation.md#pi-change-behavior) and [PI replacement transaction and failure boundaries](../03-institutional-governance/reconciliation.md#pi-replacement-transaction-and-failure-boundaries).
 
 The following relational operations and their synchronization logs run inside the current CSV import
 batch transaction:
@@ -1258,6 +1262,8 @@ Notification-recipient behavior is handled separately under `PI-004`.
 ## PI-003: Reconciliation failure
 
 **Application behavior resolved with the existing caught-persistence concern.**
+
+**Canonical documentation:** [PI replacement transaction and failure boundaries](../03-institutional-governance/reconciliation.md#pi-replacement-transaction-and-failure-boundaries) and [PI reconciliation failed](../08-operations/troubleshooting.md#pi-reconciliation-failed).
 
 Explicit flushes enforce delete-before-reassign ordering and can surface membership conflicts before
 later steps. If an unexpected runtime exception escapes, processing stops and cleanup attempts to
@@ -1291,6 +1297,8 @@ must preserve this migration model.
 
 ## PI-005: Historical PI evidence — resolved as current implementation
 
+**Canonical documentation:** [Historical PI evidence](../03-institutional-governance/reconciliation.md#historical-pi-evidence), [PI replacement evidence](../08-operations/audit-and-monitoring.md#pi-replacement-evidence), and [`IMPORTED_STUDY_SYNC_LOG`](../07-data-model/imported-schema.md#imported_study_sync_log).
+
 `IMPORTED_STUDY_SYNC_LOG` records the former and new application user IDs for
 the PI membership update and `piUserId` property update, plus related
 duplicate-membership deletion and account changes.
@@ -1300,6 +1308,8 @@ history: it lacks a source-upload foreign key, durable person identifier,
 username-alias chain, and notification-delivery proof.
 
 ## PI-006: Username changes — resolved as current implementation
+
+**Canonical documentation:** [Institutional username changes](../03-institutional-governance/reconciliation.md#institutional-username-changes) and [Username changes and row identity](../07-data-model/imported-schema.md#username-changes-and-row-identity).
 
 `USER_NAME` is the imported identity key. Reconciliation looks up the
 normalized username, updates names and email but not username, and creates a
