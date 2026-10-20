@@ -383,6 +383,8 @@ ______________________________________________________________________
 
 ## PROFILE-001: Exact incomplete fields — resolved
 
+**Canonical documentation:** [Minimal owning account](../04-users-and-access/participant-registration-consent-and-loved-ones.md#minimal-owning-account) and [required fields versus percentage completeness](../04-users-and-access/participants.md#required-fields-versus-percentage-completeness).
+
 The current signup-for-a-loved-one path gives the minimal owner:
 
 - First name
@@ -409,6 +411,8 @@ Optional completeness fields also remain unanswered but do not belong to the req
 
 ## PROFILE-002: Completing the owner profile — resolved
 
+**Canonical documentation:** [Minimal owning profile](../04-users-and-access/participants.md#minimal-owning-profile) and [minimal owning account](../04-users-and-access/participant-registration-consent-and-loved-ones.md#minimal-owning-account).
+
 There is no dedicated registration continuation or persisted self-participation state.
 
 While operating in owner context, the owner uses ordinary Profile cards:
@@ -424,6 +428,8 @@ another activation or a separate agreement type.
 
 ## PROFILE-003: Visibility after profile completion — resolved
 
+**Canonical documentation:** [Visibility selection](../04-users-and-access/participants.md#visibility-selection) and [visibility ownership](../07-data-model/participant-account-consent-model.md#visibility-ownership).
+
 The minimal owner starts with `visibleToStudyTeams = false`.
 
 Required-field completion and percentage completeness do not include or modify visibility. The owner
@@ -432,6 +438,8 @@ remains restricted until explicitly changing the Visibility profile section.
 Owner and loved-one visibility values belong to separate profiles and do not propagate.
 
 ## PROFILE-004: Country and ZIP copying — resolved
+
+**Canonical documentation:** [Owner and loved-one profile independence](../04-users-and-access/participant-registration-consent-and-loved-ones.md#owner-and-loved-one-profile-independence) and [signup-for-a-loved-one account creation](../07-data-model/participant-account-consent-model.md#signup-for-a-loved-one-account-creation).
 
 The current implementation does not copy country or ZIP from the loved one to the minimal owner.
 
@@ -446,6 +454,8 @@ Preferred language is the confirmed exception: changing the owner's language upd
 preferred language.
 
 ## PROFILE-005: Profile-completeness representation — resolved
+
+**Canonical documentation:** [Required fields versus percentage completeness](../04-users-and-access/participants.md#required-fields-versus-percentage-completeness) and [profile completeness representation](../07-data-model/participant-account-consent-model.md#profile-completeness-representation).
 
 There is no persisted profile-complete flag or percentage.
 
