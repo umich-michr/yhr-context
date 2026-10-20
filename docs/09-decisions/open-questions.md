@@ -1627,6 +1627,8 @@ keys solely from table names.
 
 ## SCHEMA-001: Interested participants — application behavior resolved
 
+**Canonical documentation:** [Physical interested-participant schema](../06-recruitment/interested-participant-management.md#physical-interested-participant-schema) and [interested-participant relationship](../07-data-model/recruitment-operations-model.md#interested-participant-relationship).
+
 `STUDY_VOLUNTEER` is the durable expression-of-interest and workflow relationship.
 
 Confirmed physical and application behavior:
@@ -1655,6 +1657,8 @@ No separate enrollment state, withdrawal state, status history, transition actor
 or retention period is stored.
 
 ## SCHEMA-002: Questionnaires — application behavior resolved
+
+**Canonical documentation:** [Physical questionnaire model](../06-recruitment/questionnaires-and-exports.md#physical-questionnaire-model) and [questionnaire definition and answers](../07-data-model/recruitment-operations-model.md#questionnaire-definition-and-answers).
 
 Confirmed physical schema:
 
@@ -1685,6 +1689,8 @@ Definition-change audit, answer history, external definition archives, and reten
 remain unestablished.
 
 ## SCHEMA-003: Messaging — application behavior resolved
+
+**Canonical documentation:** [Physical message model](../06-recruitment/messaging.md#physical-message-model) and [messages and derived conversations](../07-data-model/recruitment-operations-model.md#messages-and-derived-conversations).
 
 `USER_MESSAGE` is the durable in-application message table. A conversation is derived from all
 messages sharing one `STUDY_VOLUNTEER_ID`; no conversation table exists.
