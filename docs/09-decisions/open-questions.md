@@ -1324,6 +1324,8 @@ Application behavior is resolved. Still deployment-specific:
 
 ## AGEOUT-004: Immediate age-out cleanup and audit — resolved
 
+**Canonical documentation:** [Age-out behavior](../04-users-and-access/participant-registration-consent-and-loved-ones.md#age-out-behavior), including [transition at maturity](../04-users-and-access/participant-registration-consent-and-loved-ones.md#transition-at-maturity), and [child age-out evidence and monitoring](../08-operations/audit-and-monitoring.md#child-age-out-evidence-and-monitoring).
+
 Age-out uses the common participant-deactivation service with reason `CHILD_TURNED_ADULT`.
 
 The service:
@@ -1345,6 +1347,8 @@ No distinct age-out PHI-audit event is invoked by the reviewed path. `USER_DEACT
 `CHILD_DEACTIVATION_NOTICE` are the confirmed durable records.
 
 ## AGEOUT-005: Adult self-registration and historical data — application behavior resolved
+
+**Canonical documentation:** [Adult self-registration after age-out](../04-users-and-access/participant-registration-consent-and-loved-ones.md#adult-self-registration-after-age-out) and [self-registration identity after age-out](../07-data-model/participant-account-consent-model.md#self-registration-identity-after-age-out).
 
 Age-out disables the loved-one account but does not delete it, remove its `LOVED_ONE` relationship, or
 change its generated username. Existing profile, agreement, study, questionnaire, message, and other
