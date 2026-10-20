@@ -249,6 +249,8 @@ The backend behavior is confirmed:
 
 The audit record does not identify the rendered child/adult wording variant.
 
+Canonical documentation: [Self and loved-one agreement presentation](../04-users-and-access/participant-registration-consent-and-loved-ones.md#self-and-loved-one-agreement-presentation) and [participant agreement audit](../07-data-model/participant-account-consent-model.md#agreement-audit).
+
 ## AGREEMENT-003: Child-versus-adult displayed clauses — resolved
 
 The frontend does not select separate child and adult agreement variants.
@@ -263,6 +265,8 @@ covers both an “adult or child” represented by the owner.
 Relationship-specific child/adult wording exists in the signup form and is validated against date of
 birth, but it does not select the agreement body. Neither the rendered body nor the common
 acknowledgment variant is stored in `USER_AGREEMENT_AUDIT`.
+
+Canonical documentation: [Self and loved-one agreement presentation](../04-users-and-access/participant-registration-consent-and-loved-ones.md#self-and-loved-one-agreement-presentation).
 
 ## AGREEMENT-004: Decline target in loved-one context — resolved
 
@@ -280,6 +284,8 @@ Consequences:
 
 The ordinary Account Settings deactivation screen is a separate workflow and may display related
 accounts for selection.
+
+Canonical documentation: [Agreement decline behavior](../04-users-and-access/participant-registration-consent-and-loved-ones.md#declining-an-updated-agreement) and the [participant agreement and deactivation model](../07-data-model/participant-account-consent-model.md#decline-behavior).
 
 ## AGREEMENT-005: Decline reason and operational history — resolved
 
@@ -309,6 +315,8 @@ an administrator performs the deactivation.
 The persistence behavior is confirmed. Whether a particular administration UI exposes this reason
 and timestamp remains a separate user-interface question.
 
+Canonical documentation: [Agreement decline behavior](../04-users-and-access/participant-registration-consent-and-loved-ones.md#declining-an-updated-agreement) and the [participant agreement and deactivation model](../07-data-model/participant-account-consent-model.md#decline-behavior).
+
 ## AGREEMENT-006: Support reactivation workflow — application behavior resolved
 
 The current administrator workflow is in the React `yhr-study-team` application, not the obsolete
@@ -335,6 +343,8 @@ procedure rather than implemented application behavior.
 Implementation caution: the current UI disables child-age-out reactivation using seeded numeric
 reason ID `261001`. The backend independently checks the semantic `CHILD_TURNED_ADULT` lookup and is
 authoritative if deployment IDs differ.
+
+Canonical documentation: [Participant reactivation behavior](../04-users-and-access/participant-registration-consent-and-loved-ones.md#agreement-decline-and-reactivation) and [participant-reactivation troubleshooting](../08-operations/troubleshooting.md#participant-cannot-use-a-reactivated-account).
 
 ## AGREEMENT-008: Agreement-definition and policy retention — application behavior resolved; policy intentionally retained
 
