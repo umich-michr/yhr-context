@@ -1035,6 +1035,8 @@ The row-order rule is resolved. Transaction and error boundaries remain open.
 
 **Application behavior resolved.**
 
+**Canonical documentation:** [Row independence and ordering](../03-institutional-governance/import-pipeline.md#row-independence-and-ordering) and [rollback and correction](../03-institutional-governance/import-pipeline.md#rollback-and-correction).
+
 A CSV row does not have an independent database transaction. The importer uses an explicit
 transaction processor with a default batch size of 500 processed rows. One entity manager and one
 transaction span the current batch.
@@ -1060,6 +1062,8 @@ import-result email is sent after `processFile(...)` returns.
 
 **Application behavior resolved with a known implementation concern.**
 
+**Canonical documentation:** [Failure and continuation behavior](../03-institutional-governance/import-pipeline.md#failure-and-continuation-behavior) and [CSV import reported row or batch failures](../08-operations/troubleshooting.md#csv-import-reported-row-or-batch-failures).
+
 A validation failure occurs before persistence and is recorded as a row error. Processing continues.
 
 A `PersistenceException` during row persistence or reconciliation is caught and recorded, and the
@@ -1081,6 +1085,8 @@ started before rollback cannot be reversed by the database transaction.
 ## IMPORT-003: Continuation after invalid row
 
 **Application behavior resolved.**
+
+**Canonical documentation:** [Validation and anomaly reporting](../03-institutional-governance/import-pipeline.md#validation-and-anomaly-reporting) and [error handling](../03-institutional-governance/reconciliation.md#error-handling).
 
 - Invalid publishability: bean-validation error; record the row and continue.
 - Missing PI username: bean-validation error; record the row and continue.
@@ -1108,6 +1114,8 @@ started before rollback cannot be reversed by the database transaction.
 
 **Application behavior resolved.**
 
+**Canonical documentation:** [CSV row-order behavior](../03-institutional-governance/reconciliation.md#csv-row-order-behavior) and [lifecycle notifications](../05-study-management/study-lifecycle.md#lifecycle-notifications).
+
 For successful sequential rows that cause:
 
 ```text
@@ -1133,6 +1141,8 @@ the importer does not collapse the rows before reconciliation.
 ## IMPORT-005: Import-run identity
 
 **Application behavior resolved.**
+
+**Canonical documentation:** [Upload artifacts and run correlation](../03-institutional-governance/import-pipeline.md#upload-artifacts-and-run-correlation), [CSV upload and reconciliation logs](../07-data-model/imported-schema.md#csv-upload-and-reconciliation-logs), and [CSV import investigations](../08-operations/audit-and-monitoring.md#csv-import-investigations).
 
 There is no single end-to-end import-run or transaction identifier.
 
@@ -1163,6 +1173,8 @@ application-enforced correlation relationship.
 ## IMPORT-006: Recovery and correction
 
 **Application behavior resolved.**
+
+**Canonical documentation:** [Rollback and correction](../03-institutional-governance/import-pipeline.md#rollback-and-correction) and [interrupted CSV import recovery](../08-operations/troubleshooting.md#interrupted-csv-import-recovery).
 
 The application has no resume cursor, last-committed-row checkpoint, or command that continues an
 interrupted processed file. Recovery requires a new CSV submission.
