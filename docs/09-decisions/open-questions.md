@@ -832,6 +832,7 @@ Recipients are resolved at dispatch time.
 The lifecycle query does not distinguish manual, date-driven, and
 publishability-driven causes. It operates on active intervals recorded by the
 application.
+**Canonical documentation:** [Activation and deactivation announcements](../05-study-management/study-notifications.md#activation-and-deactivation-announcements) and [recipient behavior](../05-study-management/study-notifications.md#recipient-behavior).
 
 ## NOTIFY-002: Stabilization calculation
 
@@ -883,6 +884,7 @@ A study may receive multiple warnings when:
 
 There is no old warning state to clear and no lifecycle-warning deduplication
 marker or idempotency key in the reviewed implementation.
+**Canonical documentation:** [Upcoming-deactivation warning](../05-study-management/study-notifications.md#upcoming-deactivation-warning) and [batch notification lifecycle windows](../08-operations/administrative-scheduled-jobs.md#batch-notification-lifecycle-windows).
 
 ## NOTIFY-005: Ask if interested frequency
 
@@ -902,6 +904,7 @@ Supported values are:
 
 There is no immediate value and no separate Ask if interested frequency
 setting. A `NEVER` preference disables this recommendation-email path.
+**Canonical documentation:** [Scheduled email notification](../06-recruitment/ask-if-interested.md#scheduled-email-notification) and [Ask if interested participant notification](../05-study-management/study-notifications.md#ask-if-interested-participant-notification).
 
 ## NOTIFY-006: Last-login definition
 
@@ -926,6 +929,7 @@ For loved-one accounts:
   security context but does not call `recordLoginTime()`.
 - A context switch therefore does not itself update the represented loved
   one's last-login timestamp.
+  **Canonical documentation:** [Scheduled email notification](../06-recruitment/ask-if-interested.md#scheduled-email-notification) and [Ask if interested participant notification](../05-study-management/study-notifications.md#ask-if-interested-participant-notification).
 
 ## NOTIFY-007: Repeated promotion
 
@@ -947,6 +951,7 @@ The first successful promotion's relational message row remains unless another
 business action removes promotion-message rows for the pair. No ordinary
 reverse transition was found that clears `ASKED_IF_INTERESTED` solely to allow
 repeat promotion.
+**Canonical documentation:** [Repeat behavior and participant response](../06-recruitment/ask-if-interested.md#repeat-behavior-and-participant-response) and [explicit exclusion transitions](../07-data-model/redis-match-model.md#explicit-exclusion-transitions).
 
 ## NOTIFY-008: Digest grouping
 
@@ -971,6 +976,7 @@ Therefore:
 - Frequency selection determines which batch run evaluates the account.
 - Branding and template selection occur during email generation for the
   deployed instance; they are not a cross-instance grouping mechanism.
+  **Canonical documentation:** [Scheduled email notification](../06-recruitment/ask-if-interested.md#scheduled-email-notification) and [Ask if interested participant notification](../05-study-management/study-notifications.md#ask-if-interested-participant-notification).
 
 ## NOTIFY-009: Delivery evidence
 
